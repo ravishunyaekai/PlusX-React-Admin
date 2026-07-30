@@ -1,0 +1,144 @@
+.invoiceMainContainer{
+    background-color: #242424;
+    height: 94.3vh;
+    overflow: scroll;
+    padding: 20px;
+}
+.invoiceMainContainer::-webkit-scrollbar{
+    display: none;
+}
+.invoiceHeading{
+    font-size: 24px;
+    font-weight: 600;
+    color: #00ffcc;
+}
+.invoiceSection{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 30px;
+}
+.invoiceDownloadSection{
+    display: flex;
+    justify-content: space-between;
+    cursor: pointer;
+}
+.downloadButton{
+    display: flex;
+    align-items: center;
+    column-gap: 8px;
+    background-color: #00ffcc;
+    color: #000000;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+.downloadButton img{
+width: 20px;
+height: auto;
+}
+.downloadButton span{
+  font-size: 16px;
+  font-weight: 600;
+  
+}
+.container {
+    border: 1px solid #00ffcc;
+    background-color: #000000;
+    padding: 20px;
+    width: 100%;
+    margin: auto;
+  }
+  
+  .table {
+    width: 100% !important;
+    font-size: 16px;
+    color: #ffffff;
+  }
+  
+  .logoSection {
+    width: 60%;
+    vertical-align: baseline;
+  }
+  
+  .logoImage {
+    max-width: 150px;
+    margin-bottom: 20px;
+  }
+  
+  .companyInfo p,
+  .billTo p,
+  .invoiceDetails p,
+  .serviceItem td,
+  .totalAmount p {
+    font-size: 16px;
+  }
+  .serviceHeader th{
+    font-size: 16px;
+    padding: 18px;
+    color: #00ffcc;
+  }
+  .serviceItem td{
+    font-size: 16px;
+    padding: 18px;
+  }
+  .invoiceTitle {
+    font-size: 38px;
+    line-height: 38px;
+    font-weight: 500;
+    text-align: right;
+  }
+  .invoiceTitle p{
+    color:#00ffcc;
+  }
+  .bookingId {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: right;
+  }
+  .bookingId p{
+    color: #ffffff;
+  }
+  .billTo {
+    width: 40%;
+    padding-right: 20px;
+  }
+  
+  .billToName {
+    font-size: 16px;
+    font-weight: bold;
+  }
+  
+  .invoiceDetails {
+    text-align: right;
+  }
+  
+  .serviceHeader {
+    background-color: #242424;
+    border-radius: 4px !important;
+    color: #ffffff;
+    font-size: 16px;
+    padding: 12px 10px;
+  }
+  
+  .serviceItem {
+    border-bottom: 1px solid #5e676f;
+  }
+  
+  .totalAmountLabel {
+    font-size: 16px;
+    margin-bottom: 0px !important;
+    font-weight: bold;
+    color: #00ffcc;
+  }
+  .totalAmountValue{
+    font-size: 16px;
+    margin-bottom: 0px !important;
+    font-weight: bold;
+  }
+  
+  .amountRightAlign {
+    text-align: right;
+  }
+  

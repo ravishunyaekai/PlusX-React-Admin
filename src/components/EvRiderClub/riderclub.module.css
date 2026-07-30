@@ -1,0 +1,9 @@
+.riderClubSection{
+    background-color: #242424;
+    height: 94.3vh;
+    overflow: scroll;
+    padding: 20px 0px;
+}
+.riderClubSection::-webkit-scrollbar{
+    display: none;
+}

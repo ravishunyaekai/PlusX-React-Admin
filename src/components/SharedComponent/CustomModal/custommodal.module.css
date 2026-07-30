@@ -1,0 +1,97 @@
+.modalBackdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+  }
+  
+  .modal {
+    position: absolute;
+    background: #000000;
+    padding: 34px 24px;
+    border-radius: 8px;
+    width: 650px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    top: 80px;
+    border: 1px solid #00ffcc;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .modalHead {
+    font-size: 20px;
+    font-weight: 600;
+    color: #ffffff;
+  }
+  .modalHead span{
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+  }
+  .driverSelect {
+    position: relative;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  .driverSelect select {
+    width: 100%;
+    padding: 12px;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    background-color: #242424;
+    font-size: 16px;
+    font-weight: 500;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: 30px;
+    cursor: pointer;
+  }
+  
+  .dropdownIcon {
+    position: absolute;
+    right: 12px;
+    transform: translateY(-50%);
+    color: #ffffff;
+    pointer-events: none;
+  }
+  
+  .modalActions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+  }
+  
+  .assignBtn {
+    background-color: #00ffcc;
+    color: #000000;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 8px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .closeBtn {
+    background-color: #ffffff;
+    color: #000000;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 8px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  

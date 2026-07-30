@@ -1,0 +1,24 @@
+.evBuysellContainer{
+    background-color: #242424;
+    height: 94.2vh;
+    overflow: scroll;
+    padding: 20px 0px;
+}
+.evBuysellContainer::-webkit-scrollbar{
+    display: none;
+}
+.riderClubSection{
+    background-color: #242424;
+    height: 94.2vh;
+    overflow: scroll;
+    padding: 20px 0px;
+}
+.riderClubSection::-webkit-scrollbar{
+    display: none;
+}
+.ChargerDetailsSection{
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    row-gap: 40px;
+}

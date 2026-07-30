@@ -1,0 +1,110 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+ 
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+/*  
+.select-search-input {
+  background-color: #000000 !important;
+  border: none !important;
+  outline: none !important;
+  border-bottom: 1px solid #ffffff !important;
+  padding: 6px 10px !important;
+  color: #ffffff !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  width: 26vw !important;
+}
+ 
+.select-search-container:not(.select-search-is-multiple) .select-search-select {
+  position: absolute;
+  z-index: 9999 !important;
+  top: 58px;
+  right: 0;
+  left: 0;
+  background-color: #000000 !important;
+  max-height: 210px !important;
+  overflow-y: scroll !important;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  border-radius: 5px !important;
+  width: 26vw !important;
+  border: 1px solid #00ffcc !important;
+}
+ 
+.select-search-option {
+  background-color: #000000 !important;
+  color: #fff !important;
+}
+ 
+.select-search-option:hover {
+  color: #00ffcc !important;
+}
+ 
+.select-search-is-selected {
+  font-weight: 400 !important;
+  color: #fff !important;
+}
+ 
+.select-search-container:not(.select-search-is-multiple)
+  .select-search-select::-webkit-scrollbar {
+  display: none;
+} */
+
+.select-search-container {
+  width: 100% !important;
+}
+ 
+.select-search-input {
+  background-color: #000000 !important;
+  border: none !important;
+  outline: none !important;
+  border-bottom: 1px solid #ffffff !important;
+  padding: 6px 10px !important;
+  color: #ffffff !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  height: 35px !important;
+}
+ 
+.select-search-container:not(.select-search-is-multiple) .select-search-select {
+  position: absolute;
+  z-index: 9999 !important;
+  top: 58px;
+  right: 0;
+  left: 0;
+  background-color: #000000 !important;
+  max-height: 210px !important;
+  overflow-y: scroll !important;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  border-radius: 5px !important;
+  border: 1px solid #00ffcc !important;
+}
+ 
+.select-search-option {
+  background-color: #000000 !important;
+  color: #fff !important;
+}
+ 
+.select-search-option:hover {
+  color: #00ffcc !important;
+}
+ 
+.select-search-is-selected {
+  font-weight: 400 !important;
+  color: #fff !important;
+}
+ 
+.select-search-container:not(.select-search-is-multiple)
+  .select-search-select::-webkit-scrollbar {
+  display: none;
+}

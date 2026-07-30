@@ -1,0 +1,62 @@
+@import "rsuite/dist/rsuite.css";
+.rs-picker-popup {
+    top: 246px !important;
+    left: 300px !important;
+    border-radius: 4px !important;
+    border: 1px solid #00ffcc;
+}
+.rs-picker-daterange-panel {
+    /* right:-61% !important ;
+     left: 0% !important;
+     top: 246px !important; */
+     background-color: #000000 !important;
+    
+     color: #ffffff !important;
+ }
+.rs-btn-link {
+    color: #ffffff !important;
+    text-decoration: none !important;
+}
+
+.rs-input {
+    width: 24vw !important;
+    background-color: #000000 !important;
+    border: none !important;
+    border-radius: 0px !important;
+    padding: 6px 10px !important;
+    color: #ffffff !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+}
+
+.rs-input-group.rs-input-group-inside {
+    width: 100% !important;
+    background-color: #000000 !important;
+    border: none !important;
+    border-bottom: 1px solid #ffffff !important;
+    outline: none !important;
+    border-radius: 0px !important;
+}
+.rs-calendar-table-cell-content:hover {
+  background-color: #242424 !important;
+  color: whitesmoke !important;
+}
+.rs-picker-popup .rs-calendar .rs-calendar-table-cell:hover .rs-calendar-table-cell-content {
+    background-color: #242424 !important;
+    color: #ffffff !important;
+}
+.rs-btn-subtle {
+    color: #ffffff !important;
+}
+.rs-calendar-table-header-cell-content {
+   color: #ffffff !important;
+}
+.rs-btn:hover, .rs-btn:focus {
+  color: #00ffcc !important;
+  background-color: #242424 !important;
+}
+@media(max-width:1500px){
+.rs-input {
+    width: 20vw !important;
+}
+}

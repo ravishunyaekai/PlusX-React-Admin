@@ -1,0 +1,35 @@
+.containerCharger {
+  padding: 20px;
+  background-color: #242424;
+  color: white;
+  font-family: "Inter", sans-serif !important;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table thead {
+  background-color: #000000;
+  color: #00ffcc !important;
+}
+.table th {
+  padding: 20px;
+  font-size: 14px;
+  font-weight: 400;
+  text-align: left;
+}
+.table td {
+  padding: 20px;
+  font-size: 14px;
+  font-weight: 400;
+  text-align: left;
+  border-bottom: 1px solid #ffffff;
+}
+.table thead th:first-child {
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+}
+.table thead th:last-child {
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+}

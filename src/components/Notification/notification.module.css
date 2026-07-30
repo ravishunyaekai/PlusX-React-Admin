@@ -1,0 +1,33 @@
+.appSignupContainer{
+    background-color: #242424;
+    height: 94.3vh;
+    overflow: scroll;
+    padding: 20px 0px; 
+}
+.appSignupContainer::-webkit-scrollbar{
+    display: none;
+}
+.DetailsMainHeading{
+    padding: 0px 20px;
+    color: #00ffc3;
+    font-size: 28px;
+    font-weight: 600;
+  }
+.appSignupSection{
+    background-color: #242424;
+    height: 94vh;
+    overflow: scroll;
+    padding: 20px 0px;
+}
+.appSignupSection::-webkit-scrollbar{
+    display: none;
+}
+/* style the error container */
+.errorContainer{
+    padding: 20px;
+    background-color: #000;
+    color: #00ffc3;
+    margin: 20px;
+    border-radius: 20px;
+    font-size: 18px;
+}

@@ -1,0 +1,38 @@
+.electricBikeSection{
+    background-color: #242424;
+    height: 94.3vh;
+    overflow: scroll;
+    padding: 20px 0px;
+}
+.electricBikeSection::-webkit-scrollbar{
+    display: none;
+}
+.errorContainer{
+  padding: 20px;
+  background-color: #000;
+  color: #00ffc3;
+  margin: 20px;
+  border-radius: 20px;
+  font-size: 18px;
+}
+.stationContainer{
+    background-color: #242424;
+    height: 94.2vh;
+    overflow: scroll;
+    padding: 20px 0px;
+}
+.stationContainer::-webkit-scrollbar{
+    display: none;
+}
+.appSignupSection{
+    background-color: #242424;
+    height: 94.2vh;
+    overflow: scroll;
+    padding: 20px 0px;
+}
+.appSignupSection::-webkit-scrollbar{
+    display: none;
+}
+.ChargerDetailsSection{
+    padding: 20px;
+}

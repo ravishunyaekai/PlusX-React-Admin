@@ -1,0 +1,90 @@
+.containerCharger {
+    padding: 20px;
+    background-color: #242424;
+    color: white;
+    font-family: "Inter", sans-serif !important;
+}
+.editContent{
+    display: flex;
+    column-gap: 10px;
+    cursor: pointer;
+}
+.editContent img{
+    width: 24px;
+    cursor: pointer;
+}
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table thead {
+    background-color: #000000;
+    color: #00ffcc !important;
+}
+
+.table th {
+    padding: 20px;
+    font-size: 14px;
+    font-weight: 400;
+    text-align: left;
+}
+
+.table td {
+    padding: 20px;
+    font-size: 14px;
+    font-weight: 400;
+    text-align: left;
+    border-bottom: 1px solid #ffffff;
+}
+
+.table thead th:first-child {
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+}
+
+.table thead th:last-child {
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+}
+
+.editButton,
+.deleteButton {
+    background-color: #2e2e2e;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 5px 10px;
+    margin-right: 5px;
+    border-radius: 3px;
+}
+
+
+.listSpan{
+    padding: 0px 20px !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    color: #00ffcc !important;
+    border-bottom: none !important;
+    position: relative;
+    top: 12px;
+}
+/* @media (max-width: 1440px) {
+  .containerCharger {
+    width: 95%;
+    overflow-x: scroll;
+  }
+  .containerCharger::-webkit-scrollbar {
+    width: 8px;
+  }
+ 
+  .containerCharger::-webkit-scrollbar-track {
+    background: #1e1e1e;
+    border-radius: 10px;
+  }
+ 
+  .containerCharger::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 10px;
+  }
+} */

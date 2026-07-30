@@ -1,0 +1,92 @@
+.graph {
+  /* padding: 20px; */
+}
+
+.graphContainer {
+  border: 1.5px solid #00ffc3;
+  background-color: #000000;
+  border-radius: 20px;
+}
+
+.graphHeadingGroup {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Chart Heading Section*/
+.graphHeading {
+  color: #00ffc3;
+  padding-top: 20px;
+  padding-left: 20px;
+  font-size: 25px;
+}
+
+.menu {
+  position: relative;
+  color: #fff !important;
+  padding-right: 20px;
+  cursor: pointer;
+}
+
+/* Menu Dialog Section*/
+.menuDialog {
+  position: absolute;
+  top: 30px;
+  right: 25px;
+  background: linear-gradient(rgb(42, 42, 42), rgb(0, 0, 0));
+  border: 1px solid #00ffc3;
+  padding: 10px 14px;
+  width: 140px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+  border-radius: 2px;
+  color: #ffffff;
+}
+
+.menuDialog p {
+  margin: 0;
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.menuOption {
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  column-gap: 5px;
+}
+
+.menuOption:hover {
+  color: #00ffc3;
+}
+
+.menuOptionActive {
+  color: #00ffc3;
+}
+
+/* Time Range Section*/
+.chartTimeRange {
+  color: #fff;
+  padding-left: 23px;
+}
+
+/* Line Chart Section */
+.chart {
+  padding: 20px;
+}
+
+@media (max-width: 992px) {
+  .menuDialog {
+    padding: 5px 7px;
+    width: 120px;
+  }
+}
+
+@media (max-width: 540px) {
+  .menuDialog {
+    top: 40px;
+    padding: 5px 7px;
+    width: 100px;
+  }
+}

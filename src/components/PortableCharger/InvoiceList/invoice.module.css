@@ -1,0 +1,8 @@
+.errorContainer{
+    padding: 20px;
+    background-color: #000;
+    color: #00ffc3;
+    margin: 20px;
+    border-radius: 20px;
+    font-size: 18px;
+  }
