@@ -21,7 +21,7 @@ const SideNavbar = () => {
             timeSlot       : false,
         },
         pickAndDrop        : { bookingList    : false, invoiceList : false, timeSlot : false },
-        evRoadAssistance   : { bookingList    : false, invoiceList : false },
+        evRoadAssistance   : { bookingList    : false, invoiceList : false, offlineLeads : false },
         // evPreSalesTesting  : { testingBooking : false, timeSlot    : false },
         // evSpecializedShops : {
         //     shopList     : false,
@@ -89,7 +89,7 @@ const SideNavbar = () => {
                 : { bookingList: false, invoiceList: false, timeSlot: false },
             evRoadAssistance: location.pathname.includes("/ev-road-assistance")
                 ? prevState.evRoadAssistance
-                : { bookingList: false, invoiceList: false },
+                : { bookingList: false, invoiceList: false, offlineLeads: false },
             // evPreSalesTesting: location.pathname.includes("/ev-pre-sales-testing")
             //     ? prevState.evPreSalesTesting
             //     : { testingBooking: false, timeSlot: false },

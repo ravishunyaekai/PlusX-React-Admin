@@ -80,16 +80,32 @@ const PurchaseList = () => {
             {loading ? <Loader /> :
                 purchaseList.length === 0 ? (
                     <EmptyList
-                        tableHeaders={["Purchase Date", "Customer Name", "Phone Number", "Product Name", "Type Of Service","Action"]}
+                        tableHeaders={["Date", "Customer Name", "Phone Number", "Product Name", "Type Of Service","Action"]}
                         message="No data available"
                     />
                 ) : (
                 <>
                     <List 
-                        tableHeaders={[ "Purchase Date", "Customer Name","Phone Number", "Product Name", "Type Of Service","Action"]}
+                        tableHeaders={[ "Date", "Customer Name","Phone Number", "Product Name", "Type Of Service","Action"]}
                         listData = {purchaseList}
                         keyMapping = {[
-                            { key: 'purchase_date', label: 'Date', format: (date) => moment(date).format('DD MMM YYYY') }, 
+                            {
+                                key: 'purchase_date',
+                                label: 'Date',
+                                relatedKeys: ['type_of_service', 'installation_date'],
+                                format: (data, key, relatedKeys) => {
+                                    const service = data[relatedKeys[0]];
+                                    const serviceLabel = Array.isArray(service)
+                                        ? service.map(o => o.label).join(", ")
+                                        : (service?.label || service || '');
+                                    const isInstallationOnly = String(serviceLabel).toLowerCase() === 'installation only';
+                                    const date = isInstallationOnly ? data[relatedKeys[1]] : data[key];
+
+                                    if (!date || String(date).startsWith('0000-00-00')) return '-';
+                                    const formatted = moment(date);
+                                    return formatted.isValid() ? formatted.format('DD MMM YYYY') : '-';
+                                }
+                            },
                             { key: 'customer_name',   label: 'Customer Name' }, 
                             { key: 'customer_mobile', label: 'Phone Number' }, 
                             { key: 'product_name',    label: 'Product Name' }, 

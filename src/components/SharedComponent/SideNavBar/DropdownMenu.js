@@ -26,6 +26,7 @@ export const menuItems = {
     evRoadAssistance: [
         { id: "bookingList",       label: "Booking List", path: "/ev-road-assistance/booking-list" },
         { id: "timeSlot",          label: "Time Slot", path: "/ev-road-assistance/time-slot-list" },
+        { id: "offlineLeads",      label: "RSA Offline Leads", path: "/ev-road-assistance/offline-leads" },
         { id: "invoiceList",       label: "Invoice List", path: "/ev-road-assistance/invoice-list" },
         { id: "failedBookingList", label: "Failed Booking", path: "/ev-road-assistance/failed-booking-list" },
     ],
