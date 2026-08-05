@@ -4,7 +4,7 @@ import styles from './details.module.css';
 import Eye from '../../../assets/images/ViewEye.svg';
 import Pagination from '../Pagination/Pagination';
 
-const DeatilsBookingHistory = ({ title, headers, bookingData, bookingType }) => {
+const DeatilsBookingHistory = ({ title, headers, bookingData, bookingType, count }) => {
     const navigate = useNavigate();
 
     const handleViewClick = (id) => {
@@ -19,7 +19,11 @@ const DeatilsBookingHistory = ({ title, headers, bookingData, bookingType }) => 
     };
     return (
         <div className={styles.addressListContainer}>
-            <span className={styles.sectionsTitle}>{title}</span>
+            {/* Show total bookings beside heading; use singular "booking" when count is 1 */}
+            <span className={styles.sectionsTitle}>
+                {title}
+                {/* {count != null ? ` - ${count} ${count === 1 ? 'booking' : 'bookings'}` : ''}  (temporarily disabled) */}
+            </span>
             <table className={`table ${styles.customTable}`}>
                 <thead>
                     <tr>

@@ -62,7 +62,10 @@ const EditEVCharger = () => {
     const brandDropdownRef                          = useRef(null);
     const serviceDropdownRef              = useRef(null);
     const [isActive, setIsActive]         = useState(false);
-    const [galleryFiles, setGalleryFiles] = useState([]); 
+    const [galleryFiles, setGalleryFiles] = useState([]);
+    const [galleryIds, setGalleryIds]     = useState([]);
+    const [deletedGalleryIds, setDeletedGalleryIds] = useState([]);
+    const [removeCoverImage, setRemoveCoverImage]   = useState(false);
 
     const fetchDetails = () => {
         const obj = {
@@ -93,6 +96,10 @@ const EditEVCharger = () => {
                 setspecification(data?.specification_pdf);
                 setfeature(data?.charger_feature);
                 setFile(data?.charger_image);
+                setGalleryFiles(response?.gallery_data || data?.gallery_data || []);
+                setGalleryIds(response?.gallery_id || data?.gallery_id || []);
+                setDeletedGalleryIds([]);
+                setRemoveCoverImage(false);
                 setIsActive(data?.status == 1 ? true : false);  
 
                 const newFtrs = [];
@@ -146,6 +153,9 @@ const EditEVCharger = () => {
             // { name: "vehicleModal",  value: vehicleModal,  errorMessage: "Vehicle Model is required.", isArray: true  },
             { name: "usedFor",       value: usedFor,       errorMessage: "Used For is required.", isArray: true  },
             { name: "propertyType",  value: propertyType,  errorMessage: "Property Type is required.", isArray: true  },
+            // Cover Image & Gallery Image required validations (temporarily disabled)
+            // { name: "file",          value: file,          errorMessage: "Cover Image is required." },
+            // { name: "gallery",       value: galleryFiles,  errorMessage: "Gallery Image is required.", isArray: true },
         ];
         const newErrors = fields.reduce((errors, { name, value, errorMessage, isArray }) => {
             if ((isArray && (!value || value.length === 0)) || (!isArray && !value)) {
@@ -156,6 +166,50 @@ const EditEVCharger = () => {
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
+    const buildEditFormData = (featureValues, forceRemoveCover = false) => {
+        const formData = new FormData();
+        formData.append("userId", userDetails?.user_id);
+        formData.append("email", userDetails?.email);
+        formData.append("charger_id", chargerId);
+        formData.append("charger_name", chargerName);
+        formData.append("compatible", JSON.stringify(compatible));
+        formData.append("outputPower", outputPower);
+        formData.append("warrantyType", warrantyType);
+        formData.append("charger_feature", JSON.stringify(featureValues));
+        formData.append("description", description);
+        formData.append("status", isActive);
+
+        formData.append("vehicleSpecification", vehicleSpecification?.value || '');
+        // formData.append("vehicleBrand", vehicleBrand.value);
+        // formData.append("vehicleModal", vehicleModal.value);
+        formData.append("price", price);
+        formData.append("usedFor", JSON.stringify(usedFor));
+        formData.append("propertyType", JSON.stringify(propertyType));
+
+        if (specification) {
+            formData.append("specification_pdf", specification);
+        }
+
+        if (file instanceof File) {
+            formData.append("charger_image", file);
+        } else if (forceRemoveCover || removeCoverImage) {
+            formData.append("delete_charger_image", 1);
+            formData.append("remove_cover_image", 1);
+        }
+
+        if (galleryFiles.length > 0) {
+            galleryFiles.forEach((galleryFile) => {
+                if (galleryFile instanceof File) {
+                    formData.append("charger_gallery", galleryFile);
+                }
+            });
+        }
+        if (deletedGalleryIds.length > 0) {
+            formData.append("deleted_gallery_ids", JSON.stringify(deletedGalleryIds));
+        }
+        return formData;
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
         setLoading(true);
@@ -163,38 +217,7 @@ const EditEVCharger = () => {
         const featureValues = feature.filter(f => f.features.trim() !== '').map(f => f.features);
         
         if (validateForm(featureValues)) {
-            console.log(compatible)
-        
-            const formData = new FormData();
-            formData.append("userId", userDetails?.user_id);
-            formData.append("email", userDetails?.email);
-            formData.append("charger_id", chargerId);
-            formData.append("charger_name", chargerName);
-            formData.append("compatible", JSON.stringify(compatible) ); 
-            formData.append("outputPower", outputPower);
-            formData.append("warrantyType", warrantyType);
-            formData.append("charger_feature", JSON.stringify(featureValues));
-            formData.append("description", description);
-            formData.append("status", isActive);
-
-            formData.append("vehicleSpecification", vehicleSpecification.value);
-            // formData.append("vehicleBrand", vehicleBrand.value);
-            // formData.append("vehicleModal", vehicleModal.value);
-            formData.append("price", price);
-            formData.append("usedFor", JSON.stringify(usedFor) );
-            formData.append("propertyType", JSON.stringify(propertyType ) );
-            
-            if (specification) {
-                formData.append("specification_pdf", specification);
-            }
-            if (file) {
-                formData.append("charger_image", file);
-            }
-            if (galleryFiles.length > 0) {
-                galleryFiles.forEach((galleryFile) => {
-                    formData.append("charger_gallery", galleryFile);
-                });
-            }
+            const formData = buildEditFormData(featureValues);
             postRequestWithTokenAndFile('ev-charger-edit', formData, async (response) => {
                 if (response.status === 1) {
                     toast(response.message, {type:'success'})
@@ -217,6 +240,7 @@ const EditEVCharger = () => {
         const selectedFile = event.target.files[0];
         if (selectedFile && selectedFile.type.startsWith('image/')) {
             setFile(selectedFile);
+            setRemoveCoverImage(false);
             setErrors((prev) => ({ ...prev, file: "" }));
         } else {
             toast('Please upload a valid image file.', {type:'error'})
@@ -231,7 +255,17 @@ const EditEVCharger = () => {
             toast('Please upload a valid pdf file.', {type:'error'})
         }
     };
-    const handleRemoveImage         = () => setFile(null);
+    const handleRemoveImage = (e) => {
+        e?.preventDefault?.();
+        e?.stopPropagation?.();
+        // Existing cover image — mark for deletion and apply on Submit.
+        if (typeof file === 'string' && file) {
+            setRemoveCoverImage(true);
+        } else {
+            setRemoveCoverImage(false);
+        }
+        setFile(null);
+    };
     const handleRemoveSpecification = () => setspecification(null);
     
     const addFeatures = () =>{
@@ -289,16 +323,23 @@ const EditEVCharger = () => {
             return;
         }
         setGalleryFiles((prevFiles) => [...prevFiles, ...validFiles]);
+        setGalleryIds((prevIds) => [...prevIds, ...validFiles.map(() => null)]);
         setErrors((prev) => ({ ...prev, gallery: "" }));
     };
-    const handleRemoveGalleryImage = (index) => {
+    const handleRemoveGalleryImage = (index, e) => {
+        e?.preventDefault?.();
+        e?.stopPropagation?.();
+
+        const galleryId = galleryIds[index];
+
+        // Existing server image — remember id so edit API can delete it on submit
+        if (galleryId != null) {
+            setDeletedGalleryIds((prev) => [...prev, galleryId]);
+        }
+
         setGalleryFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+        setGalleryIds((prevIds) => prevIds.filter((_, i) => i !== index));
     };
-    useEffect(() => {
-        return () => {
-            galleryFiles.forEach((image) => URL.revokeObjectURL(image));
-        };
-    }, [galleryFiles]);
     console.log(isActive);
     return (
         <div className={styles.addShopContainer}>
@@ -576,14 +617,18 @@ const EditEVCharger = () => {
                                         alt="Preview"
                                         className={styles.previewImage}
                                     />
-                                    <button type="button" className={styles.removeButton} onClick={handleRemoveImage}>
+                                    <button
+                                        type="button"
+                                        className={styles.removeButton}
+                                        onClick={handleRemoveImage}
+                                    >
                                         <AiOutlineClose size={20} style={{ padding: '2px' }} />
                                     </button>
                                 </div>
                             )}
                         </div>
                         <p className={styles.error} style={{ color: 'red' }}>Image Dimensions: 737px X 401px</p>
-                        {errors.file && <p className="error">{errors.file}</p>}
+                        {errors.file && !file && <p className={styles.error} style={{ color: 'red' }}>{errors.file}</p>}
                     </div>
                     {/* Charger Gallery Multiple Image Upload */}
                     <div className={styles.fileUpload}>
@@ -611,20 +656,26 @@ const EditEVCharger = () => {
                                             key={index}
                                             src={
                                                 typeof file === 'string'
-                                                    ? `${process.env.REACT_APP_DIR_UPLOADS}charging-station-images/${file}`
+                                                    ? `${process.env.REACT_APP_DIR_UPLOADS}charger-installation/${file}`
                                                     : URL.createObjectURL(file)
                                             }
                                             alt={`Preview ${index + 1}`}
                                             className={styles.previewImage}
                                         />
-                                        <button type="button" className={styles.removeButton} onClick={() => handleRemoveGalleryImage(index)}>
+                                        <button
+                                            type="button"
+                                            className={styles.removeButton}
+                                            onClick={(e) => handleRemoveGalleryImage(index, e)}
+                                        >
                                             <AiOutlineClose size={20} style={{ padding: '2px' }} />
                                         </button>
                                     </div>
                                 ) ) }
                             </div>
                         )}
-                        {errors.gallery && <p className="error">{errors.gallery}</p>}
+                        {errors.gallery && (!galleryFiles || galleryFiles.length === 0) && (
+                            <p className={styles.error} style={{ color: 'red' }}>{errors.gallery}</p>
+                        )}
                     </div>
 
                     <div className={styles.editButton}>

@@ -68,12 +68,18 @@ const AppSignupDetails = () => {
 
     const [portableCurrentPage, setportableCurrentPage] = useState(1);
     const [portableTotalPages, setPortableTotalPages]   = useState(1);
+    // Total Portable Charger bookings count for section heading
+    const [portableTotalCount, setPortableTotalCount]   = useState(0);
 
     const [valetCurrentPage, setValetCurrentPage] = useState(1);
     const [valetTotalPages, setValetTotalPages]   = useState(1);
+    // Total Pick and Drop bookings count for section heading
+    const [valetTotalCount, setValetTotalCount]   = useState(0);
 
     const [rSACurrentPage, setRSACurrentPage] = useState(1);
     const [rSATotalPages, setRSATotalPages]   = useState(1);
+    // Total RSA bookings count for section heading
+    const [rsaTotalCount, setRsaTotalCount]   = useState(0);
     
     const handlePortablePageChange = (pageNumber) => {
         setportableCurrentPage(pageNumber);
@@ -94,6 +100,8 @@ const AppSignupDetails = () => {
                 console.log(response?.data);
                 setPortableChargerBookings(response?.data);
                 setPortableTotalPages(response?.totalPage); //total
+                // Store total POD bookings for heading display
+                setPortableTotalCount(response?.total || response?.data?.length || 0);
             }  
         });
     };
@@ -105,6 +113,8 @@ const AppSignupDetails = () => {
             if (response.code === 200) {
                 setPickAndDropBookings(response?.data);
                 setValetTotalPages(response?.totalPage); //total
+                // Store total Valet bookings for heading display
+                setValetTotalCount(response?.total || response?.data?.length || 0);
             }  
         });
     };
@@ -116,6 +126,8 @@ const AppSignupDetails = () => {
             if (response.code === 200) {
                 setRsaBookings(response?.data);
                 setRSATotalPages(response?.totalPage); //total
+                // Store total RSA bookings for heading display
+                setRsaTotalCount(response?.total || response?.data?.length || 0);
             }  
         });
     };
@@ -141,6 +153,8 @@ const AppSignupDetails = () => {
                     {portableChargerBookings?.length > 0 && (<>
                         <DetailsBookingHistory
                             title="Portable Charger"
+                            // Pass total bookings count to show beside heading
+                            count={portableTotalCount}
                             headers={portableChargerHeaders}
                             bookingData={portableChargerBookings.map((booking) => {
                                 return {
@@ -166,6 +180,8 @@ const AppSignupDetails = () => {
                     {pickAndDropBookings?.length > 0 && (<>
                         <DetailsBookingHistory
                             title="Pick and Drop"
+                            // Pass total bookings count to show beside heading
+                            count={valetTotalCount}
                             headers={pickAndDropHeaders}
                             bookingData={pickAndDropBookings.map((booking) => {
                                 return {
@@ -189,6 +205,8 @@ const AppSignupDetails = () => {
                     {rsaBookings?.length > 0 && (<>
                         <DetailsBookingHistory
                             title       = "Roadside Assistance"
+                            // Pass total bookings count to show beside heading
+                            count       = {rsaTotalCount}
                             headers     = { rsaHeaders }
                             bookingData = { rsaBookings.map((booking) => {
                                 return {
