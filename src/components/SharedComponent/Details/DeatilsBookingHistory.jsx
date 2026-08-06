@@ -19,11 +19,13 @@ const DeatilsBookingHistory = ({ title, headers, bookingData, bookingType, count
     };
     return (
         <div className={styles.addressListContainer}>
-            {/* Show total bookings beside heading; use singular "booking" when count is 1 */}
-            <span className={styles.sectionsTitle}>
-                {title}
-                {/* {count != null ? ` - ${count} ${count === 1 ? 'booking' : 'bookings'}` : ''}  (temporarily disabled) */}
-            </span>
+            {/* Same count-card style as App Signup List SubHeader; count on left */}
+            <div className={styles.bookingHeadCard}>
+                {count != null && (
+                    <div className={styles.bookingHeadCardNumber}>{count}</div>
+                )}
+                <div className={styles.bookingHeadCardText}>{title}</div>
+            </div>
             <table className={`table ${styles.customTable}`}>
                 <thead>
                     <tr>
