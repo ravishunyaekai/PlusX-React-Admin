@@ -72,7 +72,7 @@ function Index() {
         }
     ]) ;
     const [currentPage, setCurrentPage]               = useState(1);
-    // const [totalCount, setTotalCount]                 = useState(1);
+    // const [totalCount, setTotalCount]                 = useState(0);
     const [totalPages, setTotalPages]                 = useState(1);
     const topAreaHeaders = [
         'SR No.', 'Area Name', 'Booking Count'  
@@ -92,7 +92,7 @@ function Index() {
             if (response.code === 200) {
                 setTopAreaList(response?.area_data);
                 setTotalPages(response?.totalPage || 1);
-                // setTotalCount(response?.total || 1)
+                // setTotalCount(response?.total || 0)
             }
         });
     };

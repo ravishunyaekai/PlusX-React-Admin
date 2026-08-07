@@ -52,6 +52,8 @@ const BookingList = () => {
     const [rsaList, setRsaList]                       = useState([]);
     const [currentPage, setCurrentPage]               = useState(1);
     const [totalPages, setTotalPages]                 = useState(1);
+    // Total booking count for SubHeader card (same pattern as Portable Charger Booking List)
+    const [totalCount, setTotalCount]                 = useState(0);
     const [filters, setFilters]                       = useState({start_date: null,end_date: null});
     const [isModalOpen, setIsModalOpen]               = useState(false);
     const [selectedBookingId, setSelectedBookingId]   = useState(null);
@@ -129,7 +131,9 @@ const BookingList = () => {
         postRequestWithToken('pick-and-drop-booking-list', obj, async(response) => {
             if (response.code === 200) {
                 setChargerBookingList(response?.data)
-                setTotalPages(response?.total_page || 1); 
+                setTotalPages(response?.total_page || 1);
+                // Set total bookings for header count card
+                setTotalCount(response?.total || 0);
             } else {
                 // toast(response.message, {type:'error'})
                 console.log('error in pick-and-drop-booking-list api', response);
@@ -208,6 +212,8 @@ const BookingList = () => {
                 fetchFilteredData    = {fetchFilteredData} 
                 dynamicFilters       = {dynamicFilters} filterValues={filters}
                 searchTerm           = {searchTerm}
+                // Pass total count to show "Total Pick & Drop Booking List" card
+                count                = {totalCount}
                 rowOptions           = {rowOptions}
                 rowSelected          = {rowSelected}
                 handleRowperPagePage = {handleRowperPagePage}

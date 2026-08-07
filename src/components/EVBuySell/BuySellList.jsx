@@ -25,7 +25,7 @@ const BuySellList = () => {
     const [clubList, setClubList]        = useState([]);
     const [currentPage, setCurrentPage]  = useState(1);
     const [totalPages, setTotalPages]    = useState(1);
-    const [totalCount, setTotalCount]    = useState(1);
+    const [totalCount, setTotalCount]    = useState(0);
     const [filters, setFilters]          = useState({start_date: null,end_date: null});
     const [refresh, setRefresh]          = useState(false);
     const [loading, setLoading]          = useState(false);
@@ -55,7 +55,7 @@ const BuySellList = () => {
             if (response.code === 200) {
                 setClubList(response?.data)
                 setTotalPages(response?.total_page || 1); 
-                setTotalCount(response?.total || 1)
+                setTotalCount(response?.total || 0)
             } else {
                 // toast(response.message, {type:'error'})
                 console.log('error in buy-sell-list api', response);
