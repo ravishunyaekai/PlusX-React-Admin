@@ -22,6 +22,11 @@ const AddCommunity = () => {
     const [areaName, setAreaName]             = useState('')
     const [noofResidents, setNoofResidents]   = useState('')
     const [chargers, setChargers]             = useState([ { chargers : '', kw : '' } ]);
+    const [managerName, setManagerName]       = useState('');
+    const [managerEmail, setManagerEmail]     = useState('');
+    const [managerContact, setManagerContact] = useState('');
+    const [password, setPassword]             = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
 
     const serviceDropdownRef                        = useRef(null);
 
@@ -36,13 +41,27 @@ const AddCommunity = () => {
             { name: "noofResidents", value: noofResidents,  errorMessage: "Total number of Resident is required." },
             { name: "chargers",      value: chargersValues, errorMessage: "Chargers is required.", isArray: true },
             { name: "chargers",      value: kwValues,       errorMessage: "kw is required.", isArray: true },
+            { name: "managerName",   value: managerName,    errorMessage: "Manager Name is required." },
+            { name: "managerEmail",  value: managerEmail,   errorMessage: "Please enter a valid Email ID.", isEmail: true },
+            { name: "password",      value: password,       errorMessage: "Password is required." },
+            { name: "confirmPassword", value: confirmPassword, errorMessage: "Passwords do not match.", isPasswordMatch: true },
         ];
-        const newErrors = fields.reduce((errors, { name, value, errorMessage, isArray }) => {
+        const newErrors = fields.reduce((errors, { name, value, errorMessage, isArray, isEmail, isPasswordMatch }) => {
             if ((isArray && (!value || value.length === 0)) || (!isArray && !value)) {
                 errors[name] = errorMessage;
+            } else if (isEmail && !/\S+@\S+\.\S+/.test(value)) {
+                errors[name] = errorMessage;
+            } else if (isPasswordMatch && value !== password) {
+                errors[name] = errorMessage;
+            } else if (name === 'password' && value.length < 6) {
+                errors[name] = "Password should be at least 6 characters long.";
             }
             return errors;
         }, {});
+
+        if (managerContact && (isNaN(managerContact) || managerContact.length < 9 || managerContact.length > 12)) {
+            newErrors.managerContact = "Please enter a valid Contact No.";
+        }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -64,6 +83,11 @@ const AddCommunity = () => {
                 total_residence : noofResidents,
                 chargers        : JSON.stringify(chargersValues),
                 kwValues        : JSON.stringify(kwValues),
+                manager_name    : managerName,
+                manager_email   : managerEmail,
+                manager_contact : managerContact,
+                password        : password,
+                confirm_password : confirmPassword,
             }
             postRequestWithToken('community-add', obj, async (response) => {
                 if (response.status === 1) {
@@ -190,6 +214,77 @@ const AddCommunity = () => {
                                 {/* </div> */}
                             </>))}
                             {errors.chargers && (chargers[0].chargers == '' || chargers[0].kw == '') && <p className={styles.error} style={{ color: 'red' }}>{errors.chargers}</p>}
+                        </div>
+                    </div>
+
+                    <div className={styles.row}>
+                        <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel} htmlFor="managerName">Manager Name</label>
+                            <input
+                                type="text"
+                                autoComplete="off"
+                                id="managerName"
+                                placeholder="Manager Name"
+                                className={styles.inputField}
+                                value={managerName}
+                                onChange={(e) => setManagerName(e.target.value)}
+                            />
+                            {errors.managerName && managerName === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.managerName}</p>}
+                        </div>
+                        <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel} htmlFor="managerEmail">Email ID</label>
+                            <input
+                                type="email"
+                                autoComplete="off"
+                                id="managerEmail"
+                                placeholder="Email ID"
+                                className={styles.inputField}
+                                value={managerEmail}
+                                onChange={(e) => setManagerEmail(e.target.value)}
+                            />
+                            {errors.managerEmail && <p className={styles.error} style={{ color: 'red' }}>{errors.managerEmail}</p>}
+                        </div>
+                        <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel} htmlFor="managerContact">Contact No (Optional)</label>
+                            <input
+                                type="text"
+                                autoComplete="off"
+                                id="managerContact"
+                                placeholder="Contact No"
+                                className={styles.inputField}
+                                value={managerContact}
+                                onChange={(e) => setManagerContact(e.target.value)}
+                            />
+                            {errors.managerContact && <p className={styles.error} style={{ color: 'red' }}>{errors.managerContact}</p>}
+                        </div>
+                    </div>
+
+                    <div className={styles.row}>
+                        <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel} htmlFor="password">Password</label>
+                            <input
+                                type="password"
+                                autoComplete="new-password"
+                                id="password"
+                                placeholder="Password"
+                                className={styles.inputField}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                            {errors.password && <p className={styles.error} style={{ color: 'red' }}>{errors.password}</p>}
+                        </div>
+                        <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel} htmlFor="confirmPassword">Confirm Password</label>
+                            <input
+                                type="password"
+                                autoComplete="new-password"
+                                id="confirmPassword"
+                                placeholder="Confirm Password"
+                                className={styles.inputField}
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                            />
+                            {errors.confirmPassword && <p className={styles.error} style={{ color: 'red' }}>{errors.confirmPassword}</p>}
                         </div>
                     </div>
 
