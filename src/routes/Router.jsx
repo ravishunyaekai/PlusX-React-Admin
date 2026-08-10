@@ -59,6 +59,10 @@ import RoadAssistanceBookingList from "../components/EvRoadAssistance/Booking/Bo
 import RoadAssistanceBookingDetails from "../components/EvRoadAssistance/Booking/BookingDetails.jsx";
 import RoadAssistanceInvoiceList from "../components/EvRoadAssistance/Invoice/InvoiceList.jsx";
 import RoadAssistanceInvoiceDetails from "../components/EvRoadAssistance/Invoice/InvoiceDetails.jsx";
+import RSAOfflineLeadsList from "../components/EvRoadAssistance/Booking/OfflineLeadsList.jsx";
+import AddRSAOfflineLead from "../components/EvRoadAssistance/Booking/AddOfflineLead.jsx";
+import EditRSAOfflineLead from "../components/EvRoadAssistance/Booking/EditOfflineLead.jsx";
+import OfflineLeadsBookingDetails from "../components/EvRoadAssistance/Booking/OfflineLeadsBookingDetails.jsx";
 import AddClub from "../components/EvRiderClub/AddClub.jsx";
 import EditClub from "../components/EvRiderClub/EditClub.jsx";
 import ClubDetails from "../components/EvRiderClub/ClubDetails.jsx";
@@ -451,6 +455,18 @@ const router = createBrowserRouter([
                     }, {
                         path: "booking-details/:requestId",
                         element: <RoadAssistanceBookingDetails />,
+                    }, {
+                        path: "offline-leads",
+                        element: <RSAOfflineLeadsList />,
+                    }, {
+                        path: "offline-leads-details/:requestId",
+                        element: <OfflineLeadsBookingDetails />,
+                    }, {
+                        path: "add-offline-lead",
+                        element: <AddRSAOfflineLead />,
+                    }, {
+                        path: "edit-offline-lead/:requestId",
+                        element: <EditRSAOfflineLead />,
                     }, {
                         path: "invoice-list",
                         element: <RoadAssistanceInvoiceList />,

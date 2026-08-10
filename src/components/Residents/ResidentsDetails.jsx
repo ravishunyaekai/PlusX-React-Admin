@@ -97,7 +97,7 @@ const ResidentsDetails = () => {
     };
     const [sessionList, setSessionList] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalCount, setTotalCount]   = useState(1);
+    const [totalCount, setTotalCount]   = useState(0);
     const [totalPages, setTotalPages]   = useState(1);
     const sessionHeaders = [
         "Date", "Session ID", "Resident Name", "Area", "Charger ID", "kWh Used", "Duration (In Min.)", "Status", "Action"
@@ -117,7 +117,7 @@ const ResidentsDetails = () => {
             if (response.code === 200) {
                 setSessionList(response?.data);
                 setTotalPages(response?.totalPage || 1);
-                setTotalCount(response?.total || 1)
+                setTotalCount(response?.total || 0)
             }
         });
     };
@@ -138,7 +138,7 @@ const ResidentsDetails = () => {
     };
     const [invoiceList, setInvoiceList]               = useState([]);
     const [invoiceCurrentPage, setInvoiceCurrentPage] = useState(1);
-    const [invoicetotalCount, setInvoiceTotalCount]   = useState(1);
+    const [invoicetotalCount, setInvoiceTotalCount]   = useState(0);
     const [invoicetotalPages, setInvoiceTotalPages]   = useState(1);
     const invoiceHeaders = [
         "Invoice ID", "Resident Name", "Community", "Area", "kWh Allocated", "kWh Used", "Per kW Charge", "Price (AED)", "Over Time (AED)", "Total (AED)", "Status", "Action"

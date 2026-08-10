@@ -17,7 +17,7 @@ const SignupList = () => {
     const [signupList, setSignupList]     = useState([]);
     const [currentPage, setCurrentPage]   = useState(1);
     const [totalPages, setTotalPages]     = useState(1);
-    const [totalCount, setTotalCount]                 = useState(1);
+    const [totalCount, setTotalCount]                 = useState(0);
     const [filters, setFilters]           = useState({start_date: null,end_date: null});
     const [refresh, setRefresh]           = useState(false);
     const [emiratesList, setEmiratesList] = useState([]);
@@ -42,7 +42,7 @@ const SignupList = () => {
                 setSignupList(response?.data || []);  
                 setEmiratesList(response.emirates || []);
                 setTotalPages(response?.total_page || 1);  
-                setTotalCount(response?.total || 1)
+                setTotalCount(response?.total || 0)
             } else {
                 toast(response.message || response.message[0], { type: 'error' });
                 console.log('error in rider-list API', response);

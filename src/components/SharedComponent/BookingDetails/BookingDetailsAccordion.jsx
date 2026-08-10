@@ -5,7 +5,7 @@ import styles from './bookingdetails.module.css';
 import moment from 'moment';
 
 
-const BookingDetailsAccordion = ({history, rsa, imageUrl, fieldMapping, title }) => {
+const BookingDetailsAccordion = ({history, rsa, imageUrl, fieldMapping, title, statusOverrides }) => {
     
     const statusTitles = {
         P   : 'Open',
@@ -23,7 +23,8 @@ const BookingDetailsAccordion = ({history, rsa, imageUrl, fieldMapping, title })
         C   : "Cancelled",
         RO  : 'POD Reached at Office',
         RSB : 'Rescheduled Booking',
-        RPD : 'Rescheduled Booking'
+        RPD : 'Rescheduled Booking',
+        ...(statusOverrides || {}),
     };
 
     const sections = history?.map((item) => ({

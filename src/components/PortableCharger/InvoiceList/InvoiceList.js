@@ -16,7 +16,7 @@ const ChargerBookingInvoiceList = () => {
     const [invoiceList, setInvoiceList]   = useState([]);
     const [currentPage, setCurrentPage]   = useState(1);
     const [totalPages, setTotalPages]     = useState(1);
-    const [totalCount, setTotalCount]     = useState(1);
+    const [totalCount, setTotalCount]     = useState(0);
     const [filters, setFilters]           = useState({start_date: null,end_date: null});
     const [loading, setLoading]           = useState(false);
     const searchTerm = [
@@ -43,7 +43,7 @@ const ChargerBookingInvoiceList = () => {
             if (response.code === 200) {
                 setInvoiceList(response?.data)
                 setTotalPages(response?.total_page || 1); 
-                setTotalCount(response?.total || 1)
+                setTotalCount(response?.total || 0)
             } else {
                 // toast(response.message, {type:'error'})
                 console.log('error in charger-booking-invoice-list api', response);

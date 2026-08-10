@@ -4,7 +4,7 @@ import styles from './details.module.css';
 import Eye from '../../../assets/images/ViewEye.svg';
 import Pagination from '../Pagination/Pagination';
 
-const DeatilsBookingHistory = ({ title, headers, bookingData, bookingType }) => {
+const DeatilsBookingHistory = ({ title, headers, bookingData, bookingType, count }) => {
     const navigate = useNavigate();
 
     const handleViewClick = (id) => {
@@ -19,7 +19,13 @@ const DeatilsBookingHistory = ({ title, headers, bookingData, bookingType }) => 
     };
     return (
         <div className={styles.addressListContainer}>
-            <span className={styles.sectionsTitle}>{title}</span>
+            {/* Same count-card style as App Signup List SubHeader; count on left */}
+            <div className={styles.bookingHeadCard}>
+                {count != null && (
+                    <div className={styles.bookingHeadCardNumber}>{count}</div>
+                )}
+                <div className={styles.bookingHeadCardText}>{title}</div>
+            </div>
             <table className={`table ${styles.customTable}`}>
                 <thead>
                     <tr>

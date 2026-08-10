@@ -18,7 +18,7 @@ const RoadAssistanceTimeSlotList = () => {
     const [timeSlotList, setTimeSlotList] = useState([])
     const [currentPage, setCurrentPage]   = useState(1);
     const [totalPages, setTotalPages]     = useState(1);
-    const [totalCount, setTotalCount]     = useState(1);
+    const [totalCount, setTotalCount]     = useState(0);
     const [refresh, setRefresh]           = useState(false)
     const [filters, setFilters]           = useState({start_date: null,end_date: null});
     const [loading, setLoading]           = useState(false);
@@ -86,7 +86,7 @@ const RoadAssistanceTimeSlotList = () => {
                  
                 setTimeSlotList(response.data)
                 setTotalPages(response?.total_page || 1);
-                setTotalCount(response?.total || 1)
+                setTotalCount(response?.total || 0)
             } else {
                 toast(response.message, { type: 'error' })
                 console.log('error in slot-list api', response);

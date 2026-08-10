@@ -4,9 +4,8 @@ import styles from './accordion.module.css';
 import { motion, AnimatePresence } from 'framer-motion';
 import Calendar from "../Calendar/Calendar";
 import { format } from 'date-fns';
+import Select from 'react-select';
 
-import SelectSearch from 'react-select-search';
-import 'react-select-search/style.css';
 
 const AccordionFilter = ({ type, isOpen, fetchFilteredData, dynamicFilters, filterValues, scheduleDateChange, scheduleFilters, areaOptions, areaSelected, handleArea, rowOptions, rowSelected, handleRowperPagePage, searchTerm }) => {
  
@@ -161,15 +160,20 @@ const AccordionFilter = ({ type, isOpen, fetchFilteredData, dynamicFilters, filt
                                                 <div className={`col-xl-4 col-lg-6 col-12 ${styles.selectItem}`} >
                                                     <label className={styles.filterLabel} htmlFor="date_filter">Search Area</label>
                                                     <div className={styles.selectSearch}>
-                                                    <SelectSearch
-                                                        options={areaOptions}
-                                                        value={areaSelected}
-                                                        onChange={(val) => handleAreaa(val )}
-                                                        placeholder="Search"
-                                                        name="areaSearch"
-                                                        search
-                                                        isClearable
-                                                    />
+                                                        <Select
+                                                            options={(areaOptions || []).map((option) => ({
+                                                                value : option.value,
+                                                                label : option.name
+                                                            }))}
+                                                            value={(areaOptions || [])
+                                                                .map((option) => ({ value : option.value, label : option.name }))
+                                                                .find((option) => String(option.value) === String(areaSelected)) || null}
+                                                            onChange={(selectedOption) => handleAreaa(selectedOption?.value || '')}
+                                                            placeholder="Search"
+                                                            isClearable
+                                                            isSearchable
+                                                            name="areaSearch"
+                                                        />
                                                     </div>
                                                 </div>  
                                             )}

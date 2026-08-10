@@ -72,6 +72,37 @@
   color: #ffffff;
 }
 
+/* Booking count card — mirrors SubHeader headCardSection (App Signup List) */
+.bookingHeadCard {
+  background-color: #000000;
+  border: 1px solid #00ffcc;
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 10px;
+  column-gap: 12px;
+}
+
+.bookingHeadCardText {
+  font-size: 16px;
+  color: #fff;
+  font-weight: 550;
+}
+
+.bookingHeadCardNumber {
+  border: 1px solid #00ffcc;
+  color: #00ffcc;
+  font-size: 16px;
+  font-weight: 600;
+  min-width: 36px;
+  height: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
 /* end the details header section */
 /* start the details section */
 .infoSection {

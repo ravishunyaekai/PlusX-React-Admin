@@ -16,7 +16,7 @@ const ChargerList = () => {
     const [chargerList, setChargerList] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages]   = useState(1);
-    const [totalCount, setTotalCount]   = useState(1);
+    const [totalCount, setTotalCount]   = useState(0);
     const [filters, setFilters]         = useState({start_date: null,end_date: null});
     const [refresh, setRefresh]         = useState(false);
     const [loading, setLoading]         = useState(false);
@@ -50,7 +50,7 @@ const ChargerList = () => {
             if (response.code === 200) {
                 setChargerList(response?.data || []);  
                 setTotalPages(response?.total_page || 1);  
-                setTotalCount(response?.total || 1)
+                setTotalCount(response?.total || 0)
             } else {
                 console.log('error in charger-list API', response);
             }

@@ -63,7 +63,7 @@ const RoadAssistanceBookingList = () => {
     const [chargerBookingList, setChargerBookingList] = useState([]);
     const [rsaList, setRsaList]                       = useState([])
     const [currentPage, setCurrentPage]               = useState(1);
-    const [totalCount, setTotalCount]                 = useState(1);
+    const [totalCount, setTotalCount]                 = useState(0);
     const [totalPages, setTotalPages]                 = useState(1);
     const [filters, setFilters]                       = useState({start_date: null,end_date: null});
     const [isModalOpen, setIsModalOpen]               = useState(false);
@@ -139,7 +139,7 @@ const RoadAssistanceBookingList = () => {
             if (response.code === 200) {
                 setChargerBookingList(response?.data);
                 setTotalPages(response?.total_page || 1);
-                setTotalCount(response?.total || 1)
+                setTotalCount(response?.total || 0)
             } else {
                 console.log('error in ev-road-assistance-booking-list', response);
             }
