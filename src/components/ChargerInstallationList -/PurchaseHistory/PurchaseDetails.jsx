@@ -60,8 +60,8 @@ const EvChargerDetails = () => {
         customerContact : bookingDetails?.customer_mobile,
     };
     const sectionTitles1 = {
-        customer_email    : "Cutomer Email",
-        customer_address  : 'Cutomer Address',
+        customer_email    : "Customer Email",
+        customer_address  : 'Customer Address',
         price             : 'Price',
         product_name      : 'Product Name',
         output_Power      : 'Output Power',

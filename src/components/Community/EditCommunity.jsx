@@ -38,13 +38,11 @@ const EditCommunity = () => {
         navigate('/community/community-list')
     }
 
-    const validateForm = (chargersValues, kwValues) => {
+    const validateForm = () => {
         const fields = [
             { name: "communityName", value: communityName,  errorMessage: "Community Name is required." },
             { name: "areaName",      value: areaName,       errorMessage: "Area Name is required." },
             { name: "noofResidents", value: noofResidents,  errorMessage: "Total number of Residents is required." },
-            { name: "chargers",      value: chargersValues, errorMessage: "Chargers is required.", isArray: true },
-            { name: "chargers",      value: kwValues,       errorMessage: "kw is required.", isArray: true },
             { name: "managerName",   value: managerName,    errorMessage: "Manager Name is required." },
             { name: "managerEmail",  value: managerEmail,   errorMessage: "Please enter a valid Email ID.", isEmail: true },
         ];
@@ -61,8 +59,8 @@ const EditCommunity = () => {
             }
         }
     
-        const newErrors = fields.reduce((errors, { name, value, errorMessage, isArray, isEmail, isPasswordMatch }) => {
-            if ((isArray && (!value || value.length === 0)) || (!isArray && !value)) {
+        const newErrors = fields.reduce((errors, { name, value, errorMessage, isEmail, isPasswordMatch }) => {
+            if (!value) {
                 errors[name] = errorMessage;
             } else if (isEmail && !/\S+@\S+\.\S+/.test(value)) {
                 errors[name] = errorMessage;
@@ -73,6 +71,30 @@ const EditCommunity = () => {
             }
             return errors;
         }, {});
+
+        let hasCompleteCharger = false;
+        chargers.forEach((charger, index) => {
+            const chargerId = charger.charger_id.trim();
+            const kw = charger.kw.trim();
+            const isFirstRow = index === 0;
+            const hasPartial = chargerId || kw;
+
+            if (isFirstRow || hasPartial) {
+                if (!chargerId) {
+                    newErrors[`chargerId_${index}`] = 'Charger ID is required.';
+                }
+                if (!kw) {
+                    newErrors[`kw_${index}`] = 'kW is required.';
+                }
+                if (chargerId && kw) {
+                    hasCompleteCharger = true;
+                }
+            }
+        });
+
+        if (!hasCompleteCharger) {
+            newErrors.chargers = 'At least one charger with Charger ID and kW is required.';
+        }
 
         if (managerContact && (isNaN(managerContact) || managerContact.length < 9 || managerContact.length > 12)) {
             newErrors.managerContact = "Please enter a valid Contact No.";
@@ -86,9 +108,10 @@ const EditCommunity = () => {
         e.preventDefault();
         setLoading(true);
 
-        const chargersValues = chargers.filter(f => f.charger_id.trim() !== '').map(f => f.charger_id);
-        const kwValues = chargers.filter(f => f.kw.trim() !== '').map(f => f.kw);
-        if (validateForm(chargersValues, kwValues)) {
+        if (validateForm()) {
+            const completeChargers = chargers.filter(f => f.charger_id.trim() !== '' && f.kw.trim() !== '');
+            const chargersValues = completeChargers.map(f => f.charger_id);
+            const kwValues = completeChargers.map(f => f.kw);
         
             const obj = {
                 userId          : userDetails?.user_id,
@@ -179,162 +202,178 @@ const EditCommunity = () => {
             <div className={styles.addShopFormSection}>
                 <ToastContainer />
                 <form className={styles.formSection} onSubmit={handleSubmit}>
-                    <div className={styles.row}>
-                        <div className={styles.addShopInputContainer}>
-                            <label className={styles.addShopLabel} htmlFor="communityName">Community Name</label>
-                            <input
-                                type="text"
-                                autoComplete="off"
-                                id="communityName"
-                                placeholder="Community Name"
-                                className={styles.inputField}
-                                value={communityName}
-                                onChange={(e) => setCommunityName(e.target.value)}
-                            />
-                            {errors.communityName && communityName === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.communityName}</p>}
-                        </div>
-                        <div className={styles.addShopInputContainer}>
-                            <label className={styles.addShopLabel} htmlFor="areaName">Area name</label>
-                            <input
-                                type="text"
-                                autoComplete="off"
-                                id="areaName"
-                                placeholder="Area Name"
-                                className={styles.inputField}
-                                value={areaName}
-                                onChange={(e) => setAreaName(e.target.value)}
-                            />
-                            {errors.areaName && areaName === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.areaName}</p>}
-                        </div>
-                        <div className={styles.addShopInputContainer}>
-                            <label className={styles.addShopLabel} htmlFor="noofResidents">
-                                Total Number of Residents
-                            </label>
-                            <input
-                                type="number"
-                                autoComplete="off"
-                                id="noofResidents"
-                                placeholder="Number of Residents"
-                                className={styles.inputField}
-                                value={noofResidents}
-                                onChange={(e) => setNoofResidents(e.target.value)}
-                            />
-                            {errors.noofResidents && noofResidents === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.noofResidents}</p>}
+                    {/* Community Details Section */}
+                    <div className={styles.formSectionBlock}>
+                        <div className={styles.formSectionHeading}>Community Details</div>
+                        <div className={styles.row}>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="communityName">Community Name</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="communityName"
+                                    placeholder="Community Name"
+                                    className={styles.inputField}
+                                    value={communityName}
+                                    onChange={(e) => setCommunityName(e.target.value)}
+                                />
+                                {errors.communityName && communityName === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.communityName}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="areaName">Area name</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="areaName"
+                                    placeholder="Area Name"
+                                    className={styles.inputField}
+                                    value={areaName}
+                                    onChange={(e) => setAreaName(e.target.value)}
+                                />
+                                {errors.areaName && areaName === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.areaName}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="noofResidents">
+                                    Total Number of Residents
+                                </label>
+                                <input
+                                    type="number"
+                                    autoComplete="off"
+                                    id="noofResidents"
+                                    placeholder="Number of Residents"
+                                    className={styles.inputField}
+                                    value={noofResidents}
+                                    onChange={(e) => setNoofResidents(e.target.value)}
+                                />
+                                {errors.noofResidents && noofResidents === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.noofResidents}</p>}
+                            </div>
                         </div>
                     </div>
-                     
-                    <div className={styles.row}>
-                        <div className={styles.addShopInputContainer}>
-                            <label className={styles.featureLabel} htmlFor="chargers"> Chargers 
-                                <button type="button" onClick={addChargers} className={styles.featureButton}>
-                                    <img src={Add} alt="Add" className={styles.addImg} />
-                                    <span className={styles.addContent}>Add</span>
-                                </button>
-                            </label>
-                            {chargers.map((chargers, index) => (<>
-                                {/* <div ref={serviceDropdownRef} className={styles.featureDivision}> */}
-                                    <div className={styles.addShopInputContainerR}>
-                                        <input
-                                            type="text"
-                                            autoComplete="off"
-                                            id={`charger_id`}
-                                            placeholder={`Charger ID`}
-                                            className={styles.inputField}
-                                            value={chargers.charger_id}
-                                            onChange={(e) => handleChargersdata(index, e.target.value, 'charger_id')}
-                                        />
-                                        <input
-                                            type="text"
-                                            autoComplete="off"
-                                            id={`kw`}
-                                            placeholder={`kW`}
-                                            className={styles.inputField}
-                                            value={chargers.kw}
-                                            onChange={(e) => handleChargersdata(index, e.target.value, 'kw')}
-                                        />
-                                         
+
+                    {/* Manager Details Section */}
+                    <div className={styles.formSectionBlock}>
+                        <div className={styles.formSectionHeading}>Manager Details</div>
+                        <div className={styles.row}>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="managerName">Manager Name</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="managerName"
+                                    placeholder="Manager Name"
+                                    className={styles.inputField}
+                                    value={managerName}
+                                    onChange={(e) => setManagerName(e.target.value)}
+                                />
+                                {errors.managerName && managerName === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.managerName}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="managerEmail">Email ID</label>
+                                <input
+                                    type="email"
+                                    autoComplete="off"
+                                    id="managerEmail"
+                                    placeholder="Email ID"
+                                    className={styles.inputField}
+                                    value={managerEmail}
+                                    onChange={(e) => setManagerEmail(e.target.value)}
+                                />
+                                {errors.managerEmail && <p className={styles.error} style={{ color: 'red' }}>{errors.managerEmail}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="managerContact">Contact No (Optional)</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="managerContact"
+                                    placeholder="Contact No"
+                                    className={styles.inputField}
+                                    value={managerContact}
+                                    onChange={(e) => setManagerContact(e.target.value)}
+                                />
+                                {errors.managerContact && <p className={styles.error} style={{ color: 'red' }}>{errors.managerContact}</p>}
+                            </div>
+                        </div>
+                        <div className={styles.row}>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="password">Password</label>
+                                <input
+                                    type="password"
+                                    autoComplete="new-password"
+                                    id="password"
+                                    placeholder="Password"
+                                    className={styles.inputField}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                />
+                                {errors.password && <p className={styles.error} style={{ color: 'red' }}>{errors.password}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="confirmPassword">Confirm Password</label>
+                                <input
+                                    type="password"
+                                    autoComplete="new-password"
+                                    id="confirmPassword"
+                                    placeholder="Confirm Password"
+                                    className={styles.inputField}
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                />
+                                {errors.confirmPassword && <p className={styles.error} style={{ color: 'red' }}>{errors.confirmPassword}</p>}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Charger Details Section */}
+                    <div className={styles.formSectionBlock}>
+                        <div className={styles.formSectionHeading}>Charger Details</div>
+                        <div className={styles.row}>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.featureLabel} htmlFor="chargers">Chargers
+                                    <button type="button" onClick={addChargers} className={styles.featureButton}>
+                                        <img src={Add} alt="Add" className={styles.addImg} />
+                                        <span className={styles.addContent}>Add</span>
+                                    </button>
+                                </label>
+                                {chargers.map((charger, index) => (
+                                    <div key={index} className={styles.addShopInputContainerR}>
+                                        <div className={styles.featureDivision}>
+                                            <input
+                                                type="text"
+                                                autoComplete="off"
+                                                id={`charger_id-${index}`}
+                                                placeholder={`Charger ID`}
+                                                className={styles.inputField}
+                                                value={charger.charger_id}
+                                                onChange={(e) => handleChargersdata(index, e.target.value, 'charger_id')}
+                                            />
+                                            {errors[`chargerId_${index}`] && <p className={styles.error} style={{ color: 'red' }}>{errors[`chargerId_${index}`]}</p>}
+                                        </div>
+                                        <div className={styles.featureDivision}>
+                                            <input
+                                                type="text"
+                                                autoComplete="off"
+                                                id={`kw-${index}`}
+                                                placeholder={`kW`}
+                                                className={`${styles.inputField} ${index > 0 ? styles.inputFieldWithRemove : ''}`}
+                                                value={charger.kw}
+                                                onChange={(e) => handleChargersdata(index, e.target.value, 'kw')}
+                                            />
+                                            {errors[`kw_${index}`] && <p className={styles.error} style={{ color: 'red' }}>{errors[`kw_${index}`]}</p>}
+                                            {index > 0 && (
+                                                <button
+                                                    type="button"
+                                                    className={styles.removeButton}
+                                                    onClick={() => handleRemoveCharger(index)}
+                                                >
+                                                    <AiOutlineClose size={20} style={{ padding: '2px' }} />
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
-                                    {index > 0 && (
-                                        <button type="button" className={styles.removeButton} 
-                                        onClick={() => handleRemoveCharger(index )}
-                                        >
-                                            <AiOutlineClose size={20} style={{ padding: '2px' }} />
-                                        </button>
-                                    )}
-                                {/* </div> */}
-                            </>))}
-                            {errors.chargers && chargers[0].chargers == '' && <p className={styles.error} style={{ color: 'red' }}>{errors.chargers}</p>}
-                        </div>
-                    </div>
-
-                    <div className={styles.row}>
-                        <div className={styles.addShopInputContainer}>
-                            <label className={styles.addShopLabel} htmlFor="managerName">Manager Name</label>
-                            <input
-                                type="text"
-                                autoComplete="off"
-                                id="managerName"
-                                placeholder="Manager Name"
-                                className={styles.inputField}
-                                value={managerName}
-                                onChange={(e) => setManagerName(e.target.value)}
-                            />
-                            {errors.managerName && managerName === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.managerName}</p>}
-                        </div>
-                        <div className={styles.addShopInputContainer}>
-                            <label className={styles.addShopLabel} htmlFor="managerEmail">Email ID</label>
-                            <input
-                                type="email"
-                                autoComplete="off"
-                                id="managerEmail"
-                                placeholder="Email ID"
-                                className={styles.inputField}
-                                value={managerEmail}
-                                onChange={(e) => setManagerEmail(e.target.value)}
-                            />
-                            {errors.managerEmail && <p className={styles.error} style={{ color: 'red' }}>{errors.managerEmail}</p>}
-                        </div>
-                        <div className={styles.addShopInputContainer}>
-                            <label className={styles.addShopLabel} htmlFor="managerContact">Contact No (Optional)</label>
-                            <input
-                                type="text"
-                                autoComplete="off"
-                                id="managerContact"
-                                placeholder="Contact No"
-                                className={styles.inputField}
-                                value={managerContact}
-                                onChange={(e) => setManagerContact(e.target.value)}
-                            />
-                            {errors.managerContact && <p className={styles.error} style={{ color: 'red' }}>{errors.managerContact}</p>}
-                        </div>
-                    </div>
-
-                    <div className={styles.row}>
-                        <div className={styles.addShopInputContainer}>
-                            <label className={styles.addShopLabel} htmlFor="password">Password</label>
-                            <input
-                                type="password"
-                                autoComplete="new-password"
-                                id="password"
-                                placeholder="Password"
-                                className={styles.inputField}
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
-                            {errors.password && <p className={styles.error} style={{ color: 'red' }}>{errors.password}</p>}
-                        </div>
-                        <div className={styles.addShopInputContainer}>
-                            <label className={styles.addShopLabel} htmlFor="confirmPassword">Confirm Password</label>
-                            <input
-                                type="password"
-                                autoComplete="new-password"
-                                id="confirmPassword"
-                                placeholder="Confirm Password"
-                                className={styles.inputField}
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                            />
-                            {errors.confirmPassword && <p className={styles.error} style={{ color: 'red' }}>{errors.confirmPassword}</p>}
+                                ))}
+                                {errors.chargers && <p className={styles.error} style={{ color: 'red' }}>{errors.chargers}</p>}
+                            </div>
                         </div>
                     </div>
 
