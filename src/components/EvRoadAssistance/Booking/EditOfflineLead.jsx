@@ -1,10 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import styles from './addOfflineLead.module.css';
 import { useNavigate, useParams } from 'react-router-dom';
-import { postRequestWithToken } from '../../../api/Requests';
+import { postRequestWithToken, postRequestWithTokenAndFile } from '../../../api/Requests';
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import Select from "react-select";
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
+import { AiOutlineClose } from 'react-icons/ai';
+import UploadIcon from '../../../assets/images/uploadicon.svg';
+import PdfIcon from '../../../assets/images/PdfIcon.svg';
 
 const batteryLevelOption = [
     { value : '0',  label : '0%' },
@@ -18,17 +23,41 @@ const bookingStatusOption = [
     { value : 'CNF', label : 'Confirmed' },
     { value : 'PU',  label : 'Completed' },
 ];
+const modeOfPaymentOption = [
+    { value : 'Cash',   label : 'Cash' },
+    { value : 'Online', label : 'Online' },
+];
+const ALLOWED_PROOF_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+const PROOF_BASE_URL = `${process.env.REACT_APP_DIR_UPLOADS}rsa-offline-proof`;
+
+const isPdfProof = (proof) => {
+    if (typeof proof === 'string') {
+        return proof.toLowerCase().endsWith('.pdf');
+    }
+    return proof?.type === 'application/pdf';
+};
+
+const getProofPreviewSrc = (proof, existingProofUrl) => {
+    if (!proof || isPdfProof(proof)) {
+        return null;
+    }
+    if (typeof proof !== 'string') {
+        return URL.createObjectURL(proof);
+    }
+    return existingProofUrl || `${PROOF_BASE_URL}/${proof}`;
+};
 
 const EditOfflineLead = () => {
-    const userDetails   = JSON.parse(sessionStorage.getItem('userDetails'));
-    const navigate      = useNavigate();
+    const userDetails = JSON.parse(sessionStorage.getItem('userDetails'));
+    const navigate    = useNavigate();
     const { requestId } = useParams();
 
     const [errors, setErrors]   = useState({});
     const [loading, setLoading] = useState(false);
 
     const [customerName, setCustomerName]       = useState('');
-    const [customerMobile, setCustomerMobile]   = useState('');
+    const [phoneValue, setPhoneValue]           = useState('');
+    const [phoneCountry, setPhoneCountry]       = useState({ dialCode: '971', countryCode: 'ae' });
     const [customerEmail, setCustomerEmail]     = useState('');
     const [customerAddress, setCustomerAddress] = useState('');
     const addressRef                            = useRef(null);
@@ -40,8 +69,9 @@ const EditOfflineLead = () => {
             el.style.height = `${el.scrollHeight}px`;
         }
     }, [customerAddress]);
-    const [locationLink, setLocationLink]       = useState('');
-    const [price, setPrice]                     = useState('');
+
+    const [locationLink, setLocationLink] = useState('');
+    const [price, setPrice]               = useState('');
 
     const [vehicleMakeOption, setVehicleMakeOption]   = useState([]);
     const [vehicleModelOption, setVehicleModelOption] = useState([]);
@@ -50,11 +80,14 @@ const EditOfflineLead = () => {
     const [batteryLevel, setBatteryLevel] = useState(null);
     const [jumpStart, setJumpStart]       = useState(null);
 
-    const [transactionId, setTransactionId] = useState('');
-    const paymentStatus                     = 'Paid';
+    const [modeOfPayment, setModeOfPayment]             = useState(null);
+    const [proofOfTransaction, setProofOfTransaction] = useState(null);
+    const [existingProofUrl, setExistingProofUrl]     = useState('');
 
+    const [rsaDriverOption, setRsaDriverOption]       = useState([]);
     const [bookingStatus, setBookingStatus]           = useState(null);
-    const [bookingCompletedBy, setBookingCompletedBy] = useState('');
+    const [bookingCompletedBy, setBookingCompletedBy] = useState(null);
+    const [driverMatch, setDriverMatch]               = useState({ rsa_id: null, name: null });
 
     const fetchVehicleList = (selectedMake = null, selectedModel = null) => {
         const obj = {
@@ -82,6 +115,26 @@ const EditOfflineLead = () => {
         });
     };
 
+    const fetchRsaDriverList = () => {
+        const obj = {
+            userId       : userDetails?.user_id,
+            email        : userDetails?.email,
+            service_type : 'Roadside Assistance',
+        };
+        postRequestWithToken('all-rsa-list', obj, (response) => {
+            if (response.code === 200) {
+                const options = (response?.data || []).map((driver) => ({
+                    value  : driver.rsa_name,
+                    label  : driver.rsa_name,
+                    rsa_id : driver.rsa_id,
+                }));
+                setRsaDriverOption(options);
+            } else {
+                console.log('error in all-rsa-list api', response);
+            }
+        });
+    };
+
     const fetchDetails = () => {
         const obj = {
             userId     : userDetails?.user_id,
@@ -93,14 +146,20 @@ const EditOfflineLead = () => {
                 const data = response?.data?.booking || response?.data || {};
 
                 setCustomerName(data.customer_name || data.name || '');
-                setCustomerMobile(data.mobile_no || data.contact_no || '');
                 setCustomerEmail(data.email || data.email_id || '');
                 setCustomerAddress(data.address || data.pickup_address || '');
                 setLocationLink(data.location_link || '');
                 setPrice(data.price != null ? String(data.price) : '');
+
+                const dialCode = String(data.country_code || '+971').replace('+', '');
+                const mobileNo = data.mobile_no || data.contact_no || '';
+                setPhoneValue(`${dialCode}${mobileNo}`);
+                setPhoneCountry({ dialCode, countryCode: 'ae' });
+
                 setBatteryLevel(
                     batteryLevelOption.find((option) => String(option.value) === String(data.battery_level)) || null
                 );
+
                 const jumpStartValue = data.jump_start_required;
                 setJumpStart(
                     jumpStartOption.find((option) =>
@@ -108,11 +167,30 @@ const EditOfflineLead = () => {
                         option.label.toLowerCase() === String(jumpStartValue).toLowerCase()
                     ) || null
                 );
-                setTransactionId(data.transaction_id || '');
+
+                setModeOfPayment(
+                    modeOfPaymentOption.find((option) => option.value === data.mode_of_payment) || null
+                );
+
+                if (data.proof_of_transaction) {
+                    setProofOfTransaction(data.proof_of_transaction);
+                    setExistingProofUrl(
+                        data.proof_of_transaction_url || `${PROOF_BASE_URL}/${data.proof_of_transaction}`
+                    );
+                } else {
+                    setProofOfTransaction(null);
+                    setExistingProofUrl('');
+                }
+
                 setBookingStatus(
                     bookingStatusOption.find((option) => option.value === (data.booking_status || data.order_status)) || null
                 );
-                setBookingCompletedBy(data.driver_name || '');
+
+                setDriverMatch({
+                    rsa_id : data.rsa_id,
+                    name   : data.driver_name || data.booking_completed_by || data.rsa_name,
+                });
+
                 fetchVehicleList(data.vehicle_make, data.vehicle_model);
             } else {
                 toast(response.message, { type : 'error' });
@@ -126,8 +204,22 @@ const EditOfflineLead = () => {
             navigate('/login');
             return;
         }
+        fetchVehicleList();
+        fetchRsaDriverList();
         fetchDetails();
     }, []);
+
+    useEffect(() => {
+        if (!driverMatch.rsa_id && !driverMatch.name) return;
+        if (!rsaDriverOption.length) return;
+
+        const driver = rsaDriverOption.find((option) => option.rsa_id === driverMatch.rsa_id)
+            || rsaDriverOption.find((option) => option.value === driverMatch.name);
+
+        if (driver) {
+            setBookingCompletedBy(driver);
+        }
+    }, [rsaDriverOption, driverMatch]);
 
     const handleVehicleMakeChange = (selectedOption) => {
         setVehicleMake(selectedOption);
@@ -139,10 +231,48 @@ const EditOfflineLead = () => {
         navigate('/ev-road-assistance/offline-leads');
     };
 
+    const getLocalMobile = () => {
+        if (!phoneValue || !phoneCountry?.dialCode) return '';
+        return phoneValue.startsWith(phoneCountry.dialCode)
+            ? phoneValue.slice(phoneCountry.dialCode.length)
+            : phoneValue;
+    };
+
+    const handlePhoneChange = (phone, country) => {
+        setPhoneValue(phone);
+        setPhoneCountry(country);
+        const localMobile = phone.startsWith(country.dialCode)
+            ? phone.slice(country.dialCode.length)
+            : phone;
+        if (localMobile) {
+            setErrors((prev) => ({ ...prev, customerMobile: '' }));
+        }
+    };
+
+    const handleProofChange = (event) => {
+        const selectedFile = event.target.files[0];
+        if (!selectedFile) return;
+
+        if (!ALLOWED_PROOF_TYPES.includes(selectedFile.type)) {
+            toast.error('Please upload a PDF, JPG, or PNG file.');
+            event.target.value = '';
+            return;
+        }
+        setProofOfTransaction(selectedFile);
+        setExistingProofUrl('');
+        setErrors((prev) => ({ ...prev, proofOfTransaction: '' }));
+    };
+
+    const handleRemoveProof = () => {
+        setProofOfTransaction(null);
+        setExistingProofUrl('');
+    };
+
     const validateForm = () => {
+        const localMobile = getLocalMobile();
         const fields = [
             { name : "customerName",       value : customerName,       errorMessage : "Customer Name is required." },
-            { name : "customerMobile",     value : customerMobile,     errorMessage : "Phone Number is required." },
+            { name : "customerMobile",     value : localMobile,        errorMessage : "Phone Number is required." },
             { name : "customerEmail",      value : customerEmail,      errorMessage : "Email ID is required." },
             { name : "customerAddress",    value : customerAddress,    errorMessage : "Address is required." },
             { name : "locationLink",       value : locationLink,       errorMessage : "Location Link is required." },
@@ -153,11 +283,20 @@ const EditOfflineLead = () => {
             { name : "batteryLevel",       value : batteryLevel,       errorMessage : "Battery Level is required." },
             { name : "jumpStart",          value : jumpStart,          errorMessage : "Jump Start Required is required." },
 
-            { name : "transactionId",      value : transactionId,      errorMessage : "Transaction ID is required." },
+            { name : "modeOfPayment",      value : modeOfPayment,      errorMessage : "Mode of Payment is required." },
 
             { name : "bookingStatus",      value : bookingStatus,      errorMessage : "Booking Status is required." },
             { name : "bookingCompletedBy", value : bookingCompletedBy, errorMessage : "Booking Completed By is required." },
         ];
+
+        if (modeOfPayment?.value === 'Online') {
+            fields.push({
+                name         : "proofOfTransaction",
+                value        : proofOfTransaction,
+                errorMessage : "Proof of Transaction is required for Online payment.",
+            });
+        }
+
         const newErrors = fields.reduce((errors, { name, value, errorMessage }) => {
             if (!value || (typeof value === 'string' && value.trim() === '')) {
                 errors[name] = errorMessage;
@@ -173,31 +312,37 @@ const EditOfflineLead = () => {
         setLoading(true);
 
         if (validateForm()) {
-            const obj = {
-                userId               : userDetails?.user_id,
-                email                : userDetails?.email,
-                request_id           : requestId,
+            const formData = new FormData();
+            formData.append("userId", userDetails?.user_id);
+            formData.append("email", userDetails?.email);
+            formData.append("request_id", requestId);
 
-                customer_name        : customerName,
-                mobile_no            : customerMobile,
-                emailId              : customerEmail,
-                country_code         : '+971',
-                location_link        : locationLink,
-                address              : customerAddress,
-                price                : price,
+            formData.append("customer_name", customerName);
+            formData.append("mobile_no", getLocalMobile());
+            formData.append("email_id", customerEmail);
+            formData.append("country_code", phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971');
+            formData.append("location_link", locationLink);
+            formData.append("address", customerAddress);
+            formData.append("price", price);
 
-                vehicle_make         : vehicleMake?.value,
-                vehicle_model        : vehicleModel?.value,
-                battery_level        : batteryLevel?.value,
-                jump_start_required  : jumpStart?.value,
+            formData.append("vehicle_make", vehicleMake?.value);
+            formData.append("vehicle_model", vehicleModel?.value);
+            formData.append("battery_level", batteryLevel?.value);
+            formData.append("jump_start_required", jumpStart?.value);
 
-                payment_status       : paymentStatus,
-                transaction_id       : transactionId,
+            formData.append("mode_of_payment", modeOfPayment?.value);
+            formData.append("payment_status", 'Paid');
 
-                booking_status       : bookingStatus?.value,
-                booking_completed_by : bookingCompletedBy,
-            };
-            postRequestWithToken('ev-road-assistance-edit-offline-booking', obj, async (response) => {
+            formData.append("booking_status", bookingStatus?.value);
+            formData.append("booking_completed_by", bookingCompletedBy?.value);
+            formData.append("driver_name", bookingCompletedBy?.value);
+            formData.append("rsa_id", bookingCompletedBy?.rsa_id);
+
+            if (proofOfTransaction && typeof proofOfTransaction !== 'string') {
+                formData.append("proof_of_transaction", proofOfTransaction);
+            }
+
+            postRequestWithTokenAndFile('ev-road-assistance-edit-offline-booking', formData, async (response) => {
                 if (response.code === 200 || response.status === 1) {
                     toast(response.message, { type : 'success' });
                     setTimeout(() => {
@@ -215,6 +360,8 @@ const EditOfflineLead = () => {
             setLoading(false);
         }
     };
+
+    const proofPreviewSrc = getProofPreviewSrc(proofOfTransaction, existingProofUrl);
 
     return (
         <div className={styles.addShopContainer}>
@@ -239,18 +386,21 @@ const EditOfflineLead = () => {
                         </div>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Phone Number</label>
-                            <input
-                                type="text"
-                                autoComplete="off"
+                            <PhoneInput
+                                country="ae"
+                                value={phoneValue}
+                                onChange={handlePhoneChange}
+                                enableSearch={true}
+                                countryCodeEditable={false}
+                                containerClass={styles.phoneInputContainer}
+                                inputClass={styles.phoneInputField}
+                                buttonClass={styles.phoneInputButton}
+                                dropdownClass={styles.phoneInputDropdown}
                                 placeholder="Phone Number"
-                                className={styles.inputField}
-                                value={customerMobile}
-                                onChange={(e) => {
-                                    const value = e.target.value.replace(/\D/g, '');
-                                    setCustomerMobile(value.slice(0, 12));
-                                }}
                             />
-                            {errors.customerMobile && !customerMobile && <p className={styles.error}>{errors.customerMobile}</p>}
+                            {errors.customerMobile && !getLocalMobile() && (
+                                <p className={styles.error}>{errors.customerMobile}</p>
+                            )}
                         </div>
                     </div>
                     <div className={styles.row}>
@@ -293,7 +443,7 @@ const EditOfflineLead = () => {
                             {errors.customerAddress && !customerAddress && <p className={styles.error}>{errors.customerAddress}</p>}
                         </div>
                         <div className={styles.addShopInputContainer}>
-                            <label className={styles.addShopLabel}>Price (AED)</label>
+                            <label className={styles.addShopLabel}>Price including VAT</label>
                             <input
                                 type="text"
                                 autoComplete="off"
@@ -365,27 +515,71 @@ const EditOfflineLead = () => {
                     </div>
 
                     <div className={styles.addHeading} style={{ marginBottom: "0px", marginTop: "10px" }}>Payment Information</div>
-                    <div className={styles.row}>
+                    <div className={styles.row} style={{ alignItems: 'flex-start' }}>
                         <div className={styles.addShopInputContainer}>
-                            <label className={styles.addShopLabel}>Payment Status</label>
-                            <input
-                                type="text"
-                                className={styles.inputField}
-                                value={paymentStatus}
-                                disabled
+                            <label className={styles.addShopLabel}>Mode of Payment</label>
+                            <Select
+                                className={styles.addShopSelect}
+                                options={modeOfPaymentOption}
+                                value={modeOfPayment}
+                                onChange={(selectedOption) => {
+                                    setModeOfPayment(selectedOption);
+                                    if (selectedOption?.value !== 'Online') {
+                                        setProofOfTransaction(null);
+                                        setExistingProofUrl('');
+                                        setErrors((prev) => ({ ...prev, proofOfTransaction: '' }));
+                                    }
+                                }}
+                                placeholder="Select Mode of Payment"
+                                isClearable={true}
                             />
+                            {errors.modeOfPayment && !modeOfPayment && <p className={styles.error}>{errors.modeOfPayment}</p>}
                         </div>
                         <div className={styles.addShopInputContainer}>
-                            <label className={styles.addShopLabel}>Transaction ID</label>
-                            <input
-                                type="text"
-                                autoComplete="off"
-                                placeholder="Transaction ID"
-                                className={styles.inputField}
-                                value={transactionId}
-                                onChange={(e) => setTransactionId(e.target.value)}
-                            />
-                            {errors.transactionId && !transactionId && <p className={styles.error}>{errors.transactionId}</p>}
+                            {modeOfPayment?.value === 'Online' ? (
+                                <div className={styles.fileUploadColumn}>
+                                    <label className={styles.fileLabel}>Proof of Transaction</label>
+                                    <div className={styles.fileDropZone}>
+                                        <input
+                                            type="file"
+                                            id="proofOfTransaction"
+                                            accept=".pdf,.jpg,.jpeg,.png"
+                                            onChange={handleProofChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                        {!proofOfTransaction ? (
+                                            <label htmlFor="proofOfTransaction" className={styles.fileUploadLabel}>
+                                                <img src={UploadIcon} alt="Upload Icon" className={styles.uploadIcon} />
+                                                <p>Select File to Upload <br /> or Drag & Drop, Copy & Paste Files</p>
+                                            </label>
+                                        ) : (
+                                            <div className={styles.imageContainer}>
+                                                {isPdfProof(proofOfTransaction) ? (
+                                                    existingProofUrl ? (
+                                                        <a href={existingProofUrl} target="_blank" rel="noopener noreferrer">
+                                                            <img src={PdfIcon} alt="PDF Preview" className={styles.previewImage} style={{ height: '80px' }} />
+                                                        </a>
+                                                    ) : (
+                                                        <img src={PdfIcon} alt="PDF Preview" className={styles.previewImage} style={{ height: '80px' }} />
+                                                    )
+                                                ) : (
+                                                    <img
+                                                        src={proofPreviewSrc}
+                                                        alt="Preview"
+                                                        className={styles.previewImage}
+                                                    />
+                                                )}
+                                                <button type="button" className={styles.removeButton} onClick={handleRemoveProof}>
+                                                    <AiOutlineClose size={20} />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {errors.proofOfTransaction && !proofOfTransaction && (
+                                        <p className={styles.error}>{errors.proofOfTransaction}</p>
+                                    )}
+                                </div>
+                            ) : null}
                         </div>
                     </div>
 
@@ -405,13 +599,13 @@ const EditOfflineLead = () => {
                         </div>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Booking Completed By</label>
-                            <input
-                                type="text"
-                                autoComplete="off"
-                                placeholder="Booking Completed By"
-                                className={styles.inputField}
+                            <Select
+                                className={styles.addShopSelect}
+                                options={rsaDriverOption}
                                 value={bookingCompletedBy}
-                                onChange={(e) => setBookingCompletedBy(e.target.value)}
+                                onChange={(selectedOption) => setBookingCompletedBy(selectedOption)}
+                                placeholder="Select RSA Driver"
+                                isClearable={true}
                             />
                             {errors.bookingCompletedBy && !bookingCompletedBy && <p className={styles.error}>{errors.bookingCompletedBy}</p>}
                         </div>

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import styles from './roadassistance.module.css'
 import BookingDetailsHeader from '../../SharedComponent/Details/BookingDetails/BookingDetailsHeader'
 import BookingLeftDetails from '../../SharedComponent/BookingDetails/BookingLeftDetails.jsx'
+import BookingImageSection from '../../SharedComponent/Details/BookingDetails/BookingImageSection'
+import BookingMultipleImages from '../../SharedComponent/Details/BookingDetails/BookingMultipleImages.jsx'
 import BookingDetailsAccordion from '../../SharedComponent/BookingDetails/BookingDetailsAccordion.jsx'
 import { postRequestWithToken } from '../../../api/Requests';
 import { useParams } from 'react-router-dom';
@@ -25,6 +27,8 @@ const statusMapping = {
     'C'  : 'Cancel',
     'RO' : 'POD Reached at Office',
 };
+
+const PROOF_BASE_URL = `${process.env.REACT_APP_DIR_UPLOADS}rsa-offline-proof`;
 
 const OfflineLeadsBookingDetails = () => {
     const userDetails                         = JSON.parse(sessionStorage.getItem('userDetails'));
@@ -70,12 +74,13 @@ const OfflineLeadsBookingDetails = () => {
         || bookingDetails?.rsa_name
         || bookingDetails?.driver_name
         || (rsa_data[0]?.trim() || '');
+    const driverContact = `${bookingDetails?.driver_country_code || ''} ${bookingDetails?.driver_mobile_no || rsa_data[1]?.trim() || ''}`.trim();
     const content = {
         bookingId       : bookingDetails?.request_id,
         customerId      : bookingDetails?.rider_id,
         createdAt       : moment(bookingDetails?.created_at).format('DD MMM YYYY h:mm A'),
         driverName      : driverName,
-        driverContact   : rsa_data[1]?.trim() || '',
+        driverContact   : driverContact,
         podId           : bookingDetails?.pod_id,
         podName         : bookingDetails?.pod_name,
         customerName    : bookingDetails?.name || bookingDetails?.customer_name,
@@ -89,8 +94,35 @@ const OfflineLeadsBookingDetails = () => {
         address       : "Address",
         battery       : "Vehicle Battery %",
         jumpStart     : "Jump Start Required",
-        locationLink  : "Location Link"
-    }
+        locationLink  : "Location Link",
+        modeOfPayment : "Mode of Payment",
+        paymentStatus : "Payment Status",
+    };
+
+    const proofFilename = bookingDetails?.proof_of_transaction;
+    const proofFullUrl = bookingDetails?.proof_of_transaction_url
+        || (proofFilename ? `${PROOF_BASE_URL}/${proofFilename}` : null);
+
+    const isPdfProof = proofFilename && (
+        proofFilename.toLowerCase().endsWith('.pdf')
+        || proofFullUrl?.toLowerCase().endsWith('.pdf')
+    );
+
+    const proofImageTitles = {
+        coverImage : "Proof of Transaction",
+    };
+    const proofImageContent = {
+        coverImage : proofFullUrl,
+        baseUrl    : '',
+    };
+    const proofPdfTitles = {
+        evChargerFiles : "Proof of Transaction",
+    };
+    const proofPdfContent = {
+        evChargerFiles : proofFullUrl,
+        baseUrl        : '',
+    };
+
     const sectionContent1 = {
         bookingStatus : statusMapping[bookingDetails?.order_status || bookingDetails?.booking_status] || bookingDetails?.order_status || bookingDetails?.booking_status,
         price         : bookingDetails?.price,
@@ -108,7 +140,11 @@ const OfflineLeadsBookingDetails = () => {
         battery       : bookingDetails?.current_percent == 1 || bookingDetails?.battery_level == 1 || bookingDetails?.battery_level === '1'
             ? 'More than 5%'
             : '0%',
-        jumpStart     : (bookingDetails?.jump_start_required == 1 || bookingDetails?.jump_start_required === '1') ? 'Yes' : 'No',
+        jumpStart     : (
+            bookingDetails?.jump_start_required == 1
+            || bookingDetails?.jump_start_required === '1'
+            || String(bookingDetails?.jump_start_required).toLowerCase() === 'yes'
+        ) ? 'Yes' : 'No',
         locationLink  : bookingDetails?.location_link ? (
             <a
                 href      = {bookingDetails.location_link}
@@ -118,7 +154,9 @@ const OfflineLeadsBookingDetails = () => {
             >
                 {bookingDetails.location_link}
             </a>
-        ) : ''
+        ) : '',
+        modeOfPayment : bookingDetails?.mode_of_payment || '-',
+        paymentStatus : bookingDetails?.payment_status || '-',
     }
     return (
         <div className='main-container'>
@@ -128,6 +166,20 @@ const OfflineLeadsBookingDetails = () => {
             <div className={styles.bookingDetailsSection}>
                 <BookingLeftDetails titles={sectionTitles1} content={sectionContent1}
                     type='evRoadAssitanceBooking' />
+                {proofFullUrl && !isPdfProof && (
+                    <BookingImageSection
+                        titles={proofImageTitles}
+                        content={proofImageContent}
+                        type='evRoadAssitanceBooking'
+                    />
+                )}
+                {proofFullUrl && isPdfProof && (
+                    <BookingMultipleImages
+                        titles={proofPdfTitles}
+                        content={proofPdfContent}
+                        type='evRoadAssitanceBooking'
+                    />
+                )}
                 <BookingDetailsAccordion history={history} rsa={content} statusOverrides={{ PU : 'Booking Completed' }} />
             </div>
         </div>

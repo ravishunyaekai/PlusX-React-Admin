@@ -11,6 +11,18 @@ import { postRequestWithTokenAndFile, postRequestWithToken } from '../../api/Req
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 
+const OFFER_IMAGE_BASE_URL = 'https://plusx.s3.ap-south-1.amazonaws.com/uploads/offer';
+
+const getOfferImageSrc = (file) => {
+    if (typeof file !== 'string') {
+        return URL.createObjectURL(file);
+    }
+    if (file.startsWith('http')) {
+        return file;
+    }
+    return `${OFFER_IMAGE_BASE_URL}/${file}`;
+};
+
 const EditOffer = () => {
     const userDetails                     = JSON.parse(sessionStorage.getItem('userDetails')); 
     const navigate                        = useNavigate();
@@ -135,7 +147,6 @@ const [isActive, setIsActive] = useState(false);
 const handleToggle = () => {
     setIsActive(!isActive);
 };
-console.log(process.env.REACT_APP_DIR_UPLOADS)
   return (
     <div className={styles.addShopContainer}>
         <ToastContainer />
@@ -216,13 +227,8 @@ console.log(process.env.REACT_APP_DIR_UPLOADS)
                             </label>
                         ) : (
                             <div className={styles.imageContainer}>
-                                {/* <img src={URL.createObjectURL(file)} alt="Preview" className={styles.previewImage} /> */}
                                 <img
-                                    src={
-                                        typeof file === 'string'
-                                            ? `${process.env.REACT_APP_DIR_UPLOADS}offer/${file}`
-                                            : URL.createObjectURL(file)
-                                    }
+                                    src={getOfferImageSrc(file)}
                                     alt="Preview"
                                     className={styles.previewImage}
                                 />
