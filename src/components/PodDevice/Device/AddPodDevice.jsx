@@ -234,7 +234,7 @@ const AddPodDevice = () => {
                             <input
                                 className={styles.inputCharger}
                                 type="text"
-                                placeholder="Pahse 1, Phase 2"
+                                placeholder="Phase 1, Phase 2"
                                 value={inverter}
                                 onChange={(e) => setInverter(e.target.value)}
                             />
