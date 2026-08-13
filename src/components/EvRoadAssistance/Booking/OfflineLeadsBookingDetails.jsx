@@ -91,10 +91,10 @@ const OfflineLeadsBookingDetails = () => {
         bookingStatus : "Booking Status",
         price         : "Price",
         vehicle       : "Vehicle",
-        address       : "Address",
         battery       : "Vehicle Battery %",
         jumpStart     : "Jump Start Required",
         locationLink  : "Location Link",
+        address       : "Address",
         modeOfPayment : "Mode of Payment",
         paymentStatus : "Payment Status",
     };
@@ -109,14 +109,14 @@ const OfflineLeadsBookingDetails = () => {
     );
 
     const proofImageTitles = {
-        coverImage : "Proof of Transaction",
+        coverImage : "Payment Proof",
     };
     const proofImageContent = {
         coverImage : proofFullUrl,
         baseUrl    : '',
     };
     const proofPdfTitles = {
-        evChargerFiles : "Proof of Transaction",
+        evChargerFiles : "Payment Proof",
     };
     const proofPdfContent = {
         evChargerFiles : proofFullUrl,
@@ -127,16 +127,6 @@ const OfflineLeadsBookingDetails = () => {
         bookingStatus : statusMapping[bookingDetails?.order_status || bookingDetails?.booking_status] || bookingDetails?.order_status || bookingDetails?.booking_status,
         price         : bookingDetails?.price,
         vehicle       : bookingDetails?.vehicle_data || `${bookingDetails?.vehicle_make || ''} ${bookingDetails?.vehicle_model || ''}`.trim(),
-        address : (
-            <a
-                href    = {bookingDetails?.location_link || `https://www.google.com/maps?q=${bookingDetails?.pickup_latitude},${bookingDetails?.pickup_longitude}`}
-                target    = "_blank"
-                rel       = "noopener noreferrer"
-                className = 'linkSection'
-            >
-                {bookingDetails?.pickup_address || bookingDetails?.address || 'View on Map'}
-            </a>
-        ),
         battery       : bookingDetails?.current_percent == 1 || bookingDetails?.battery_level == 1 || bookingDetails?.battery_level === '1'
             ? 'More than 5%'
             : '0%',
@@ -155,6 +145,16 @@ const OfflineLeadsBookingDetails = () => {
                 {bookingDetails.location_link}
             </a>
         ) : '',
+        address : (
+            <a
+                href    = {bookingDetails?.location_link || `https://www.google.com/maps?q=${bookingDetails?.pickup_latitude},${bookingDetails?.pickup_longitude}`}
+                target    = "_blank"
+                rel       = "noopener noreferrer"
+                className = 'linkSection'
+            >
+                {bookingDetails?.pickup_address || bookingDetails?.address || 'View on Map'}
+            </a>
+        ),
         modeOfPayment : bookingDetails?.mode_of_payment || '-',
         paymentStatus : bookingDetails?.payment_status || '-',
     }

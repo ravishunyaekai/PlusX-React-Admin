@@ -293,7 +293,7 @@ const EditOfflineLead = () => {
             fields.push({
                 name         : "proofOfTransaction",
                 value        : proofOfTransaction,
-                errorMessage : "Proof of Transaction is required for Online payment.",
+                errorMessage : "Payment Proof is required for Online payment.",
             });
         }
 
@@ -538,7 +538,7 @@ const EditOfflineLead = () => {
                         <div className={styles.addShopInputContainer}>
                             {modeOfPayment?.value === 'Online' ? (
                                 <div className={styles.fileUploadColumn}>
-                                    <label className={styles.fileLabel}>Proof of Transaction</label>
+                                    <label className={styles.fileLabel}>Payment Proof</label>
                                     <div className={styles.fileDropZone}>
                                         <input
                                             type="file"
