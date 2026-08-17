@@ -29,7 +29,7 @@ const SideNavbar = () => {
         //     shopBrands   : false,
         // },
         eVSwipeStation      : { bikeList : false, stationList : false },
-        chargerInstallation : { stationList : false, chargerList : false, brandList: false, },
+        chargerInstallation : { stationList : false, chargerList : false, brandList: false, inquiryTracking: false },
         community  : { communityList : false, residentList : false, residentInvoice: false },
     });
     const location = useLocation();
@@ -101,7 +101,7 @@ const SideNavbar = () => {
                 ? prevState.eVSwipeStation : { bikeList: false, stationList: false },
 
             chargerInstallation: location.pathname.includes("/charger-installation")
-                ? prevState.chargerInstallation : { stationList : false, chargerList : false, brandList: false, shareList: false  },
+                ? prevState.chargerInstallation : { stationList : false, chargerList : false, brandList: false, shareList: false, inquiryTracking: false  },
             community: location.pathname.includes("/community")
                 ? prevState.community : { communityList : false, residentList : false, residentInvoice: false },
         })); 

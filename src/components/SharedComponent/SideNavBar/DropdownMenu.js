@@ -53,6 +53,7 @@ export const menuItems = {
         { id: "accessoriesBooking", label: "EV Accessories Bookings", path: "/charger-installation/ev-accessories-booking-list" },
 
         { id: "stationList", label: "Charger Installation Bookings", path: "/charger-installation/charger-installation-list" },
+        { id: "inquiryTracking", label: "Charger Installation Inquiry Tracking", path: "/charger-installation/inquiry-tracking" },
         { id: "brandList",   label: "Brand List", path: "/charger-installation/ev-charger-brand-list" },
         // { id: "shareList", label: "Charge Share List", path: "/charger-installation/charger-share-list" },
     ],

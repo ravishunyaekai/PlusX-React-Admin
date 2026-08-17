@@ -182,6 +182,10 @@ import PurchaseList    from "../components/ChargerInstallationList/PurchaseHisto
 import AddPurchase     from "../components/ChargerInstallationList/PurchaseHistory/AddPurchase.jsx";
 import EditPurchase    from "../components/ChargerInstallationList/PurchaseHistory/EditPurchase.jsx";
 import PurchaseDetails from "../components/ChargerInstallationList/PurchaseHistory/PurchaseDetails.jsx";
+import InquiryList from "../components/ChargerInstallationList/InquiryTracking/InquiryList.jsx";
+import AddInquiry from "../components/ChargerInstallationList/InquiryTracking/AddInquiry.jsx";
+import EditInquiry from "../components/ChargerInstallationList/InquiryTracking/EditInquiry.jsx";
+import InquiryDetails from "../components/ChargerInstallationList/InquiryTracking/InquiryDetails.jsx";
 
 import ChargeShare from "../components/ChargerShare/index.jsx";
 import ChargeShareList from "../components/ChargerShare/List.jsx";
@@ -569,10 +573,26 @@ const router = createBrowserRouter([
                     {
                         path: "purchase-detail/:purchaseId",
                         element: <PurchaseDetails />,
-                    }, {
+                    },                     {
                         path: "purchase-edit/:purchaseId",
                         element: <EditPurchase />,
-                    }, 
+                    },
+                    {
+                        path: "inquiry-tracking",
+                        element: <InquiryList />,
+                    },
+                    {
+                        path: "inquiry-tracking-add",
+                        element: <AddInquiry />,
+                    },
+                    {
+                        path: "inquiry-tracking-details/:inquiryId",
+                        element: <InquiryDetails />,
+                    },
+                    {
+                        path: "inquiry-tracking-edit/:inquiryId",
+                        element: <EditInquiry />,
+                    },
                     
                 ],
             },
