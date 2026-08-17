@@ -361,6 +361,14 @@ const List = ({ list, tableHeaders, listData, keyMapping, pageHeading, onDeleteS
                                             <img src={View} alt="view" onClick={() => handleClickEvent('/community/invoice-details', data.invoice_id)} />
                                         </>
                                     )}
+                                    { pageHeading === 'Charger Installation Inquiry Tracking' && (
+                                        <>
+                                            <img src={View} alt="view" onClick={() => handleClickEvent('/charger-installation/inquiry-tracking-details', data.inquiry_id)} />
+                                            { departmentId == 1 && (
+                                                <img src={Edit} alt='edit' onClick={() => handleClickEvent('/charger-installation/inquiry-tracking-edit', data.inquiry_id)} />
+                                            )}
+                                        </>
+                                    )}
                                 </div>
                             </td>
                         </tr> 
