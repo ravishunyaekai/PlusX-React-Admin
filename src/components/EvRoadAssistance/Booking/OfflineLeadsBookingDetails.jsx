@@ -140,14 +140,14 @@ const OfflineLeadsBookingDetails = () => {
                 href      = {bookingDetails.location_link}
                 target    = "_blank"
                 rel       = "noopener noreferrer"
-                className = 'linkSection'
+                className = {styles.locationLink}
             >
-                {bookingDetails.location_link}
+                View Location
             </a>
-        ) : '',
+        ) : '-',
         address : (
             <a
-                href    = {bookingDetails?.location_link || `https://www.google.com/maps?q=${bookingDetails?.pickup_latitude},${bookingDetails?.pickup_longitude}`}
+                href      = {bookingDetails?.location_link || `https://www.google.com/maps?q=${bookingDetails?.pickup_latitude},${bookingDetails?.pickup_longitude}`}
                 target    = "_blank"
                 rel       = "noopener noreferrer"
                 className = 'linkSection'
