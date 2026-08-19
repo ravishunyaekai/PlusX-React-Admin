@@ -30,6 +30,15 @@ const modeOfPaymentOption = [
 const ALLOWED_PROOF_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
 const PROOF_BASE_URL = `${process.env.REACT_APP_DIR_UPLOADS}rsa-offline-proof`;
 
+const isValidLocationUrl = (value) => {
+    try {
+        const url = new URL(value.trim());
+        return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch {
+        return false;
+    }
+};
+
 const isPdfProof = (proof) => {
     if (typeof proof === 'string') {
         return proof.toLowerCase().endsWith('.pdf');
@@ -303,6 +312,11 @@ const EditOfflineLead = () => {
             }
             return errors;
         }, {});
+
+        if (locationLink.trim() && !isValidLocationUrl(locationLink)) {
+            newErrors.locationLink = 'Please enter a valid URL.';
+        }
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -424,9 +438,14 @@ const EditOfflineLead = () => {
                                 placeholder="Location Link"
                                 className={styles.inputField}
                                 value={locationLink}
-                                onChange={(e) => setLocationLink(e.target.value)}
+                                onChange={(e) => {
+                                    setLocationLink(e.target.value);
+                                    if (errors.locationLink) {
+                                        setErrors((prev) => ({ ...prev, locationLink: '' }));
+                                    }
+                                }}
                             />
-                            {errors.locationLink && !locationLink && <p className={styles.error}>{errors.locationLink}</p>}
+                            {errors.locationLink && <p className={styles.error}>{errors.locationLink}</p>}
                         </div>
                     </div>
                     <div className={styles.row}>
