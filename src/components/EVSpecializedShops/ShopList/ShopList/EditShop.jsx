@@ -13,6 +13,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import Add from '../../../../assets/images/Plus.svg'
 import Remove from '../../../../assets/images/remove.svg'
 import ReactInputMask from "react-input-mask"
+import { onUploadImageError } from '../../../../utils/uploadUrl';
+
 const EditShopListForm = () => {
     const userDetails = JSON.parse(sessionStorage.getItem('userDetails'));
     const navigate    = useNavigate();
@@ -578,7 +580,8 @@ const EditShopListForm = () => {
                                             }
                                             alt="Preview"
                                             className={styles.previewImage}
-                                        />
+                                        onError={onUploadImageError}
+                                    />
                                         <button type="button" className={styles.removeButton} onClick={handleRemoveImage}>
                                             <AiOutlineClose size={20} style={{ padding: '2px' }} />
                                         </button>
@@ -619,7 +622,8 @@ const EditShopListForm = () => {
                                                     }
                                                     alt={`Preview ${index + 1}`}
                                                     className={styles.previewImage}
-                                                />
+                                                onError={onUploadImageError}
+                                    />
                                                 <button type="button" className={styles.removeButton} onClick={() => handleRemoveGalleryImage(index)}>
                                                     <AiOutlineClose size={20} style={{ padding: '2px' }} />
                                                 </button>

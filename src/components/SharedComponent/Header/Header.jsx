@@ -8,6 +8,7 @@ import { RiLogoutCircleLine } from "react-icons/ri";
 import { CgProfile } from "react-icons/cg";
 import {postRequestWithToken } from '../../../api/Requests';
 import moment from 'moment';
+import { onUploadImageError } from '../../../utils/uploadUrl';
 
 import io from 'socket.io-client';
 
@@ -195,7 +196,7 @@ const Header = () => {
             </div>
             {/* Profile Section */}
             <div className={styles.profileContainer} onClick={toggleProfile} ref={profileRef} >
-                <img src={userImage} className={styles.profileImage} alt='img' />
+                <img src={userImage} className={styles.profileImage} alt='img' onError={onUploadImageError} />
                 {/* Profile Dialog Section */}
                 { isProfileOpen && (
                     <div className={styles.profileDropdown}>

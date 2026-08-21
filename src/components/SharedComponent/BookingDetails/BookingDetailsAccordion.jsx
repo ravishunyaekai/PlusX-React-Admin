@@ -3,6 +3,7 @@ import { Accordion } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import styles from './bookingdetails.module.css';
 import moment from 'moment';
+import S3Image from '../S3Image/S3Image';
 
 
 const BookingDetailsAccordion = ({history, rsa, imageUrl, fieldMapping, title, statusOverrides }) => {
@@ -89,7 +90,7 @@ const BookingDetailsAccordion = ({history, rsa, imageUrl, fieldMapping, title, s
                                     <p className={styles.accodionPTag}><strong>Images :</strong></p>
                                     <div className={styles.imageContainer}>
                                         {section.imageUrls.map((url, index) => (
-                                            <img key={index} src={url} alt={`Img${index}`} style={{ maxWidth: '700px', height: '250px', margin: '5px' }} />
+                                            <S3Image key={index} src={url} alt={`Img${index}`} style={{ maxWidth: '700px', height: '250px', margin: '5px' }} />
                                         ))}
                                     </div>
                                 </div>

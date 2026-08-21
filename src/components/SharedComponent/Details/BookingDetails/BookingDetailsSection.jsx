@@ -1,6 +1,7 @@
 import React from 'react'
 import styles from '../details.module.css'
 import moment from 'moment';
+import S3Image from '../../S3Image/S3Image';
 
 
 const BookingDetailsSection = ({ titles, content, type }) => {
@@ -41,7 +42,7 @@ const BookingDetailsSection = ({ titles, content, type }) => {
                   <div className="col-xl-3 col-lg-6 col-12" key={key}>
                     <div className={styles.infoBlock}>
                       <span className={styles.infoHeading}>{titles[key]}</span>
-                      <img
+                      <S3Image
                         src={`${content.baseUrl}${content[key]}`}
                         alt="Cover"
                         className={styles.coverImage}

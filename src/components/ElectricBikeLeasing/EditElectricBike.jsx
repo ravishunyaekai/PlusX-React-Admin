@@ -8,6 +8,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { postRequestWithTokenAndFile, postRequestWithToken } from '../../api/Requests';
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import { onUploadImageError } from '../../utils/uploadUrl';
 
 const EditElectricBike = () => {
     const userDetails                     = JSON.parse(sessionStorage.getItem('userDetails'));
@@ -393,6 +394,7 @@ const EditElectricBike = () => {
                                         }
                                         alt="Preview"
                                         className={styles.previewImage}
+                                    onError={onUploadImageError}
                                     />
                                     <button type="button" className={styles.removeButton} onClick={handleRemoveImage}>
                                         <AiOutlineClose size={20} style={{ padding: '2px' }} />
@@ -432,7 +434,8 @@ const EditElectricBike = () => {
                                                 }
                                                 alt={`Preview ${index + 1}`}
                                                 className={styles.previewImage}
-                                            />
+                                            onError={onUploadImageError}
+                                    />
                                             <button type="button" className={styles.removeButton} onClick={() => handleRemoveGalleryImage(index)}>
                                                 <AiOutlineClose size={20} style={{ padding: '2px' }} />
                                             </button>

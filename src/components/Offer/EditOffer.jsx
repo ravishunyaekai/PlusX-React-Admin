@@ -10,8 +10,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { postRequestWithTokenAndFile, postRequestWithToken } from '../../api/Requests';
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-
-const OFFER_IMAGE_BASE_URL = 'https://plusx.s3.ap-south-1.amazonaws.com/uploads/offer';
+import { getUploadUrl, onUploadImageError } from '../../utils/uploadUrl';
 
 const getOfferImageSrc = (file) => {
     if (typeof file !== 'string') {
@@ -20,7 +19,7 @@ const getOfferImageSrc = (file) => {
     if (file.startsWith('http')) {
         return file;
     }
-    return `${OFFER_IMAGE_BASE_URL}/${file}`;
+    return getUploadUrl(`offer/${file}`);
 };
 
 const EditOffer = () => {
@@ -231,6 +230,7 @@ const handleToggle = () => {
                                     src={getOfferImageSrc(file)}
                                     alt="Preview"
                                     className={styles.previewImage}
+                                    onError={onUploadImageError}
                                 />
                                 <button type="button" className={styles.removeButton} onClick={handleRemoveImage}>
                                     <AiOutlineClose size={20} style={{ padding: '2px' }} />
