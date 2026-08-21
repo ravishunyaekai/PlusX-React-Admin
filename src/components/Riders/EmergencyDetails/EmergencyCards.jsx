@@ -3,6 +3,7 @@ import styles from './emergency.module.css';
 import Person from '../../../assets/images/Person.svg';
 import Mobile from '../../../assets/images/Mobile.svg';
 import Email from '../../../assets/images/Email.svg';
+import S3Image from '../../SharedComponent/S3Image/S3Image';
 
 const EmergencyCards = ({ details, baseUrl}) => {
     const infoData = [
@@ -18,7 +19,7 @@ const EmergencyCards = ({ details, baseUrl}) => {
                     <div className="col-xl-4 col-lg-6 col-12" key={index}>
                         <div className={styles.detailsHeaderSection}>
                             <div className={styles.detailsImageSection}>
-                                {item.image ? <img src={baseUrl + item.image} alt='img' /> :
+                                {item.image ? <S3Image src={baseUrl + item.image} alt='img' /> :
                                     <img src={item.icon} alt={item.label} />
                                 }
                             </div>

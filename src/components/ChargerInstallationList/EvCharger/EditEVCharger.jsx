@@ -14,6 +14,7 @@ import ReactInputMask from "react-input-mask"
 import Add from '../../../assets/images/Add.svg';
 import PdfIcon from "../../../assets/images/PdfIcon.svg";
 import { MultiSelect } from "react-multi-select-component";
+import { onUploadImageError } from '../../../utils/uploadUrl';
 
 const EditEVCharger = () => {
     const { chargerId }                     = useParams()
@@ -616,6 +617,7 @@ const EditEVCharger = () => {
                                         }
                                         alt="Preview"
                                         className={styles.previewImage}
+                                    onError={onUploadImageError}
                                     />
                                     <button
                                         type="button"
@@ -661,7 +663,8 @@ const EditEVCharger = () => {
                                             }
                                             alt={`Preview ${index + 1}`}
                                             className={styles.previewImage}
-                                        />
+                                        onError={onUploadImageError}
+                                    />
                                         <button
                                             type="button"
                                             className={styles.removeButton}

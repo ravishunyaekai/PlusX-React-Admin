@@ -10,6 +10,7 @@ import 'react-phone-input-2/lib/style.css';
 import { AiOutlineClose } from 'react-icons/ai';
 import UploadIcon from '../../../assets/images/uploadicon.svg';
 import PdfIcon from '../../../assets/images/PdfIcon.svg';
+import { onUploadImageError } from '../../../utils/uploadUrl';
 
 const batteryLevelOption = [
     { value : '0',  label : '0%' },
@@ -586,6 +587,7 @@ const EditOfflineLead = () => {
                                                         src={proofPreviewSrc}
                                                         alt="Preview"
                                                         className={styles.previewImage}
+                                                        onError={onUploadImageError}
                                                     />
                                                 )}
                                                 <button type="button" className={styles.removeButton} onClick={handleRemoveProof}>

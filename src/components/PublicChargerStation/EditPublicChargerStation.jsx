@@ -10,6 +10,7 @@ import { postRequestWithTokenAndFile, postRequestWithToken } from '../../api/Req
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import ReactInputMask from "react-input-mask"
+import { onUploadImageError } from '../../utils/uploadUrl';
 
 const EditPublicChargerStation = () => {
     const {stationId} = useParams()
@@ -663,6 +664,7 @@ const EditPublicChargerStation = () => {
                                         }
                                         alt="Preview"
                                         className={styles.previewImage}
+                                    onError={onUploadImageError}
                                     />
                                     <button type="button" className={styles.removeButton} onClick={handleRemoveImage}>
                                         <AiOutlineClose size={20} style={{ padding: '2px' }} />
@@ -703,7 +705,8 @@ const EditPublicChargerStation = () => {
                                             }
                                             alt={`Preview ${index + 1}`}
                                             className={styles.previewImage}
-                                        />
+                                        onError={onUploadImageError}
+                                    />
                                         <button type="button" className={styles.removeButton} onClick={() => handleRemoveGalleryImage(index)}>
                                             <AiOutlineClose size={20} style={{ padding: '2px' }} />
                                         </button>

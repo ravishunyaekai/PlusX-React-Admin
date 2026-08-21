@@ -1,5 +1,6 @@
-import React from 'react';
+import React from 'react'
 import styles from '../details.module.css';
+import S3Image from '../../S3Image/S3Image';
 
 const BookingImageSection = ({ titles, content, type }) => {
     const baseUrl = content.baseUrl;
@@ -14,7 +15,7 @@ const BookingImageSection = ({ titles, content, type }) => {
                         <span className={styles.infoHeading}>{titles.coverImages}</span>
                         <div className={styles.galleryImages}>
                         {content.coverImages.map((image, index) => (
-                            <img
+                            <S3Image
                             key={index}
                             src={`${baseUrl}${image}`}
                             alt={`Cover Img ${index + 1}`}
@@ -30,7 +31,7 @@ const BookingImageSection = ({ titles, content, type }) => {
                     <div className={styles.infoBlock}>
                         <span className={styles.infoHeading}>{titles.coverImage}</span>
                         <div className={styles.galleryImages}>
-                        <img
+                        <S3Image
                             src={`${baseUrl}${content.coverImage}`}
                             alt="Cover"
                             className={styles.galleryImage}

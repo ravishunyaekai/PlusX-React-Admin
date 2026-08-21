@@ -3,6 +3,7 @@ import styles from '../details.module.css'
 import { AiOutlineClose } from 'react-icons/ai';
 import { FiDownload } from 'react-icons/fi';
 import PdfIcon from "../../../../assets/images/PdfIcon.svg";
+import S3Image from '../../S3Image/S3Image';
 
 const BookingMultipleImages = ({ titles, content, type, onRemoveImage }) => {
     console.log('content', content)
@@ -40,7 +41,7 @@ const BookingMultipleImages = ({ titles, content, type, onRemoveImage }) => {
                   {galleryImagesWithIds.length > 0 ? (
                     galleryImagesWithIds.map(({ image, id }, index) => (
                       <div className={styles.imageContainer} key={index}>
-                        <img
+                        <S3Image
                           src={`${baseUrl}${image}`}
                           alt={`Gallery img ${index + 1}`}
                           className={styles.gallerymultipleImage}
@@ -54,7 +55,7 @@ const BookingMultipleImages = ({ titles, content, type, onRemoveImage }) => {
                     content.galleryImages.length > 0 ? (
                       content.galleryImages.map((image, index) => (
                         <div className={styles.imageContainer} key={index}>
-                          <img
+                          <S3Image
                             src={`${baseUrl}${image}`}
                             alt={`Gallery img ${index + 1}`}
                             className={styles.gallerymultipleImage}
@@ -78,7 +79,7 @@ const BookingMultipleImages = ({ titles, content, type, onRemoveImage }) => {
                   {content.vehicleRegImages.length > 0 ? (
                     content.vehicleRegImages.map((image, index) => (
                       <div className={styles.imageContainer} key={index}>
-                        <img
+                        <S3Image
                           src={`${baseUrl}${image}`}
                           alt={`Gallery img ${index + 1}`}
                           className={styles.gallerymultipleImage}
@@ -118,7 +119,7 @@ const BookingMultipleImages = ({ titles, content, type, onRemoveImage }) => {
                                                 </button>
                                             </a>
                                         ) : (<>
-                                            <img
+                                            <S3Image
                                                 src={fileUrl}
                                                 alt={`${titles.carImages} ${index + 1}`}
                                                 className={styles.gallerymultipleImage}
@@ -172,7 +173,7 @@ const BookingMultipleImages = ({ titles, content, type, onRemoveImage }) => {
                                         </button>
                                     </a>
                                 ) : (<>
-                                    <img
+                                    <S3Image
                                         src={fileUrl}
                                         alt={`${titles.licenseImages} ${index + 1}`}
                                         className={styles.gallerymultipleImage}
@@ -200,7 +201,7 @@ const BookingMultipleImages = ({ titles, content, type, onRemoveImage }) => {
                 <div className={styles.multiplegalleryImages}>
                   {content.typeImages.map((image, index) => (
                     <div className={styles.imageContainer} key={index}>
-                      <img
+                      <S3Image
                         key={index}
                         src={`${baseUrl}${image}`}
                         alt={`Gallery img ${index + 1}`}
@@ -262,7 +263,7 @@ const BookingMultipleImages = ({ titles, content, type, onRemoveImage }) => {
                                         </button>
                                     </a>
                                 ) : (<>
-                                    <img
+                                    <S3Image
                                         src={fileUrl}
                                         alt={`${titles.emiratesImages} ${index + 1}`}
                                         className={styles.gallerymultipleImage}
@@ -291,7 +292,7 @@ const BookingMultipleImages = ({ titles, content, type, onRemoveImage }) => {
                   {content.tyreImages.length > 0 ? (
                     content.tyreImages.map((image, index) => (
                       <div className={styles.imageContainer} key={index}>
-                        <img
+                        <S3Image
                           src={`${baseUrl}${image}`}
                           alt={`Tyre img ${index + 1}`}
                           className={styles.gallerymultipleImage}
@@ -315,7 +316,7 @@ const BookingMultipleImages = ({ titles, content, type, onRemoveImage }) => {
                   {content.otherImages.length > 0 ? (
                     content.otherImages.map((image, index) => (
                       <div className={styles.imageContainer} key={index}>
-                        <img
+                        <S3Image
                           src={`${baseUrl}${image}`}
                           alt={`Other img ${index + 1}`}
                           className={styles.gallerymultipleImage}

@@ -8,6 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import Select from 'react-select';
+import { onUploadImageError } from '../../../utils/uploadUrl';
 
 const EditPortableCharger = () => {
     const userDetails                         = JSON.parse(sessionStorage.getItem('userDetails')); 
@@ -253,6 +254,7 @@ const EditPortableCharger = () => {
                                         }
                                         alt="Preview"
                                         className={styles.previewImage}
+                                    onError={onUploadImageError}
                                     />
                                     <button
                                         type="button"
