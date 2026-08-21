@@ -471,7 +471,7 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
                         </div>
                     </div>
                     <div className={styles.row}>
-                        <div className={styles.addShopInputContainer}>
+                        <div className={`${styles.addShopInputContainer} ${styles.halfWidth}`}>
                             <label className={styles.addShopLabel}>Customer Feedback</label>
                             <textarea
                                 rows="3"
@@ -482,6 +482,7 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
                                 onChange={(e) => setCustomerFeedback(e.target.value)}
                             />
                         </div>
+                        <div className={styles.halfWidth} />
                     </div>
                     {showFollowUpFields && (
                         <div className={styles.row}>
@@ -576,7 +577,7 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
                                 </div>
                             </div>
                             <div className={styles.row}>
-                                <div className={styles.addShopInputContainer}>
+                                <div className={`${styles.addShopInputContainer} ${styles.halfWidth}`}>
                                     <label className={styles.addShopLabel}>Site Visit Location</label>
                                     <AutoResizeTextarea
                                         placeholder="Full address or location link"
@@ -586,8 +587,6 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
                                     />
                                     {errors.siteVisitLocation && !siteVisitLocation && <p className={styles.error}>{errors.siteVisitLocation}</p>}
                                 </div>
-                            </div>
-                            <div className={styles.row}>
                                 <div className={`${styles.addShopInputContainer} ${styles.halfWidth}`}>
                                     <label className={styles.addShopLabel}>Site Visit Status</label>
                                     <Select
@@ -599,6 +598,8 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
                                         isClearable={true}
                                     />
                                 </div>
+                            </div>
+                            <div className={styles.row}>
                                 <div className={`${styles.addShopInputContainer} ${styles.halfWidth}`}>
                                     <label className={styles.addShopLabel}>Site Visit Remarks</label>
                                     <textarea
@@ -610,6 +611,7 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
                                         onChange={(e) => setSiteVisitRemarks(e.target.value)}
                                     />
                                 </div>
+                                <div className={styles.halfWidth} />
                             </div>
                         </>
                     )}
