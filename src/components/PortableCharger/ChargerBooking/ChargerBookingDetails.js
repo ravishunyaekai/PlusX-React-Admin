@@ -116,7 +116,7 @@ const ChargerBookingDetails = () => {
         parkingNumber : bookingDetails?.parking_number,
         parkingFloor  : bookingDetails?.parking_floor,
         are           : bookingDetails?.area,
-        battery       : bookingDetails?.current_percent == 1 ? 'More than 5%' : '0%'
+        battery       : bookingDetails?.current_percent == 1 ? 'More than 10%' : 'Less than 10%'
     } 
     const cleanedKeys = Object.keys(sectionContent2).filter(
         key =>
