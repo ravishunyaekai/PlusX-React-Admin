@@ -22,11 +22,12 @@ const AddCommunity = () => {
     const [areaName, setAreaName]             = useState('')
     const [noofResidents, setNoofResidents]   = useState('')
     const [chargers, setChargers]             = useState([ { chargers : '', kw : '' } ]);
-    const [managerName, setManagerName]       = useState('');
-    const [managerEmail, setManagerEmail]     = useState('');
-    const [managerContact, setManagerContact] = useState('');
-    const [password, setPassword]             = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
+    // Manager Details - commented out for live (not ready to push)
+    // const [managerName, setManagerName]       = useState('');
+    // const [managerEmail, setManagerEmail]     = useState('');
+    // const [managerContact, setManagerContact] = useState('');
+    // const [password, setPassword]             = useState('');
+    // const [confirmPassword, setConfirmPassword] = useState('');
 
     const serviceDropdownRef                        = useRef(null);
 
@@ -39,20 +40,21 @@ const AddCommunity = () => {
             { name: "communityName", value: communityName,  errorMessage: "Community Name is required." },
             { name: "areaName",      value: areaName,       errorMessage: "Area Name is required." },
             { name: "noofResidents", value: noofResidents,  errorMessage: "Total number of Resident is required." },
-            { name: "managerName",   value: managerName,    errorMessage: "Manager Name is required." },
-            { name: "managerEmail",  value: managerEmail,   errorMessage: "Please enter a valid Email ID.", isEmail: true },
-            { name: "password",      value: password,       errorMessage: "Password is required." },
-            { name: "confirmPassword", value: confirmPassword, errorMessage: "Passwords do not match.", isPasswordMatch: true },
+            // Manager Details - commented out for live
+            // { name: "managerName",   value: managerName,    errorMessage: "Manager Name is required." },
+            // { name: "managerEmail",  value: managerEmail,   errorMessage: "Please enter a valid Email ID.", isEmail: true },
+            // { name: "password",      value: password,       errorMessage: "Password is required." },
+            // { name: "confirmPassword", value: confirmPassword, errorMessage: "Passwords do not match.", isPasswordMatch: true },
         ];
         const newErrors = fields.reduce((errors, { name, value, errorMessage, isEmail, isPasswordMatch }) => {
             if (!value) {
                 errors[name] = errorMessage;
             } else if (isEmail && !/\S+@\S+\.\S+/.test(value)) {
                 errors[name] = errorMessage;
-            } else if (isPasswordMatch && value !== password) {
-                errors[name] = errorMessage;
-            } else if (name === 'password' && value.length < 6) {
-                errors[name] = "Password should be at least 6 characters long.";
+            // } else if (isPasswordMatch && value !== password) {
+            //     errors[name] = errorMessage;
+            // } else if (name === 'password' && value.length < 6) {
+            //     errors[name] = "Password should be at least 6 characters long.";
             }
             return errors;
         }, {});
@@ -81,9 +83,10 @@ const AddCommunity = () => {
             newErrors.chargers = 'At least one charger with Charger ID and kW is required.';
         }
 
-        if (managerContact && (isNaN(managerContact) || managerContact.length < 9 || managerContact.length > 12)) {
-            newErrors.managerContact = "Please enter a valid Contact No.";
-        }
+        // Manager Details - commented out for live
+        // if (managerContact && (isNaN(managerContact) || managerContact.length < 9 || managerContact.length > 12)) {
+        //     newErrors.managerContact = "Please enter a valid Contact No.";
+        // }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -106,11 +109,12 @@ const AddCommunity = () => {
                 total_residence : noofResidents,
                 chargers        : JSON.stringify(chargersValues),
                 kwValues        : JSON.stringify(kwValues),
-                manager_name    : managerName,
-                manager_email   : managerEmail,
-                manager_contact : managerContact,
-                password        : password,
-                confirm_password : confirmPassword,
+                // Manager Details - commented out for live
+                // manager_name    : managerName,
+                // manager_email   : managerEmail,
+                // manager_contact : managerContact,
+                // password        : password,
+                // confirm_password : confirmPassword,
             }
             postRequestWithToken('community-add', obj, async (response) => {
                 if (response.status === 1) {
@@ -198,7 +202,7 @@ const AddCommunity = () => {
                         </div>
                     </div>
 
-                    {/* Manager Details Section */}
+                    {/* Manager Details Section - commented out for live (not ready to push)
                     <div className={styles.formSectionBlock}>
                         <div className={styles.formSectionHeading}>Manager Details</div>
                         <div className={styles.row}>
@@ -271,6 +275,7 @@ const AddCommunity = () => {
                             </div>
                         </div>
                     </div>
+                    */}
 
                     {/* Charger Details Section */}
                     <div className={styles.formSectionBlock}>
