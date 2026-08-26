@@ -131,10 +131,12 @@ const CouponList = () => {
                                 label: 'Service Name',
                             },
                             { key: 'user_per_user', label: 'Per User' },
-                            { key: 'counpon_used', label: 'Usage Count' },
+                            // New API field: usage_count (old was counpon_used)
+                            { key: 'usage_count', label: 'Usage Count', format: (count) => (count ?? 0) },
                             { key: 'coupan_percentage', label: 'Coupon %' },
                             { key: 'end_date', label: 'End Date', format: (date) => moment(date).format('DD MMM YYYY') },
-                            { key: 'status', label: 'Status'} //, format: (status) => (status === "1" ? "Active" : "Inactive") 
+                            // Status already comes as Active / Inactive / Expired from API
+                            { key: 'status', label: 'Status' }
                         ]}
                         pageHeading="Coupon List"
                         onDeleteSlot={handleDeleteSlot}
