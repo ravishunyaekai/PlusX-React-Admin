@@ -128,8 +128,11 @@ const RiderList = () => {
                         { 
                             key: 'booking_type', 
                             label: 'Service Type',
-                            // format: (type) => type, // Portable Charger (old display)
-                            format: (type) => type === 'Portable Charger' ? 'Mobile & Portable EV Charging Service' : type,
+                            // Display only — DB/API still returns "Portable Charger"
+                            // format: (type) => type, // old display
+                            format: (type) => type === 'Portable Charger'
+                                ? 'Mobile & Portable EV Charging Service' // new display
+                                : type,
                         },
                         { 
                             key: 'status', 

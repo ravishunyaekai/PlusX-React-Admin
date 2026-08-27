@@ -27,8 +27,9 @@ const EditCoupon = () => {
         // { value: "", label: "Select Vehicle Type" },
         { value: "Charger Installation", label: "Charger Installation" },
         // { value: "EV Pre-Sale", label: "EV Pre-Sale" },
-        // { value: "POD-On Demand Service", label: "POD-On Demand Service" },
-        { value: "POD-On Demand Service", label: "Mobile & Portable EV Charging Service" },
+        // Display rename only — keep value as DB/API value so backend is unchanged
+        // { value: "POD-On Demand Service", label: "POD-On Demand Service" }, // old label
+        { value: "POD-On Demand Service", label: "Mobile & Portable EV Charging Service" }, // new label
         // { value: "POD-Get Monthly Subscription", label: "POD-Get Monthly Subscription" },
         { value: "Roadside Assistance", label: "Roadside Assistance" },
         { value: "Valet Charging", label: "Valet Charging" },
@@ -118,7 +119,13 @@ const EditCoupon = () => {
                 setExpiry(formattedDate);
                 setPerCustomer(data?.user_per_user || "");
                 setIsActive(data?.status === '1' ? true : false)
-                const initialCarType = data.booking_for ? { label: data.booking_for, value: data.booking_for } : null;
+                // Old: used DB string as both value & label, so UI showed "POD-On Demand Service" on load
+                // const initialCarType = data.booking_for ? { label: data.booking_for, value: data.booking_for } : null;
+                // New: map booking_for to typeOpetions so initial display shows "Mobile & Portable EV Charging Service"
+                // value stays "POD-On Demand Service" for API submit
+                const bookingFor = (data.booking_for || '').trim();
+                const initialCarType = typeOpetions.find((opt) => opt.value === bookingFor)
+                    || (bookingFor ? { value: bookingFor, label: bookingFor } : null);
                 setServiceType(initialCarType);
 
             } else {
@@ -188,6 +195,12 @@ const EditCoupon = () => {
                                 placeholder="Select"
                                 isClearable
                                 className={styles.addShopSelect}
+                                // Force display label even when API returns raw "POD-On Demand Service"
+                                getOptionLabel={(option) =>
+                                    option.value === 'POD-On Demand Service'
+                                        ? 'Mobile & Portable EV Charging Service'
+                                        : option.label
+                                }
                             />
                             {errors.serviceType && serviceType == null && <p className={styles.error} style={{ color: 'red' }}>{errors.serviceType}</p>}
                         </div>

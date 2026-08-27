@@ -26,8 +26,9 @@ const AddCoupon = () => {
         // { value: "", label: "Select Vehicle Type" },
         { value: "Charger Installation", label: "Charger Installation" },
         // { value: "EV Pre-Sale", label: "EV Pre-Sale" },
-        // { value: "POD-On Demand Service", label: "POD-On Demand Service" },
-        { value: "POD-On Demand Service", label: "Mobile & Portable EV Charging Service" },
+        // Display rename only — keep value as DB/API value so backend is unchanged
+        // { value: "POD-On Demand Service", label: "POD-On Demand Service" }, // old label
+        { value: "POD-On Demand Service", label: "Mobile & Portable EV Charging Service" }, // new label
         // { value: "POD-Get Monthly Subscription", label: "POD-Get Monthly Subscription" },
         { value: "Roadside Assistance", label: "Roadside Assistance" },
         { value: "Valet Charging", label: "Valet Charging" },

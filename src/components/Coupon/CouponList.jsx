@@ -129,8 +129,11 @@ const CouponList = () => {
                             {
                                 key: 'booking_for',
                                 label: 'Service Name',
-                                // format: (name) => name, // POD-On Demand Service (old display)
-                                format: (name) => name === 'POD-On Demand Service' ? 'Mobile & Portable EV Charging Service' : name,
+                                // Display only — DB/API still returns "POD-On Demand Service"
+                                // format: (name) => name, // old display
+                                format: (name) => (name || '').trim() === 'POD-On Demand Service'
+                                    ? 'Mobile & Portable EV Charging Service' // new display
+                                    : name,
                             },
                             { key: 'user_per_user', label: 'Per User' },
                             // New API field: usage_count (old was counpon_used)

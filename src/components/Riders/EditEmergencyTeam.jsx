@@ -29,8 +29,9 @@ const EditEmergencyTeam = () => {
         // { value: "", label: "Select Vehicle Type" },
         { value: "Charger Installation", label: "Charger Installation" },
         { value: "EV Pre-Sale",          label: "EV Pre-Sale" },
-        // { value: "Portable Charger",     label: "Portable Charger" },
-        { value: "Portable Charger",     label: "Mobile & Portable EV Charging Service" },
+        // Display rename only — keep value as DB/API value so backend is unchanged
+        // { value: "Portable Charger",     label: "Portable Charger" }, // old label
+        { value: "Portable Charger",     label: "Mobile & Portable EV Charging Service" }, // new label
         { value: "Roadside Assistance",  label: "Roadside Assistance" },
         { value: "Valet Charging",       label: "Valet Charging" },
     ];
@@ -164,7 +165,13 @@ const EditEmergencyTeam = () => {
                 // setPassword(data?.password || "");
                 // setConfirmPassword(data?.password || "");
                 setFile(data?.profile_img || "")
-                const initialType = data.booking_type ? { label: data.booking_type, value: data.booking_type } : null;
+                // Old: used DB string as both value & label, so UI showed "Portable Charger" on load
+                // const initialType = data.booking_type ? { label: data.booking_type, value: data.booking_type } : null;
+                // New: map booking_type to typeOpetions so initial display shows "Mobile & Portable EV Charging Service"
+                // value stays "Portable Charger" for API submit
+                const bookingType = (data.booking_type || '').trim();
+                const initialType = typeOpetions.find((opt) => opt.value === bookingType)
+                    || (bookingType ? { value: bookingType, label: bookingType } : null);
                 setServiceType(initialType);
 
             } else {
@@ -240,7 +247,12 @@ const EditEmergencyTeam = () => {
                                     onChange={handleType}
                                     placeholder="Select Service"
                                     isClearable={true}
-                    
+                                    // Force display label even when API returns raw "Portable Charger"
+                                    getOptionLabel={(option) =>
+                                        option.value === 'Portable Charger'
+                                            ? 'Mobile & Portable EV Charging Service'
+                                            : option.label
+                                    }
                                 />
                             </div>
                             {errors.serviceType && serviceType == null && <p className="error">{errors.serviceType}</p>}
