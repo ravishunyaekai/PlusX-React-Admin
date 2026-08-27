@@ -44,7 +44,7 @@ const InvoiceDetails = () => {
         customerDetailsTitle : "Resident Details",
     };
     const content = {
-        bookingId       : invoiceDetails?.resident_id,
+        bookingId       : invoiceDetails?.invoice_id || invoiceId,
         createdAt       : moment(invoiceDetails?.created_at).format('DD MMM YYYY h:mm A'),
         customerName    : invoiceDetails?.resident_name,
         customerContact : invoiceDetails?.resident_email, //+971 ${invoiceDetails?.resident_mobile}
