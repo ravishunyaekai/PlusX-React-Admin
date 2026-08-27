@@ -40,8 +40,10 @@ const DashboardCard = ({ details }) => {
         route : "/app-signup/app-signup-list",
     },  {
         icon  : PODBooking,
+        // API module key stays "POD Bookings" — do not change
         count : details?.find((item) => item.module === "POD Bookings")?.count || 0,
-        title : "POD Bookings",
+        // title : "POD Bookings", // old heading
+        title : "Mobile & Portable EV Charging Bookings", // new heading
         route : "/portable-charger/charger-booking-list",
     }, {
         icon  : PickAndDropImage,
