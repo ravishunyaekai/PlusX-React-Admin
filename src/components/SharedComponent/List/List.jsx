@@ -56,7 +56,8 @@ const List = ({ list, tableHeaders, listData, keyMapping, pageHeading, onDeleteS
                                             }
                                         </>
                                     )}
-                                    {pageHeading === 'Portable Charger List' && (
+                                    {/* pageHeading === 'Portable Charger List' */}
+                                    {pageHeading === 'Mobile & Portable EV Charging Service List' && (
                                         <>
                                             { departmentId == 1 && ( 
                                                 <>
@@ -66,10 +67,12 @@ const List = ({ list, tableHeaders, listData, keyMapping, pageHeading, onDeleteS
                                             }
                                         </>
                                     )}
-                                    {pageHeading === 'Portable Charger Invoice List' && (
+                                    {/* pageHeading === 'Portable Charger Invoice List' */}
+                                    {pageHeading === 'Mobile & Portable EV Charging Service Invoice List' && (
                                         <img src={View} alt="view" onClick={() => handleClickEvent('/portable-charger/invoice', data.invoice_id)} />
                                     )}
-                                    {pageHeading === 'Portable Charger Slot List' && departmentId == 1 && (
+                                    {/* pageHeading === 'Portable Charger Slot List' */}
+                                    {pageHeading === 'Mobile & Portable EV Charging Service Slot List' && departmentId == 1 && (
                                         <>
                                             <img src={Edit} alt='edit'
                                                 onClick={() => handleClickEvent('/portable-charger/edit-time-slot', data.slot_id)}

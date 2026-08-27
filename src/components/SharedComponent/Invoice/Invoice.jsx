@@ -102,7 +102,8 @@ const Invoice = ({ title, service, details }) => {
                                         </table>
                                     </td>
                                 )}
-                                { title == 'Portable Charger Invoice Details'  && (
+                                {/* title == 'Portable Charger Invoice Details' */}
+                                { title == 'Mobile & Portable EV Charging Service Invoice Details'  && (
                                     <td colSpan="2">
                                         <table style={{ width: '100%', borderSpacing: 0, marginTop:"16px" }}>
                                             <thead>

@@ -11,6 +11,8 @@ import { useNavigate } from 'react-router-dom';
 import BookingImageSection from '../SharedComponent/Details/BookingDetails/BookingImageSection.jsx'
 
 import ChargerList from '../SharedComponent/Details/ChargerList'
+import ResidentList from '../SharedComponent/Details/ResidentList'
+import Pagination from '../SharedComponent/Pagination/Pagination'
  
 const CommunityDetails = () => {
     const userDetails                         = JSON.parse(sessionStorage.getItem('userDetails'));
@@ -21,6 +23,10 @@ const CommunityDetails = () => {
     // const [managerDetails, setManagerDetails]     = useState();
     const staturArr                           = { 0 : 'In-active', 1: 'Active' }
     const [chargers, setChargers]             = useState([ { id : '', charger_id : '', kw : '' } ]);
+    // Resident list with pagination (from resident-list API)
+    const [residents, setResidents]           = useState([]);
+    const [currentPage, setCurrentPage]       = useState(1);
+    const [totalPages, setTotalPages]         = useState(1);
     
     const fetchDetails = () => {
         const obj = {
@@ -33,12 +39,31 @@ const CommunityDetails = () => {
                 setCommunityDetails(response?.data || {});
                 // Manager Details - commented out for live
                 // setManagerDetails(response?.manager || {});
-                setChargers(response?.chargers);
+                setChargers(response?.chargers || []);
+                // setResidents(response?.residents || []);
             } else {
                 console.log('error in community-details API', response);
             }
         });
     };
+
+    const fetchResidentList = (page) => {
+        const obj = {
+            userId       : userDetails?.user_id,
+            email        : userDetails?.email,
+            community_id : communityId,
+            page_no      : page,
+        };
+        postRequestWithToken('resident-list', obj, (response) => {
+            if (response.code === 200) {
+                setResidents(response?.data || []);
+                setTotalPages(response?.total_page || 1);
+            } else {
+                console.log('error in resident-list API', response);
+            }
+        });
+    };
+
     useEffect(() => {
         if (!userDetails || !userDetails.access_token) {
             navigate('/login');
@@ -46,6 +71,15 @@ const CommunityDetails = () => {
         }
         fetchDetails();
     }, []);
+
+    useEffect(() => {
+        if (!userDetails || !userDetails.access_token) return;
+        fetchResidentList(currentPage);
+    }, [currentPage]);
+
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
 
     const headerTitles = {
         bookingIdTitle       : "Community ID",
@@ -90,9 +124,17 @@ const CommunityDetails = () => {
                 type='chargerInstallation' />
             </div>
             <div className='Details-container-section'>
-                { chargers.length && 
-                    <ChargerList currentItems = {chargers}/>
-                }
+                {chargers.length > 0 && (
+                    <ChargerList currentItems={chargers} />
+                )}
+                <ResidentList currentItems={residents} />
+                {residents.length > 0 && (
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                    />
+                )}
             </div>
         </div>
     )

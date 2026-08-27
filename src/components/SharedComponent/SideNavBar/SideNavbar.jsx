@@ -177,7 +177,9 @@ const SideNavbar = () => {
                     /> */}
                     <SideBarLinkItem label="Drivers" path="/drivers/driver-list" isActive={isActive("/drivers")} />
                     <SidebarDropdown
-                        menuName="Portable Charger"
+                        // menuName="Portable Charger"
+                        // menuName="Mobile & Portable EV Charging Service"
+                        menuName="Mobile & Portable EV Charging"
                         menuItems={menuItems.portableCharger}
                         openDropdown={openDropdown}
                         handleItemClick={(id, e) =>

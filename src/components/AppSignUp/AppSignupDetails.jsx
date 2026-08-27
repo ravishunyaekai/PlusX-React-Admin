@@ -152,7 +152,8 @@ const AppSignupDetails = () => {
                     <div className={styles.DetailsMainHeading}>Booking History</div>
                     {portableChargerBookings?.length > 0 && (<>
                         <DetailsBookingHistory
-                            title="Portable Charger"
+                            // title="Portable Charger"
+                            title="Mobile & Portable EV Charging Service"
                             // Pass total bookings count to show beside heading
                             count={portableTotalCount}
                             headers={portableChargerHeaders}

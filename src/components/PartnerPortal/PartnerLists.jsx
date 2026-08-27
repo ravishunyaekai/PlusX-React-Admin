@@ -127,8 +127,9 @@ const RiderList = () => {
                         { key: 'email', label: '"RSA Email' },
                         { 
                             key: 'booking_type', 
-                            label: 'Service Type', 
-                            
+                            label: 'Service Type',
+                            // format: (type) => type, // Portable Charger (old display)
+                            format: (type) => type === 'Portable Charger' ? 'Mobile & Portable EV Charging Service' : type,
                         },
                         { 
                             key: 'status', 

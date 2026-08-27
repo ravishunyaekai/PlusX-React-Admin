@@ -29,7 +29,8 @@ const EditEmergencyTeam = () => {
         // { value: "", label: "Select Vehicle Type" },
         { value: "Charger Installation", label: "Charger Installation" },
         { value: "EV Pre-Sale",          label: "EV Pre-Sale" },
-        { value: "Portable Charger",     label: "Portable Charger" },
+        // { value: "Portable Charger",     label: "Portable Charger" },
+        { value: "Portable Charger",     label: "Mobile & Portable EV Charging Service" },
         { value: "Roadside Assistance",  label: "Roadside Assistance" },
         { value: "Valet Charging",       label: "Valet Charging" },
     ];

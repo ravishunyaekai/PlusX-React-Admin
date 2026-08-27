@@ -108,7 +108,8 @@ const AccordionFilter = ({ type, isOpen, fetchFilteredData, dynamicFilters, filt
                                     <Card.Body>
                                         {/* || type == 'Failed Pick & Drop Booking List'  */}
                                         <form className={styles.filterForm}>
-                                            { (type == 'Portable Charger Booking List' || type == 'Driver Details' || type == 'Failed POD Booking List' || type == 'Customer POD Booking List') && (
+                                            {/* type == 'Portable Charger Booking List' */}
+                                            { (type == 'Mobile & Portable EV Charging Service Booking List' || type == 'Driver Details' || type == 'Failed POD Booking List' || type == 'Customer POD Booking List') && (
                                                 <div className={`col-xl-4 col-lg-6 col-12 ${styles.filterItem}`}>
                                                     <label className={styles.filterLabel} htmlFor="date_filter">Schedule Date</label>
                                                     <Calendar handleDateChange={handleScheduleDateChange}/>
@@ -156,7 +157,8 @@ const AccordionFilter = ({ type, isOpen, fetchFilteredData, dynamicFilters, filt
                                                     )}
                                                 </div>
                                             ))}
-                                            { (type == 'Portable Charger Booking List' ) && (
+                                            {/* type == 'Portable Charger Booking List' */}
+                                            { (type == 'Mobile & Portable EV Charging Service Booking List' ) && (
                                                 <div className={`col-xl-4 col-lg-6 col-12 ${styles.selectItem}`} >
                                                     <label className={styles.filterLabel} htmlFor="date_filter">Search Area</label>
                                                     <div className={styles.selectSearch}>
@@ -177,7 +179,8 @@ const AccordionFilter = ({ type, isOpen, fetchFilteredData, dynamicFilters, filt
                                                     </div>
                                                 </div>  
                                             )}
-                                            { (type == 'Portable Charger Booking List' || type == "Pick & Drop Booking List" || type == "Ev Road Assitance Booking List") && (
+                                            {/* type == 'Portable Charger Booking List' */}
+                                            { (type == 'Mobile & Portable EV Charging Service Booking List' || type == "Pick & Drop Booking List" || type == "Ev Road Assitance Booking List") && (
                                                 <div className={`col-xl-4 col-lg-6 col-12 ${styles.selectItem}`}  style={{ position: 'relative', }}>
                                                     <label className={styles.filterLabel} htmlFor="date_filter">No. of Records</label>
                                                     <select

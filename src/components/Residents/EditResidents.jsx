@@ -11,6 +11,8 @@ import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import ReactInputMask from "react-input-mask"
 import Add from '../../assets/images/Add.svg';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 
 const EditResidents = () => {
     const { residentId }        = useParams()
@@ -20,7 +22,9 @@ const EditResidents = () => {
     const [loading, setLoading] = useState(false);
 
     const [residentName, setResidentName]           = useState('')
-    const [mobileNo, setMobileNo]                   = useState("");
+    // const [mobileNo, setMobileNo]                   = useState("");
+    const [phoneValue, setPhoneValue]               = useState('');
+    const [phoneCountry, setPhoneCountry]           = useState({ dialCode: '971', countryCode: 'ae' });
     const [email, setEmail]                         = useState("");
     const [community, setCommunity]                 = useState("");
     const [address, setAddress]                     = useState('');
@@ -33,6 +37,24 @@ const EditResidents = () => {
     const serviceDropdownRef                      = useRef(null);
     const [communityOptions, setCommunityOptions] = useState('');
 
+    const getLocalMobile = () => {
+        if (!phoneValue || !phoneCountry?.dialCode) return '';
+        return phoneValue.startsWith(phoneCountry.dialCode)
+            ? phoneValue.slice(phoneCountry.dialCode.length)
+            : phoneValue;
+    };
+
+    const handlePhoneChange = (phone, country) => {
+        setPhoneValue(phone);
+        setPhoneCountry(country);
+        const localMobile = phone.startsWith(country.dialCode)
+            ? phone.slice(country.dialCode.length)
+            : phone;
+        if (localMobile) {
+            setErrors((prev) => ({ ...prev, mobileNo: '' }));
+        }
+    };
+
     const handleCommunity = (selectedOption) => {
         
         setCommunity(selectedOption);
@@ -42,6 +64,7 @@ const EditResidents = () => {
     }
 
     const validateForm = (chargersValues) => {
+        const mobileNo = getLocalMobile();
         const fields = [
             { name: "residentName",        value: residentName,         errorMessage: "Residant Name is required." },
             { name: "mobileNo",            value: mobileNo,             errorMessage: "Please enter a valid Mobile No.", isMobile: true },
@@ -82,7 +105,8 @@ const EditResidents = () => {
                 email                      : userDetails?.email,
                 resident_id                : residentId,
                 resident_name              : residentName, 
-                mobile_number              : mobileNo, 
+                mobile_number              : getLocalMobile(),
+                country_code               : phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971',
                 resident_email             : email,
                 community_id               : community.value,
                 address                    : address,
@@ -128,7 +152,11 @@ const EditResidents = () => {
         postRequestWithToken('resident-details', obj, (response) => {
             if (response.code === 200) {
                 setResidentName(response?.data?.resident_name);
-                setMobileNo(response?.data?.resident_mobile);
+                // setMobileNo(response?.data?.resident_mobile);
+                const dialCode = String(response?.data?.country_code || '+971').replace('+', '');
+                const mobileNo = response?.data?.resident_mobile || '';
+                setPhoneValue(`${dialCode}${mobileNo}`);
+                setPhoneCountry({ dialCode, countryCode: 'ae' });
                 setEmail(response?.data?.resident_email);
                 setCommunity({ label : response?.data?.community_name, value : response?.data?.community_id}); // make it object
                 setAddress(response?.data?.address);
@@ -175,7 +203,7 @@ const EditResidents = () => {
                         </div>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel} htmlFor="mobileNo">Mobile Number</label>
-                            <input
+                            {/* <input
                                 className={styles.inputField}
                                 type="text"
                                 autoComplete='off'
@@ -185,8 +213,20 @@ const EditResidents = () => {
                                     const value = e.target.value.replace(/\D/g, '');
                                     setMobileNo(value.slice(0, 12)); 
                                 }}
+                            /> */}
+                            <PhoneInput
+                                country="ae"
+                                value={phoneValue}
+                                onChange={handlePhoneChange}
+                                enableSearch={true}
+                                countryCodeEditable={false}
+                                containerClass={styles.phoneInputContainer}
+                                inputClass={styles.phoneInputField}
+                                buttonClass={styles.phoneInputButton}
+                                dropdownClass={styles.phoneInputDropdown}
+                                placeholder="Mobile Number"
                             />
-                            {errors.mobileNo && mobileNo.length < 9 &&   <p className="error" style={{ color: 'red' }}>{errors.mobileNo}</p>}
+                            {errors.mobileNo && getLocalMobile().length < 9 && <p className="error" style={{ color: 'red' }}>{errors.mobileNo}</p>}
                         </div>
                     </div>
                     <div className={styles.row}>

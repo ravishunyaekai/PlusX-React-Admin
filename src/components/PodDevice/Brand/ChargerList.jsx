@@ -89,7 +89,8 @@ const ChargerList = () => {
 
     return (
         <div className='main-container'>
-            <SubHeader heading = "Portable Charger List" 
+            {/* <SubHeader heading = "Portable Charger List" */}
+            <SubHeader heading = "Mobile & Portable EV Charging Service List" 
             addButtonProps={addButtonProps}
             filterValues={filters}
             fetchFilteredData={fetchFilteredData} 
@@ -112,7 +113,8 @@ const ChargerList = () => {
                     },
                     { key: 'status', label: 'Status', format: (status) => (status === 1 ? "Active" : "Inactive") } 
                 ]}
-                pageHeading="Portable Charger List"
+                // pageHeading="Portable Charger List" 
+                pageHeading="Mobile & Portable EV Charging Service List"
                 onDeleteSlot={handleDeleteSlot}
             />
             )}

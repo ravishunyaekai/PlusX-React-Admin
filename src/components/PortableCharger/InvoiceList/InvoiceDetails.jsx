@@ -35,7 +35,8 @@ const InvoiceDetails = () => {
 
   return (
     <div>
-        <Invoice title = 'Portable Charger Invoice Details' service = 'Portable Charger Service' details = {bookingDetails}/>
+        {/* <Invoice title = 'Portable Charger Invoice Details' service = 'Portable Charger Service' details = {bookingDetails}/> */}
+        <Invoice title = 'Mobile & Portable EV Charging Service Invoice Details' service = 'Mobile & Portable EV Charging Service' details = {bookingDetails}/>
     </div>
   )
 }

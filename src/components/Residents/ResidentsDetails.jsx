@@ -146,7 +146,30 @@ const ResidentsDetails = () => {
     const invoiceHandlePageChange = (pageNumber) => {
         setInvoiceCurrentPage(pageNumber);
     };
+    // const fetchInvoiceList = (page, appliedFilters = {}) => {
+    //     const obj = {
+    //         userId          : userDetails?.user_id,
+    //         email           : userDetails?.email,
+    //         resident_mobile : residentDetails?.resident_mobile,
+    //         page_no         : page,
+    //         ...appliedFilters,
+    //     };
+    //     postRequestWithToken('scan-charge-invoice-list', obj, (response) => {
+    //         if (response.code === 200) {
+    //             setInvoiceList(response?.data);
+    //             setInvoiceTotalPages(response?.totalPage || 1);
+    //             setInvoiceTotalCount(response?.total || 1)
+    //         }
+    //     });
+    // };
+    // useEffect(() => {
+    //     fetchInvoiceList(currentPage, filters);
+    // }, [ currentPage, filters ]);
+
     const fetchInvoiceList = (page, appliedFilters = {}) => {
+        
+        if(!residentDetails?.resident_mobile) return false;
+ 
         const obj = {
             userId          : userDetails?.user_id,
             email           : userDetails?.email,
@@ -158,13 +181,13 @@ const ResidentsDetails = () => {
             if (response.code === 200) {
                 setInvoiceList(response?.data);
                 setInvoiceTotalPages(response?.totalPage || 1);
-                setInvoiceTotalCount(response?.total || 1)
+                setInvoiceTotalCount(response?.total || 0)
             }
         });
     };
     useEffect(() => {
         fetchInvoiceList(currentPage, filters);
-    }, [ currentPage, filters ]);
+    }, [ residentDetails, currentPage, filters ]);
 
     return (
         <div className='main-container'>

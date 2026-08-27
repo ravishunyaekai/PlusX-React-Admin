@@ -71,7 +71,8 @@ const ChargerBookingInvoiceList = () => {
 
     return (
         <div className='main-container'>
-            <SubHeader heading = "Portable Charger Invoice List"
+            {/* <SubHeader heading = "Portable Charger Invoice List" */}
+            <SubHeader heading = "Mobile & Portable EV Charging Service Invoice List"
             filterValues={filters}
             fetchFilteredData={fetchFilteredData} 
             searchTerm = {searchTerm}
@@ -114,7 +115,8 @@ const ChargerBookingInvoiceList = () => {
                             { key : 'payment_status', label : 'Status', format: (status) => (status === "succeeded" ? "Completed" : "Approved") }
                         
                         ]}
-                            pageHeading="Portable Charger Invoice List"
+                            //  pageHeading="Portable Charger Invoice List"
+                            pageHeading="Mobile & Portable EV Charging Service Invoice List"
                         />
                         <Pagination 
                             currentPage={currentPage} 
