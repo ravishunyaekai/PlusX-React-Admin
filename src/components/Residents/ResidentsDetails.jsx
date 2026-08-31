@@ -16,6 +16,8 @@ import Pagination from '../SharedComponent/Pagination/Pagination';
 
 import ResidentSessionList from '../SharedComponent/Details/ResidentSessionList';
 import ResidentInvoiceList from '../SharedComponent/Details/ResidentInvoiceList';
+// MULTI-SELECT COMMUNITY (new): shared helper to format multiple community names for display
+import { formatCommunityNamesForDisplay } from '../../utils/residentCommunityHelpers';
 
 const ResidentsDetails = () => {
     const userDetails                           = JSON.parse(sessionStorage.getItem('userDetails'));
@@ -61,8 +63,11 @@ const ResidentsDetails = () => {
     };
     const sectionTitles1 = {
         resident_email             : "Email Address",
-        community_name             : "Community Name",
-        area_name                  : "Area Name",
+        // SINGLE-SELECT COMMUNITY (old):
+        // community_name             : "Community Name",
+        // MULTI-SELECT COMMUNITY (new): label updated to reflect multiple communities
+        community_name             : "Communities",
+        // AREA NAME (old): area_name: "Area Name",
         address                    : "Full Address",
         monthly_session_allocation : "Monthly Session Allocation",
         alloted_time               : "Allocated Time In Minutes",
@@ -73,8 +78,11 @@ const ResidentsDetails = () => {
     }
     const sectionContent1 = {
         resident_email             : residentDetails?.resident_email,
-        community_name             :  residentDetails?.community_name,
-        area_name                  : residentDetails?.area_name,
+        // SINGLE-SELECT COMMUNITY (old):
+        // community_name             :  residentDetails?.community_name,
+        // MULTI-SELECT COMMUNITY (new): comma-separated names from API (supports legacy single field too)
+        community_name             : formatCommunityNamesForDisplay(residentDetails),
+        // AREA NAME (old): area_name: residentDetails?.area_name,
         address                    : residentDetails?.address,
         monthly_session_allocation : residentDetails?.monthly_session_allocation,
         alloted_time               : residentDetails?.alloted_time,
@@ -141,7 +149,9 @@ const ResidentsDetails = () => {
     const [invoicetotalCount, setInvoiceTotalCount]   = useState(0);
     const [invoicetotalPages, setInvoiceTotalPages]   = useState(1);
     const invoiceHeaders = [
-        "Invoice ID", "Resident Name", "Community", "Area", "kWh Allocated", "kWh Used", "Per kW Charge", "Price (AED)", "Over Time (AED)", "Total (AED)", "Status", "Action"
+        // COMMUNITY & AREA COLUMNS (old):
+        // "Invoice ID", "Resident Name", "Community", "Area", "kWh Allocated", "kWh Used", "Per kW Charge", "Price (AED)", "Over Time (AED)", "Total (AED)", "Status", "Action"
+        "Invoice ID", "Resident Name", "kWh Allocated", "kWh Used", "Per kW Charge", "Price (AED)", "Over Time (AED)", "Total (AED)", "Status", "Action"
     ];
     const invoiceHandlePageChange = (pageNumber) => {
         setInvoiceCurrentPage(pageNumber);

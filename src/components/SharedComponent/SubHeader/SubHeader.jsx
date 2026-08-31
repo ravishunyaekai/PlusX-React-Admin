@@ -77,10 +77,12 @@ const SubHeader = ({ heading, fetchFilteredData, dynamicFilters, filterValues, a
     };
     // Renamed display: "Portable Charger ..." -> "Mobile & Portable EV Charging Service ..."
     // shouldShowFilterButtonArr = "Portable Charger Slot List", "Pick & Drop Time Slot List", "Ev Insurance List",
-    const shouldShowFilterButtonArr = [  "Offer List", "Time Slot List" , "Register Interest List","Ev Buy & Sell List","Mobile & Portable EV Charging Service List",'Ev Specialized Shop List', "Ev Specialized Shop Service List", "Ev Specialized Shop Brand List","Ev Discussion Board List", "Ev Rider Clubs List" ,  "Notification List", "Electric Cars Leasing List", "Electric Bikes Leasing List", "EV Guide List", 'Bike List', 'Swipe Station List', 'EV Charger Brand List',"Community List", "Resident List"]
+    // "Resident List" removed — filter with community dropdown is now enabled for this page
+    const shouldShowFilterButtonArr = [  "Offer List", "Time Slot List" , "Register Interest List","Ev Buy & Sell List","Mobile & Portable EV Charging Service List",'Ev Specialized Shop List', "Ev Specialized Shop Service List", "Ev Specialized Shop Brand List","Ev Discussion Board List", "Ev Rider Clubs List" ,  "Notification List", "Electric Cars Leasing List", "Electric Bikes Leasing List", "EV Guide List", 'Bike List', 'Swipe Station List', 'EV Charger Brand List',"Community List"]
     const shouldShowFilterButton = !shouldShowFilterButtonArr.includes(heading)
 
-    const shouldShowSearchButtonArr = [ "Ev Road Assistance Invoice List" , "Pick & Drop Invoice List", "Notification List", "Ev Buy Sell List", "Offer List", "Pick & Drop Time Slot List","Mobile & Portable EV Charging Service Slot List" ,"Time Slot List",'Top Rated Area',"Community List", "Resident List"]
+    // "Resident List" removed — search is now enabled for this page
+    const shouldShowSearchButtonArr = [ "Ev Road Assistance Invoice List" , "Pick & Drop Invoice List", "Notification List", "Ev Buy Sell List", "Offer List", "Pick & Drop Time Slot List","Mobile & Portable EV Charging Service Slot List" ,"Time Slot List",'Top Rated Area',"Community List"]
     const shouldShowSearchButton = !shouldShowSearchButtonArr.includes(heading)
 
     // "Portable Charger Booking List" / "Portable Charger Invoice List"

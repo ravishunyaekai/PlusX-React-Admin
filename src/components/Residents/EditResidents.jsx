@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import Select from "react-select";
+// SINGLE-SELECT COMMUNITY (old):
+// import Select from "react-select";
 // import { GoogleMap, useJsApiLoader, useLoadScript, Marker } from "@react-google-maps/api";
 import UploadIcon from '../../assets/images/uploadicon.svg';
 import { AiOutlineClose } from 'react-icons/ai';
@@ -13,6 +14,8 @@ import ReactInputMask from "react-input-mask"
 import Add from '../../assets/images/Add.svg';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+// MULTI-SELECT COMMUNITY (new): shared helper to map API response → MultiSelect options
+import { mapCommunitiesFromApiResponse } from '../../utils/residentCommunityHelpers';
 
 const EditResidents = () => {
     const { residentId }        = useParams()
@@ -26,7 +29,10 @@ const EditResidents = () => {
     const [phoneValue, setPhoneValue]               = useState('');
     const [phoneCountry, setPhoneCountry]           = useState({ dialCode: '971', countryCode: 'ae' });
     const [email, setEmail]                         = useState("");
-    const [community, setCommunity]                 = useState("");
+    // SINGLE-SELECT COMMUNITY (old):
+    // const [community, setCommunity]                 = useState("");
+    // MULTI-SELECT COMMUNITY (new): selected options as [{ label, value }, ...]
+    const [community, setCommunity]                 = useState([]);
     const [address, setAddress]                     = useState('');
     const [sessionAllocation, setSessionAllocation] = useState('');
     const [allocatedTime, setAllocatedTime]         = useState('');
@@ -35,7 +41,12 @@ const EditResidents = () => {
     const [extraCharge, setExtraCharge]             = useState('');
 
     const serviceDropdownRef                      = useRef(null);
-    const [communityOptions, setCommunityOptions] = useState('');
+    // SINGLE-SELECT COMMUNITY (old):
+    // const [communityOptions, setCommunityOptions] = useState('');
+    // MULTI-SELECT COMMUNITY (new): dropdown options from all-community-list API
+    const [communityOptions, setCommunityOptions] = useState([]);
+    // MULTI-SELECT COMMUNITY (new): raw resident-details payload — re-map labels when options load
+    const [residentApiData, setResidentApiData]   = useState(null);
 
     const getLocalMobile = () => {
         if (!phoneValue || !phoneCountry?.dialCode) return '';
@@ -55,9 +66,16 @@ const EditResidents = () => {
         }
     };
 
-    const handleCommunity = (selectedOption) => {
-        
-        setCommunity(selectedOption);
+    // SINGLE-SELECT COMMUNITY (old):
+    // const handleCommunity = (selectedOption) => {
+    //     setCommunity(selectedOption);
+    // }
+    // MULTI-SELECT COMMUNITY (new): MultiSelect passes the full selected array
+    const handleCommunity = (selectedOptions) => {
+        setCommunity(selectedOptions);
+        if (selectedOptions.length > 0) {
+            setErrors((prev) => ({ ...prev, community: '' }));
+        }
     }
     const handleCancel = () => {
         navigate('/community/resident-list')
@@ -69,7 +87,10 @@ const EditResidents = () => {
             { name: "residentName",        value: residentName,         errorMessage: "Residant Name is required." },
             { name: "mobileNo",            value: mobileNo,             errorMessage: "Please enter a valid Mobile No.", isMobile: true },
             { name: "email",               value: email,                errorMessage: "Please enter a valid Email ID.", isEmail: true },
-            { name: "community",           value: community,            errorMessage: "Community is required." },
+            // SINGLE-SELECT COMMUNITY (old):
+            // { name: "community",           value: community,            errorMessage: "Community is required." },
+            // MULTI-SELECT COMMUNITY (new): at least one community must be selected
+            { name: "community",           value: community,            errorMessage: "At least one community is required.", isArray: true },
             { name: "address",             value: address,              errorMessage: "Address is required." },
             { name: "sessionAllocation",   value: sessionAllocation,    errorMessage: "Session Allocation is required." },
             { name: "allocatedTime",       value: allocatedTime,        errorMessage: "Allocated Time is required." },
@@ -78,8 +99,20 @@ const EditResidents = () => {
             { name: "extraCharge",         value: extraCharge,          errorMessage: "Extra Charge is required." },
         ];
     
-        const newErrors = fields.reduce((errors, { name, value, errorMessage, isEmail, isMobile, isPasswordMatch }) => {
-            if (!value) {
+        // SINGLE-SELECT COMMUNITY (old):
+        // const newErrors = fields.reduce((errors, { name, value, errorMessage, isEmail, isMobile, isPasswordMatch }) => {
+        //     if (!value) {
+        //         errors[name] = errorMessage;
+        //     } else if (isEmail && !/\S+@\S+\.\S+/.test(value)) {
+        //         errors[name] = errorMessage;
+        //     } else if (isMobile && (isNaN(value) || value.length < 9)) {
+        //         errors[name] = errorMessage;
+        //     }
+        //     return errors;
+        // }, {});
+        // MULTI-SELECT COMMUNITY (new): supports array validation for community field
+        const newErrors = fields.reduce((errors, { name, value, errorMessage, isEmail, isMobile, isArray }) => {
+            if ((isArray && (!value || value.length === 0)) || (!isArray && !value)) {
                 errors[name] = errorMessage;
             } else if (isEmail && !/\S+@\S+\.\S+/.test(value)) {
                 errors[name] = errorMessage;
@@ -108,7 +141,10 @@ const EditResidents = () => {
                 mobile_number              : getLocalMobile(),
                 country_code               : phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971',
                 resident_email             : email,
-                community_id               : community.value,
+                // SINGLE-SELECT COMMUNITY (old):
+                // community_id               : community.value,
+                // MULTI-SELECT COMMUNITY (new): send array of IDs to resident-edit API
+                community_ids              : community.map((item) => item.value),
                 address                    : address,
                 monthly_session_allocation : sessionAllocation,
                 alloted_time               : allocatedTime, 
@@ -141,36 +177,72 @@ const EditResidents = () => {
             email       : userDetails?.email,
             resident_id : residentId,
         };
+
         postRequestWithToken('all-community-list', obj, (response) => {
             if (response.code === 200) {
-
-                setCommunityOptions(response.data)
+                // SINGLE-SELECT COMMUNITY (old):
+                // setCommunityOptions(response.data)
+                // MULTI-SELECT COMMUNITY (new):
+                setCommunityOptions(response.data || []);
             } else {
-                console.log('error in rider-details API', response);
+                // SINGLE-SELECT COMMUNITY (old):
+                // console.log('error in rider-details API', response);
+                // MULTI-SELECT COMMUNITY (new):
+                console.log('error in all-community-list API', response);
             }
         });
+
         postRequestWithToken('resident-details', obj, (response) => {
             if (response.code === 200) {
-                setResidentName(response?.data?.resident_name);
-                // setMobileNo(response?.data?.resident_mobile);
-                const dialCode = String(response?.data?.country_code || '+971').replace('+', '');
-                const mobileNo = response?.data?.resident_mobile || '';
+                // SINGLE-SELECT COMMUNITY (old):
+                // setResidentName(response?.data?.resident_name);
+                // const dialCode = String(response?.data?.country_code || '+971').replace('+', '');
+                // const mobileNo = response?.data?.resident_mobile || '';
+                // setPhoneValue(`${dialCode}${mobileNo}`);
+                // setPhoneCountry({ dialCode, countryCode: 'ae' });
+                // setEmail(response?.data?.resident_email);
+                // setCommunity({ label : response?.data?.community_name, value : response?.data?.community_id}); // make it object
+                // setAddress(response?.data?.address);
+                // setSessionAllocation(response?.data?.monthly_session_allocation);
+                // setkwhAllocated(response?.data?.kwh_allocated);
+                // setAllocatedTime(response?.data?.alloted_time);
+                // setPerKwhCharge(response?.data?.per_kwh_charge);
+                // setExtraCharge(response?.data?.extra_charge);
+
+                // MULTI-SELECT COMMUNITY (new): pre-select all communities assigned to this resident
+                const residentData = response?.data || {};
+
+                setResidentName(residentData?.resident_name);
+                const dialCode = String(residentData?.country_code || '+971').replace('+', '');
+                const mobileNo = residentData?.resident_mobile || '';
                 setPhoneValue(`${dialCode}${mobileNo}`);
                 setPhoneCountry({ dialCode, countryCode: 'ae' });
-                setEmail(response?.data?.resident_email);
-                setCommunity({ label : response?.data?.community_name, value : response?.data?.community_id}); // make it object
-                setAddress(response?.data?.address);
-                setSessionAllocation(response?.data?.monthly_session_allocation);
-                setkwhAllocated(response?.data?.kwh_allocated);
-                setAllocatedTime(response?.data?.alloted_time);
-                setPerKwhCharge(response?.data?.per_kwh_charge);
-                setExtraCharge(response?.data?.extra_charge);         
-                 
+                setEmail(residentData?.resident_email);
+                setResidentApiData(residentData);
+                setCommunity(mapCommunitiesFromApiResponse(residentData, communityOptions));
+                setAddress(residentData?.address);
+                setSessionAllocation(residentData?.monthly_session_allocation);
+                setkwhAllocated(residentData?.kwh_allocated);
+                setAllocatedTime(residentData?.alloted_time);
+                setPerKwhCharge(residentData?.per_kwh_charge);
+                setExtraCharge(residentData?.extra_charge);
             } else {
-                console.log('error in charger-installation-details API', response);
+                // SINGLE-SELECT COMMUNITY (old):
+                // console.log('error in charger-installation-details API', response);
+                // MULTI-SELECT COMMUNITY (new):
+                console.log('error in resident-details API', response);
             }
         });
     };
+
+    // MULTI-SELECT COMMUNITY (new): re-map selected values when dropdown options arrive after resident-details
+    useEffect(() => {
+        if (!residentApiData || communityOptions.length === 0) {
+            return;
+        }
+
+        setCommunity(mapCommunitiesFromApiResponse(residentApiData, communityOptions));
+    }, [residentApiData, communityOptions]);
 
     useEffect(() => {
         if (!userDetails || !userDetails.access_token) {
@@ -244,6 +316,7 @@ const EditResidents = () => {
                         </div>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Community</label>
+                            {/* SINGLE-SELECT COMMUNITY (old):
                             <div ref={serviceDropdownRef}>
                                 <Select
                                     className={styles.addShopSelect}
@@ -255,6 +328,23 @@ const EditResidents = () => {
                                 />
                             </div>
                             {errors.community && community == null && <p className="error">{errors.community}</p>}
+                            */}
+                            {/* MULTI-SELECT COMMUNITY (new): allows assigning resident to multiple communities */}
+                            <div ref={serviceDropdownRef}>
+                                <MultiSelect
+                                    className={styles.addShopSelect}
+                                    options={communityOptions}
+                                    value={community}
+                                    onChange={handleCommunity}
+                                    labelledBy="Select Communities"
+                                    hasSelectAll={true}
+                                    closeOnChangedValue={false}
+                                    closeOnSelect={false}
+                                />
+                            </div>
+                            {errors.community && community.length === 0 && (
+                                <p className="error" style={{ color: 'red' }}>{errors.community}</p>
+                            )}
                         </div>
                     </div>
 

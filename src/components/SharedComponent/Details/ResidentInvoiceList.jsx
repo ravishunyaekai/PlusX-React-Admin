@@ -27,8 +27,10 @@ const ResidentInvoiceList = ({ title, headers, bookingData }) => {
                             <tr key={index}>
                                 <td>{booking.invoice_id}</td>
                                 <td>{booking.resident_name}</td>
+                                {/* COMMUNITY & AREA COLUMNS (old):
                                 <td>{booking.community_name}</td>
                                 <td>{booking.area_name}</td>
+                                */}
                                 <td>{booking.kwh_allocated}</td>
                                 <td>{ Number(booking.total_consumption || 0).toFixed(2) }</td>
                                 <td>{ Number(booking.per_kwh_charge || 0).toFixed(2) }</td>

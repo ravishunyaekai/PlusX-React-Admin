@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import Select from "react-select";
+// SINGLE-SELECT COMMUNITY (old):
+// import Select from "react-select";
 // import { GoogleMap, useJsApiLoader, useLoadScript, Marker } from "@react-google-maps/api";
 import UploadIcon from '../../assets/images/uploadicon.svg';
 import { AiOutlineClose } from 'react-icons/ai';
@@ -25,7 +26,10 @@ const AddResidents = () => {
     const [phoneValue, setPhoneValue]               = useState('');
     const [phoneCountry, setPhoneCountry]           = useState({ dialCode: '971', countryCode: 'ae' });
     const [email, setEmail]                         = useState("");
-    const [community, setCommunity]                 = useState("");
+    // SINGLE-SELECT COMMUNITY (old):
+    // const [community, setCommunity]                 = useState("");
+    // MULTI-SELECT COMMUNITY (new): selected options as [{ label, value }, ...]
+    const [community, setCommunity]                 = useState([]);
     const [address, setAddress]                     = useState('');
     const [sessionAllocation, setSessionAllocation] = useState('');
     const [allocatedTime, setAllocatedTime]         = useState('');
@@ -34,7 +38,10 @@ const AddResidents = () => {
     const [extraCharge, setExtraCharge]             = useState('');
 
     const serviceDropdownRef                      = useRef(null);
-    const [communityOptions, setCommunityOptions] = useState('');
+    // SINGLE-SELECT COMMUNITY (old):
+    // const [communityOptions, setCommunityOptions] = useState('');
+    // MULTI-SELECT COMMUNITY (new): dropdown options from all-community-list API
+    const [communityOptions, setCommunityOptions] = useState([]);
 
     const getLocalMobile = () => {
         if (!phoneValue || !phoneCountry?.dialCode) return '';
@@ -54,8 +61,16 @@ const AddResidents = () => {
         }
     };
 
-    const handleCommunity = (selectedOption) => {
-        setCommunity(selectedOption);
+    // SINGLE-SELECT COMMUNITY (old):
+    // const handleCommunity = (selectedOption) => {
+    //     setCommunity(selectedOption);
+    // }
+    // MULTI-SELECT COMMUNITY (new): MultiSelect passes the full selected array
+    const handleCommunity = (selectedOptions) => {
+        setCommunity(selectedOptions);
+        if (selectedOptions.length > 0) {
+            setErrors((prev) => ({ ...prev, community: '' }));
+        }
     }
     const handleCancel = () => {
         navigate('/community/resident-list')
@@ -66,7 +81,10 @@ const AddResidents = () => {
             { name: "residentName",        value: residentName,         errorMessage: "Residant Name is required." },
             { name: "mobileNo",            value: mobileNo,             errorMessage: "Please enter a valid Mobile No.", isMobile: true },
             { name: "email",               value: email,                errorMessage: "Please enter a valid Email ID.", isEmail: true },
-            { name: "community",           value: community,            errorMessage: "Community is required." },
+            // SINGLE-SELECT COMMUNITY (old):
+            // { name: "community",           value: community,            errorMessage: "Community is required." },
+            // MULTI-SELECT COMMUNITY (new): at least one community must be selected
+            { name: "community",           value: community,            errorMessage: "At least one community is required.", isArray: true },
             { name: "address",             value: address,              errorMessage: "Address is required." },
             { name: "sessionAllocation",   value: sessionAllocation,    errorMessage: "Session Allocation is required." },
             { name: "allocatedTime",       value: allocatedTime,        errorMessage: "Allocated Time is required." },
@@ -75,8 +93,20 @@ const AddResidents = () => {
             { name: "extraCharge",         value: extraCharge,          errorMessage: "Extra Charge is required." },
         ];
     
-        const newErrors = fields.reduce((errors, { name, value, errorMessage, isEmail, isMobile, isPasswordMatch }) => {
-            if (!value) {
+        // SINGLE-SELECT COMMUNITY (old):
+        // const newErrors = fields.reduce((errors, { name, value, errorMessage, isEmail, isMobile, isPasswordMatch }) => {
+        //     if (!value) {
+        //         errors[name] = errorMessage;
+        //     } else if (isEmail && !/\S+@\S+\.\S+/.test(value)) {
+        //         errors[name] = errorMessage;
+        //     } else if (isMobile && (isNaN(value) || value.length < 9)) {
+        //         errors[name] = errorMessage;
+        //     }
+        //     return errors;
+        // }, {});
+        // MULTI-SELECT COMMUNITY (new): supports array validation for community field
+        const newErrors = fields.reduce((errors, { name, value, errorMessage, isEmail, isMobile, isArray }) => {
+            if ((isArray && (!value || value.length === 0)) || (!isArray && !value)) {
                 errors[name] = errorMessage;
             } else if (isEmail && !/\S+@\S+\.\S+/.test(value)) {
                 errors[name] = errorMessage;
@@ -103,7 +133,10 @@ const AddResidents = () => {
                 mobile_number              : getLocalMobile(),
                 country_code               : phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971',
                 resident_email             : email,
-                community_id               : community.value,
+                // SINGLE-SELECT COMMUNITY (old):
+                // community_id               : community.value,
+                // MULTI-SELECT COMMUNITY (new): send array of IDs to resident-add API
+                community_ids              : community.map((item) => item.value),
                 address                    : address,
                 monthly_session_allocation : sessionAllocation,
                 alloted_time               : allocatedTime, 
@@ -137,10 +170,15 @@ const AddResidents = () => {
         };
         postRequestWithToken('all-community-list', obj, (response) => {
             if (response.code === 200) {
-
-                setCommunityOptions(response.data)
+                // SINGLE-SELECT COMMUNITY (old):
+                // setCommunityOptions(response.data)
+                // MULTI-SELECT COMMUNITY (new):
+                setCommunityOptions(response.data || []);
             } else {
-                console.log('error in rider-details API', response);
+                // SINGLE-SELECT COMMUNITY (old):
+                // console.log('error in rider-details API', response);
+                // MULTI-SELECT COMMUNITY (new):
+                console.log('error in all-community-list API', response);
             }
         });
     };
@@ -217,6 +255,7 @@ const AddResidents = () => {
                         </div>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Community</label>
+                            {/* SINGLE-SELECT COMMUNITY (old):
                             <div ref={serviceDropdownRef}>
                                 <Select
                                     className={styles.addShopSelect}
@@ -228,6 +267,23 @@ const AddResidents = () => {
                                 />
                             </div>
                             {errors.community && community == null && <p className="error">{errors.community}</p>}
+                            */}
+                            {/* MULTI-SELECT COMMUNITY (new): allows assigning resident to multiple communities */}
+                            <div ref={serviceDropdownRef}>
+                                <MultiSelect
+                                    className={styles.addShopSelect}
+                                    options={communityOptions}
+                                    value={community}
+                                    onChange={handleCommunity}
+                                    labelledBy="Select Communities"
+                                    hasSelectAll={true}
+                                    closeOnChangedValue={false}
+                                    closeOnSelect={false}
+                                />
+                            </div>
+                            {errors.community && community.length === 0 && (
+                                <p className="error" style={{ color: 'red' }}>{errors.community}</p>
+                            )}
                         </div>
                     </div>
 
