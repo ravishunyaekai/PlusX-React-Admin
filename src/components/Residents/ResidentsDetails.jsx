@@ -179,7 +179,6 @@ const ResidentsDetails = () => {
     const fetchInvoiceList = (page, appliedFilters = {}) => {
         
         if(!residentDetails?.resident_mobile) return false;
- 
         const obj = {
             userId          : userDetails?.user_id,
             email           : userDetails?.email,
