@@ -3,10 +3,21 @@ import styles from '../details.module.css';
 import { useNavigate } from 'react-router-dom';
 import { StarRating } from '../../StarRating/StarRating';
 
-const BookingDetailsHeader = ({ content, titles, sectionContent1, type, deviceBatteryData, feedBack }) => {
+const BookingDetailsHeader = ({ content, titles, sectionContent1, type, deviceBatteryData, feedBack, packageData }) => {
     const userDetails          = JSON.parse(sessionStorage.getItem('userDetails'));
     const navigate             = useNavigate();
     const handleBookingDetails = (id) => navigate(`/portable-charger/customer-charger-booking-list/${id}`)
+
+    const formatAmount = (value) => {
+        const amount = Number(value);
+        return Number.isFinite(amount) ? amount.toFixed(2) : '0.00';
+    };
+
+    const formatCapacity = (value) => {
+        const capacity = Number(value);
+        return Number.isFinite(capacity) ? parseFloat(capacity.toString()) : value;
+    };
+
     return (
         <div className={styles.infoCard}>
             <div className="row">
@@ -35,6 +46,24 @@ const BookingDetailsHeader = ({ content, titles, sectionContent1, type, deviceBa
                                 { type === 'portableChargerBooking' && 
                                     <span onClick={() => handleBookingDetails(content.customerId)} className={styles.infoHeadText}>See Previous Booking : {content.custBookingCount}</span> 
                                 }
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {type === 'portableChargerBooking' && packageData && (
+                    <div className="col-xl-3 col-lg-6 col-12">
+                        <div className={styles.detailsHeaderSection}>
+                            <div className={styles.detailsImageSection}></div>
+                            <div className={styles.infoBlock}>
+                                <span className={styles.infoHeading}>{titles.packageDetailsTitle}</span>
+                                <span className={styles.infoHeadText}>{packageData.package_name}</span>
+                                <span className={styles.infoText}>
+                                    Charging Capacity: {formatCapacity(packageData.charging_capacity)}kW
+                                </span>
+                                <span className={styles.infoText}>
+                                    Charging Fee: AED {formatAmount(packageData.price)}
+                                </span>
                             </div>
                         </div>
                     </div>

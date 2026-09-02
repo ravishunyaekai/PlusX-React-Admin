@@ -33,6 +33,7 @@ const ChargerBookingDetails = () => {
     const navigate                            = useNavigate()
     const { bookingId }                       = useParams()
     const [bookingDetails, setBookingDetails] = useState()
+    const [packageData, setPackageData]         = useState()
     const [history, setHistory]               = useState([])
     const [feedBack, setFeedBack]             = useState()
 
@@ -45,6 +46,7 @@ const ChargerBookingDetails = () => {
         postRequestWithToken('charger-booking-details', obj, (response) => {
             if (response.code === 200) {
                 setBookingDetails(response?.data?.booking || {});
+                setPackageData(response?.data?.package_data || null);
                 setHistory(response?.data?.history); 
                 setFeedBack(response?.data?.feedBack);
             } else {
@@ -63,6 +65,7 @@ const ChargerBookingDetails = () => {
     const headerTitles = {
         bookingIdTitle       : "Booking ID",
         customerDetailsTitle : "Customer Details",
+        packageDetailsTitle  : "Package Details",
         driverDetailsTitle   : "Driver Details",
     };
     let rsa_data  = (bookingDetails?.rsa_data != null) ? bookingDetails?.rsa_data.split(",") : [];
@@ -134,7 +137,7 @@ const ChargerBookingDetails = () => {
     return (
         <div className='main-container'>
             <BookingDetailsHeader content={content} titles={headerTitles} sectionContent={sectionContent1}
-                type='portableChargerBooking' feedBack={feedBack}
+                type='portableChargerBooking' feedBack={feedBack} packageData={packageData}
             />
             <div className={styles.bookingDetailsSection}>
                 <BookingLeftDetails titles={sectionTitles1} content={sectionContent1}

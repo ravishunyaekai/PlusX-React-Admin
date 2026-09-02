@@ -117,6 +117,9 @@ import AddPodBrand from "../components/PodDevice/Brand/AddBrand.jsx";
 import PodAreaList from "../components/PodDevice/Area/PodAreaList.jsx";
 import AddPodArea from "../components/PodDevice/Area/AddPodArea.jsx";
 import EditPodArea from "../components/PodDevice/Area/EditPodArea.jsx";
+import ChargingPackageList from "../components/PortableCharger/ChargingPackage/ChargingPackageList.js";
+import AddChargingPackage from "../components/PortableCharger/ChargingPackage/AddChargingPackage.jsx";
+import EditChargingPackage from "../components/PortableCharger/ChargingPackage/EditChargingPackage.jsx";
 
 import NotificationList from "../components/Notification/NotificationList.jsx";
 import Profile from "../components/Profile/index.jsx"
@@ -328,6 +331,18 @@ const router = createBrowserRouter([
                     {
                         path: "edit-time-slot/:slotDate",
                         element: <EditPortableChargerTimeSlot />,
+                    },
+                    {
+                        path: "charging-package-list",
+                        element: <ChargingPackageList />,
+                    },
+                    {
+                        path: "add-charging-package",
+                        element: <AddChargingPackage />,
+                    },
+                    {
+                        path: "edit-charging-package/:packageId",
+                        element: <EditChargingPackage />,
                     },
                     {
                         path: "invoice/:invoiceId",

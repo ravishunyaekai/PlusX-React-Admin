@@ -2,11 +2,11 @@ import React from 'react';  //, { useState }
 import styles from './list.module.css';
 import Edit from '../../../assets/images/Pen.svg';
 // import Cancel from '../../../assets/images/Cancel.svg';
-// import Delete from '../../../assets/images/Delete.svg';
+import Delete from '../../../assets/images/Delete.svg';
 import View from '../../../assets/images/ViewEye.svg'
 import { useNavigate } from 'react-router-dom';
 
-const List = ({ list, tableHeaders, listData, keyMapping, pageHeading, onDeleteSlot }) => {
+const List = ({ list, tableHeaders, listData, keyMapping, pageHeading, onDeleteSlot, onEditPackage }) => {
     const userDetails  = JSON.parse(sessionStorage.getItem('userDetails')); 
     const departmentId = userDetails.departmentId; //  == 1
 
@@ -252,6 +252,20 @@ const List = ({ list, tableHeaders, listData, keyMapping, pageHeading, onDeleteS
                                     {pageHeading === 'POD Area List' && (
                                         <>
                                             <img src={Edit} alt='edit' onClick={() => handleClickEvent('/portable-charger/edit-area', data.area_id)} />
+                                        </>
+                                    )}
+                                    {pageHeading === 'Charging Packages List' && departmentId == 1 && (
+                                        <>
+                                            <img
+                                                src={Edit}
+                                                alt='edit'
+                                                onClick={() => onEditPackage?.(data)}
+                                            />
+                                            <img
+                                                src={Delete}
+                                                alt='delete'
+                                                onClick={() => onDeleteSlot?.(data.package_id)}
+                                            />
                                         </>
                                     )}
                                     {/* Truck  */}
