@@ -9,7 +9,7 @@ export const menuItems = {
     ],
     portableCharger: [
         // { id: "chargerList",    label: "Charger List", path: "/portable-charger/charger-list" },
-        { id: "chargerBooking", label: "Charger Booking", path: "/portable-charger/charger-booking-list" },
+        { id: "chargerBooking", label: "Bookings", path: "/portable-charger/charger-booking-list" },
         { id: "invoiceList",    label: "Invoice List", path: "/portable-charger/charger-booking-invoice-list" },
         { id: "timeSlot",       label: "Time Slot", path: "/portable-charger/charger-booking-time-slot-list" },
         { id: "chargingPackage", label: "Charging Packages", path: "/portable-charger/charging-package-list" },

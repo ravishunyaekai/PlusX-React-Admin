@@ -31,6 +31,23 @@ const modeOfPaymentOption = [
 const ALLOWED_PROOF_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
 const PROOF_BASE_URL = `${process.env.REACT_APP_DIR_UPLOADS}rsa-offline-proof`;
 
+const toDateInputValue = (value) => {
+    if (!value) return '';
+    const dateStr = String(value).trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+        return dateStr.slice(0, 10);
+    }
+    if (/^\d{2}-\d{2}-\d{4}/.test(dateStr)) {
+        const [day, month, year] = dateStr.slice(0, 10).split('-');
+        return `${year}-${month}-${day}`;
+    }
+    const parsed = new Date(dateStr);
+    if (!Number.isNaN(parsed.getTime())) {
+        return parsed.toISOString().slice(0, 10);
+    }
+    return '';
+};
+
 const isValidLocationUrl = (value) => {
     try {
         const url = new URL(value.trim());
@@ -69,6 +86,7 @@ const EditOfflineLead = () => {
     const [phoneValue, setPhoneValue]           = useState('');
     const [phoneCountry, setPhoneCountry]       = useState({ dialCode: '971', countryCode: 'ae' });
     const [customerEmail, setCustomerEmail]     = useState('');
+    const [bookingDate, setBookingDate]         = useState('');
     const [customerAddress, setCustomerAddress] = useState('');
     const addressRef                            = useRef(null);
 
@@ -94,10 +112,11 @@ const EditOfflineLead = () => {
     const [proofOfTransaction, setProofOfTransaction] = useState(null);
     const [existingProofUrl, setExistingProofUrl]     = useState('');
 
-    const [rsaDriverOption, setRsaDriverOption]       = useState([]);
-    const [bookingStatus, setBookingStatus]           = useState(null);
-    const [bookingCompletedBy, setBookingCompletedBy] = useState(null);
-    const [driverMatch, setDriverMatch]               = useState({ rsa_id: null, name: null });
+    const [rsaDriverOption, setRsaDriverOption]               = useState([]);
+    const [bookingStatus, setBookingStatus]                   = useState(null);
+    const [bookingCompletedDate, setBookingCompletedDate]     = useState('');
+    const [bookingCompletedBy, setBookingCompletedBy]         = useState(null);
+    const [driverMatch, setDriverMatch]                       = useState({ rsa_id: null, name: null });
 
     const fetchVehicleList = (selectedMake = null, selectedModel = null) => {
         const obj = {
@@ -157,6 +176,7 @@ const EditOfflineLead = () => {
 
                 setCustomerName(data.customer_name || data.name || '');
                 setCustomerEmail(data.email || data.email_id || '');
+                setBookingDate(toDateInputValue(data.booking_date));
                 setCustomerAddress(data.address || data.pickup_address || '');
                 setLocationLink(data.location_link || '');
                 setPrice(data.price != null ? String(data.price) : '');
@@ -195,6 +215,7 @@ const EditOfflineLead = () => {
                 setBookingStatus(
                     bookingStatusOption.find((option) => option.value === (data.booking_status || data.order_status)) || null
                 );
+                setBookingCompletedDate(toDateInputValue(data.booking_completed_date));
 
                 setDriverMatch({
                     rsa_id : data.rsa_id,
@@ -283,21 +304,30 @@ const EditOfflineLead = () => {
         const fields = [
             { name : "customerName",       value : customerName,       errorMessage : "Customer Name is required." },
             { name : "customerMobile",     value : localMobile,        errorMessage : "Phone Number is required." },
-            { name : "customerEmail",      value : customerEmail,      errorMessage : "Email ID is required." },
-            { name : "customerAddress",    value : customerAddress,    errorMessage : "Address is required." },
-            { name : "locationLink",       value : locationLink,       errorMessage : "Location Link is required." },
-            { name : "price",              value : price,              errorMessage : "Price is required." },
+            { name : "customerEmail",         value : customerEmail,         errorMessage : "Email ID is required." },
+            { name : "bookingDate",           value : bookingDate,           errorMessage : "Booking Date is required." },
+            { name : "customerAddress",       value : customerAddress,       errorMessage : "Address is required." },
+            { name : "locationLink",          value : locationLink,          errorMessage : "Location Link is required." },
+            { name : "price",                 value : price,                 errorMessage : "Price is required." },
 
-            { name : "vehicleMake",        value : vehicleMake,        errorMessage : "Vehicle Make is required." },
-            { name : "vehicleModel",       value : vehicleModel,       errorMessage : "Vehicle Model is required." },
-            { name : "batteryLevel",       value : batteryLevel,       errorMessage : "Battery Level is required." },
-            { name : "jumpStart",          value : jumpStart,          errorMessage : "Jump Start Required is required." },
+            { name : "vehicleMake",           value : vehicleMake,           errorMessage : "Vehicle Make is required." },
+            { name : "vehicleModel",          value : vehicleModel,          errorMessage : "Vehicle Model is required." },
+            { name : "batteryLevel",          value : batteryLevel,          errorMessage : "Battery Level is required." },
+            { name : "jumpStart",             value : jumpStart,             errorMessage : "Jump Start Required is required." },
 
-            { name : "modeOfPayment",      value : modeOfPayment,      errorMessage : "Mode of Payment is required." },
+            { name : "modeOfPayment",         value : modeOfPayment,         errorMessage : "Mode of Payment is required." },
 
-            { name : "bookingStatus",      value : bookingStatus,      errorMessage : "Booking Status is required." },
-            { name : "bookingCompletedBy", value : bookingCompletedBy, errorMessage : "Booking Completed By is required." },
+            { name : "bookingStatus",         value : bookingStatus,         errorMessage : "Booking Status is required." },
+            { name : "bookingCompletedBy",    value : bookingCompletedBy,    errorMessage : "Booking Completed By is required." },
         ];
+
+        if (bookingStatus?.value === 'PU') {
+            fields.push({
+                name         : "bookingCompletedDate",
+                value        : bookingCompletedDate,
+                errorMessage : "Booking Completed Date is required.",
+            });
+        }
 
         if (modeOfPayment?.value === 'Online') {
             fields.push({
@@ -335,6 +365,7 @@ const EditOfflineLead = () => {
             formData.append("customer_name", customerName);
             formData.append("mobile_no", getLocalMobile());
             formData.append("email_id", customerEmail);
+            formData.append("booking_date", bookingDate);
             formData.append("country_code", phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971');
             formData.append("location_link", locationLink);
             formData.append("address", customerAddress);
@@ -349,6 +380,9 @@ const EditOfflineLead = () => {
             formData.append("payment_status", 'Paid');
 
             formData.append("booking_status", bookingStatus?.value);
+            if (bookingStatus?.value === 'PU' && bookingCompletedDate) {
+                formData.append("booking_completed_date", bookingCompletedDate);
+            }
             formData.append("booking_completed_by", bookingCompletedBy?.value);
             formData.append("driver_name", bookingCompletedBy?.value);
             formData.append("rsa_id", bookingCompletedBy?.rsa_id);
@@ -432,6 +466,18 @@ const EditOfflineLead = () => {
                             {errors.customerEmail && !customerEmail && <p className={styles.error}>{errors.customerEmail}</p>}
                         </div>
                         <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel}>Booking Date</label>
+                            <input
+                                type="date"
+                                className={styles.inputField}
+                                value={bookingDate}
+                                onChange={(e) => setBookingDate(e.target.value)}
+                            />
+                            {errors.bookingDate && !bookingDate && <p className={styles.error}>{errors.bookingDate}</p>}
+                        </div>
+                    </div>
+                    <div className={styles.row}>
+                        <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Location Link</label>
                             <input
                                 type="text"
@@ -448,8 +494,6 @@ const EditOfflineLead = () => {
                             />
                             {errors.locationLink && <p className={styles.error}>{errors.locationLink}</p>}
                         </div>
-                    </div>
-                    <div className={styles.row}>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Address</label>
                             <textarea
@@ -462,6 +506,8 @@ const EditOfflineLead = () => {
                             />
                             {errors.customerAddress && !customerAddress && <p className={styles.error}>{errors.customerAddress}</p>}
                         </div>
+                    </div>
+                    <div className={styles.row}>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Price including VAT</label>
                             <input
@@ -477,6 +523,7 @@ const EditOfflineLead = () => {
                             />
                             {errors.price && !price && <p className={styles.error}>{errors.price}</p>}
                         </div>
+                        <div className={styles.addShopInputContainer}></div>
                     </div>
 
                     <div className={styles.addHeading} style={{ marginBottom: "0px", marginTop: "10px" }}>Vehicle Details</div>
@@ -612,12 +659,33 @@ const EditOfflineLead = () => {
                                 className={styles.addShopSelect}
                                 options={bookingStatusOption}
                                 value={bookingStatus}
-                                onChange={(selectedOption) => setBookingStatus(selectedOption)}
+                                onChange={(selectedOption) => {
+                                    setBookingStatus(selectedOption);
+                                    if (selectedOption?.value !== 'PU') {
+                                        setBookingCompletedDate('');
+                                        setErrors((prev) => ({ ...prev, bookingCompletedDate: '' }));
+                                    }
+                                }}
                                 placeholder="Select Booking Status"
                                 isClearable={true}
                             />
                             {errors.bookingStatus && !bookingStatus && <p className={styles.error}>{errors.bookingStatus}</p>}
                         </div>
+                        <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel}>Booking Completed Date</label>
+                            <input
+                                type="date"
+                                className={styles.inputField}
+                                value={bookingCompletedDate}
+                                onChange={(e) => setBookingCompletedDate(e.target.value)}
+                                disabled={bookingStatus?.value !== 'PU'}
+                            />
+                            {errors.bookingCompletedDate && !bookingCompletedDate && (
+                                <p className={styles.error}>{errors.bookingCompletedDate}</p>
+                            )}
+                        </div>
+                    </div>
+                    <div className={styles.row}>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Booking Completed By</label>
                             <Select
@@ -630,6 +698,7 @@ const EditOfflineLead = () => {
                             />
                             {errors.bookingCompletedBy && !bookingCompletedBy && <p className={styles.error}>{errors.bookingCompletedBy}</p>}
                         </div>
+                        <div className={styles.addShopInputContainer}></div>
                     </div>
 
                     <div className={styles.editButton}>

@@ -123,7 +123,8 @@ const Invoice = ({ title, service, details }) => {
                                                 </tr>
                                                 <tr className={styles.serviceItem}>
                                                     <td>CPO Charge</td>
-                                                    <td>0.26</td>
+                                                    {/* <td>0.26</td> */}
+                                                    <td>0.76</td>
                                                     <td>{details?.kw.toFixed(2)}</td>
                                                     <td className={styles.amountRightAlign}>{details?.kw_cpo_amt.toFixed(2)}</td>
                                                 </tr>

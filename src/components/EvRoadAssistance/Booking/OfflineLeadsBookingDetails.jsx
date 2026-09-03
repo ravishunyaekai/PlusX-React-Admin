@@ -88,15 +88,17 @@ const OfflineLeadsBookingDetails = () => {
         imageUrl        : bookingDetails?.imageUrl,
     };
     const sectionTitles1 = {
-        bookingStatus : "Booking Status",
-        price         : "Price",
-        vehicle       : "Vehicle",
-        battery       : "Vehicle Battery %",
-        jumpStart     : "Jump Start Required",
-        locationLink  : "Location Link",
-        address       : "Address",
-        modeOfPayment : "Mode of Payment",
-        paymentStatus : "Payment Status",
+        bookingStatus         : "Booking Status",
+        bookingDate           : "Booking Date",
+        bookingCompletedDate  : "Booking Completed Date",
+        price                 : "Price",
+        vehicle               : "Vehicle",
+        battery               : "Vehicle Battery %",
+        jumpStart             : "Jump Start Required",
+        locationLink          : "Location Link",
+        address               : "Address",
+        modeOfPayment         : "Mode of Payment",
+        paymentStatus         : "Payment Status",
     };
 
     const proofFilename = bookingDetails?.proof_of_transaction;
@@ -125,6 +127,12 @@ const OfflineLeadsBookingDetails = () => {
 
     const sectionContent1 = {
         bookingStatus : statusMapping[bookingDetails?.order_status || bookingDetails?.booking_status] || bookingDetails?.order_status || bookingDetails?.booking_status,
+        bookingDate   : bookingDetails?.booking_date
+            ? moment(bookingDetails.booking_date).format('DD MMM YYYY')
+            : '-',
+        bookingCompletedDate : bookingDetails?.booking_completed_date
+            ? moment(bookingDetails.booking_completed_date).format('DD MMM YYYY')
+            : '-',
         price         : bookingDetails?.price,
         vehicle       : bookingDetails?.vehicle_data || `${bookingDetails?.vehicle_make || ''} ${bookingDetails?.vehicle_model || ''}`.trim(),
         battery       : bookingDetails?.current_percent == 1 || bookingDetails?.battery_level == 1 || bookingDetails?.battery_level === '1'
