@@ -185,13 +185,16 @@ const AddCommunity = () => {
                                     Total Number of Residents
                                 </label>
                                 <input
-                                    type="number"
+                                    type="text"
                                     autoComplete="off"
                                     id="noofResidents"
                                     placeholder="Number of Residents"
                                     className={styles.inputField}
                                     value={noofResidents}
-                                    onChange={(e) => setNoofResidents(e.target.value)}
+                                    onChange={(e) => {
+                                        const value = e.target.value.replace(/\D/g, '');
+                                        setNoofResidents(value);
+                                    }}
                                 />
                                 {errors.noofResidents && noofResidents === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.noofResidents}</p>}
                             </div>
