@@ -24,6 +24,12 @@ const statusMapping = {
     'WC' : 'Work Completed',
 };
 
+const rsaStatusMapping = {
+    ...statusMapping,
+    'RL' : 'Van Reached at Location',
+    'RO' : 'Van Reached at Office',
+};
+
 const AppSignupDetails = () => {
     const userDetails  = JSON.parse(sessionStorage.getItem('userDetails'));
     const navigate                                              = useNavigate()
@@ -215,7 +221,7 @@ const AppSignupDetails = () => {
                                     rsa_name       : booking.rsa_name,
                                     price          : `AED ${booking.price || '0'}`,
                                     datetime       : moment(booking.created_at).format('DD MMM YYYY'),
-                                    status         : statusMapping[booking.order_status] || '',
+                                    status         : rsaStatusMapping[booking.order_status] || '',
                                     // slot_date_time : '', 
                                 };
                             })}

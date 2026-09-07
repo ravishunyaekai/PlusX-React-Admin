@@ -19,8 +19,7 @@ const CommunityDetails = () => {
     const { communityId }                     = useParams(); 
     const navigate                            = useNavigate();
     const [communityDetails, setCommunityDetails] = useState();
-    // Manager Details - commented out for live (not ready to push)
-    // const [managerDetails, setManagerDetails]     = useState();
+    const [managerDetails, setManagerDetails]     = useState();
     const staturArr                           = { 0 : 'In-active', 1: 'Active' }
     const [chargers, setChargers]             = useState([ { id : '', charger_id : '', kw : '' } ]);
     // Resident list with pagination (from resident-list API)
@@ -37,8 +36,7 @@ const CommunityDetails = () => {
         postRequestWithToken('community-details', obj, (response) => {
             if (response.code === 200) {
                 setCommunityDetails(response?.data || {});
-                // Manager Details - commented out for live
-                // setManagerDetails(response?.manager || {});
+                setManagerDetails(response?.manager || {});
                 setChargers(response?.chargers || []);
                 // setResidents(response?.residents || []);
             } else {
@@ -91,19 +89,18 @@ const CommunityDetails = () => {
         customerName    : communityDetails?.community_name,
         customerContact : ``, //+971 ${communityDetails?.mobile}
     };
-    // Manager Details - commented out for live
-    // const managerTitles = {
-    //     managerId      : "Manager ID",
-    //     managerName    : "Manager Name",
-    //     managerEmail   : "Email ID",
-    //     managerContact : "Contact No",
-    // };
-    // const managerContent = {
-    //     managerId      : managerDetails?.manager_id || '',
-    //     managerName    : managerDetails?.manager_name || '',
-    //     managerEmail   : managerDetails?.manager_email || '',
-    //     managerContact : managerDetails?.manager_contact || '',
-    // };
+    const managerTitles = {
+        managerId      : "Manager ID",
+        managerName    : "Manager Name",
+        managerEmail   : "Email ID",
+        managerContact : "Contact No",
+    };
+    const managerContent = {
+        managerId      : managerDetails?.manager_id || '',
+        managerName    : managerDetails?.manager_name || '',
+        managerEmail   : managerDetails?.manager_email || '',
+        managerContact : managerDetails?.manager_contact || '',
+    };
     const sectionTitles1 = {
         customerEmail  : "Area Name",
         charger_name   : "Total Residence",
@@ -118,8 +115,7 @@ const CommunityDetails = () => {
         <div className='main-container'>
             <BookingDetailsHeader content={content} titles={headerTitles} type='chargerInstallation' />
             <div className={styles.bookingLeftContainer}>
-                {/* Manager Details - commented out for live */}
-                {/* <BookingLeftDetails titles={managerTitles} content={managerContent} /> */}
+                <BookingLeftDetails titles={managerTitles} content={managerContent} />
                 <BookingLeftDetails titles={sectionTitles1} content={sectionContent1} 
                 type='chargerInstallation' />
             </div>

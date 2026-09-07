@@ -24,13 +24,12 @@ const EditCommunity = () => {
     const [areaName, setAreaName]             = useState('')
     const [noofResidents, setNoofResidents]   = useState('')
     const [chargers, setChargers]             = useState([ { id : '', charger_id : '', kw : '' } ]);
-    // Manager Details - commented out for live (not ready to push)
-    // const [managerId, setManagerId]           = useState('');
-    // const [managerName, setManagerName]       = useState('');
-    // const [managerEmail, setManagerEmail]     = useState('');
-    // const [managerContact, setManagerContact] = useState('');
-    // const [password, setPassword]             = useState('');
-    // const [confirmPassword, setConfirmPassword] = useState('');
+    const [managerId, setManagerId]           = useState('');
+    const [managerName, setManagerName]       = useState('');
+    const [managerEmail, setManagerEmail]     = useState('');
+    const [managerContact, setManagerContact] = useState('');
+    const [password, setPassword]             = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
 
     const serviceDropdownRef                  = useRef(null);
     const [communityDetails, setCommunityDetails] = useState();
@@ -44,33 +43,31 @@ const EditCommunity = () => {
             { name: "communityName", value: communityName,  errorMessage: "Community Name is required." },
             { name: "areaName",      value: areaName,       errorMessage: "Area Name is required." },
             { name: "noofResidents", value: noofResidents,  errorMessage: "Total number of Residents is required." },
-            // Manager Details - commented out for live
-            // { name: "managerName",   value: managerName,    errorMessage: "Manager Name is required." },
-            // { name: "managerEmail",  value: managerEmail,   errorMessage: "Please enter a valid Email ID.", isEmail: true },
+            { name: "managerName",   value: managerName,    errorMessage: "Manager Name is required." },
+            { name: "managerEmail",  value: managerEmail,   errorMessage: "Please enter a valid Email ID.", isEmail: true },
         ];
 
-        // Manager Details - commented out for live
-        // if (password || confirmPassword) {
-        //     if (!password) {
-        //         fields.push({ name: "password", value: password, errorMessage: "Password is required." });
-        //     }
-        //     if (!confirmPassword) {
-        //         fields.push({ name: "confirmPassword", value: confirmPassword, errorMessage: "Confirm Password is required." });
-        //     }
-        //     if (password && confirmPassword && password !== confirmPassword) {
-        //         fields.push({ name: "confirmPassword", value: confirmPassword, errorMessage: "Passwords do not match.", isPasswordMatch: true });
-        //     }
-        // }
+        if (password || confirmPassword) {
+            if (!password) {
+                fields.push({ name: "password", value: password, errorMessage: "Password is required." });
+            }
+            if (!confirmPassword) {
+                fields.push({ name: "confirmPassword", value: confirmPassword, errorMessage: "Confirm Password is required." });
+            }
+            if (password && confirmPassword && password !== confirmPassword) {
+                fields.push({ name: "confirmPassword", value: confirmPassword, errorMessage: "Passwords do not match.", isPasswordMatch: true });
+            }
+        }
     
         const newErrors = fields.reduce((errors, { name, value, errorMessage, isEmail, isPasswordMatch }) => {
             if (!value) {
                 errors[name] = errorMessage;
             } else if (isEmail && !/\S+@\S+\.\S+/.test(value)) {
                 errors[name] = errorMessage;
-            // } else if (isPasswordMatch && value !== password) {
-            //     errors[name] = errorMessage;
-            // } else if (name === 'password' && value.length < 6) {
-            //     errors[name] = "Password should be at least 6 characters long.";
+            } else if (isPasswordMatch && value !== password) {
+                errors[name] = errorMessage;
+            } else if (name === 'password' && value.length < 6) {
+                errors[name] = "Password should be at least 6 characters long.";
             }
             return errors;
         }, {});
@@ -99,10 +96,9 @@ const EditCommunity = () => {
             newErrors.chargers = 'At least one charger with Charger ID and kW is required.';
         }
 
-        // Manager Details - commented out for live
-        // if (managerContact && (isNaN(managerContact) || managerContact.length < 9 || managerContact.length > 12)) {
-        //     newErrors.managerContact = "Please enter a valid Contact No.";
-        // }
+        if (managerContact && (isNaN(managerContact) || managerContact.length < 9 || managerContact.length > 12)) {
+            newErrors.managerContact = "Please enter a valid Contact No.";
+        }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -126,13 +122,12 @@ const EditCommunity = () => {
                 total_residence : noofResidents,
                 chargers        : JSON.stringify(chargersValues),
                 kwValues        : JSON.stringify(kwValues),
-                // Manager Details - commented out for live
-                // manager_id      : managerId,
-                // manager_name    : managerName,
-                // manager_email   : managerEmail,
-                // manager_contact : managerContact,
-                // password        : password,
-                // confirm_password : confirmPassword,
+                manager_id      : managerId,
+                manager_name    : managerName,
+                manager_email   : managerEmail,
+                manager_contact : managerContact,
+                password        : password,
+                confirm_password : confirmPassword,
             }
         
             postRequestWithToken('community-edit', obj, async (response) => {
@@ -168,11 +163,10 @@ const EditCommunity = () => {
                 setAreaName(response?.data?.area_name)
                 setNoofResidents(response?.data?.total_residence)
                 setChargers(response?.chargers)
-                // Manager Details - commented out for live
-                // setManagerId(response?.manager?.manager_id || '');
-                // setManagerName(response?.manager?.manager_name || '');
-                // setManagerEmail(response?.manager?.manager_email || '');
-                // setManagerContact(response?.manager?.manager_contact || '');
+                setManagerId(response?.manager?.manager_id || '');
+                setManagerName(response?.manager?.manager_name || '');
+                setManagerEmail(response?.manager?.manager_email || '');
+                setManagerContact(response?.manager?.manager_contact || '');
 
             } else {
                 console.log('error in community-details API', response);
@@ -256,7 +250,7 @@ const EditCommunity = () => {
                         </div>
                     </div>
 
-                    {/* Manager Details Section - commented out for live (not ready to push)
+                    {/* Manager Details Section */}
                     <div className={styles.formSectionBlock}>
                         <div className={styles.formSectionHeading}>Manager Details</div>
                         <div className={styles.row}>
@@ -329,7 +323,6 @@ const EditCommunity = () => {
                             </div>
                         </div>
                     </div>
-                    */}
 
                     {/* Charger Details Section */}
                     <div className={styles.formSectionBlock}>
