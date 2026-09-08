@@ -11,6 +11,8 @@ import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import ReactInputMask from "react-input-mask"
 import Add from '../../assets/images/Add.svg';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 
 const AddCommunity = () => {
     const userDetails                         = JSON.parse(sessionStorage.getItem('userDetails'));
@@ -24,11 +26,30 @@ const AddCommunity = () => {
     const [chargers, setChargers]             = useState([ { chargers : '', kw : '' } ]);
     const [managerName, setManagerName]       = useState('');
     const [managerEmail, setManagerEmail]     = useState('');
-    const [managerContact, setManagerContact] = useState('');
+    const [phoneValue, setPhoneValue]         = useState('');
+    const [phoneCountry, setPhoneCountry]     = useState({ dialCode: '971', countryCode: 'ae' });
     const [password, setPassword]             = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
     const serviceDropdownRef                        = useRef(null);
+
+    const getLocalMobile = () => {
+        if (!phoneValue || !phoneCountry?.dialCode) return '';
+        return phoneValue.startsWith(phoneCountry.dialCode)
+            ? phoneValue.slice(phoneCountry.dialCode.length)
+            : phoneValue;
+    };
+
+    const handlePhoneChange = (phone, country) => {
+        setPhoneValue(phone);
+        setPhoneCountry(country);
+        const localMobile = phone.startsWith(country.dialCode)
+            ? phone.slice(country.dialCode.length)
+            : phone;
+        if (localMobile) {
+            setErrors((prev) => ({ ...prev, managerContact: '' }));
+        }
+    };
 
     const handleCancel = () => {
         navigate('/community/community-list')
@@ -81,6 +102,7 @@ const AddCommunity = () => {
             newErrors.chargers = 'At least one charger with Charger ID and kW is required.';
         }
 
+        const managerContact = getLocalMobile();
         if (managerContact && (isNaN(managerContact) || managerContact.length < 9 || managerContact.length > 12)) {
             newErrors.managerContact = "Please enter a valid Contact No.";
         }
@@ -108,7 +130,8 @@ const AddCommunity = () => {
                 kwValues        : JSON.stringify(kwValues),
                 manager_name    : managerName,
                 manager_email   : managerEmail,
-                manager_contact : managerContact,
+                manager_contact : getLocalMobile(),
+                country_code    : phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971',
                 password        : password,
                 confirm_password : confirmPassword,
             }
@@ -233,14 +256,17 @@ const AddCommunity = () => {
                             </div>
                             <div className={styles.addShopInputContainer}>
                                 <label className={styles.addShopLabel} htmlFor="managerContact">Contact No (Optional)</label>
-                                <input
-                                    type="text"
-                                    autoComplete="off"
-                                    id="managerContact"
+                                <PhoneInput
+                                    country="ae"
+                                    value={phoneValue}
+                                    onChange={handlePhoneChange}
+                                    enableSearch={true}
+                                    countryCodeEditable={false}
+                                    containerClass={styles.phoneInputContainer}
+                                    inputClass={styles.phoneInputField}
+                                    buttonClass={styles.phoneInputButton}
+                                    dropdownClass={styles.phoneInputDropdown}
                                     placeholder="Contact No"
-                                    className={styles.inputField}
-                                    value={managerContact}
-                                    onChange={(e) => setManagerContact(e.target.value)}
                                 />
                                 {errors.managerContact && <p className={styles.error} style={{ color: 'red' }}>{errors.managerContact}</p>}
                             </div>

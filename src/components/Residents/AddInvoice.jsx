@@ -77,7 +77,8 @@ const AddInvoice = () => {
     const handleResidentNameChange = (e) => {
         const value = e.target.value;
         setResidentId(value);
-        // setResidentId(''); // clear selected id when user types manually
+        setResidentMobile('');
+        setResidentName('');
 
         if (debounceTimer.current) clearTimeout(debounceTimer.current);
         debounceTimer.current = setTimeout(() => {
@@ -223,7 +224,7 @@ const AddInvoice = () => {
     }
     useEffect(() => {
         getInvoiceData();
-    }, [billingMonth, community, residentId]);
+    }, [billingMonth, residentId, residentMobile]);
 
     return (
         <div className={styles.addShopContainer}>

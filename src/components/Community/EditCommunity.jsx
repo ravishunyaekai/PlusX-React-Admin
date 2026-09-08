@@ -10,6 +10,8 @@ import { postRequestWithTokenAndFile, postRequestWithToken } from '../../api/Req
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import Add from '../../assets/images/Add.svg';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 // /import ReactInputMask from "react-input-mask";
 // import InputMask from 'react-input-mask';
 
@@ -27,12 +29,31 @@ const EditCommunity = () => {
     const [managerId, setManagerId]           = useState('');
     const [managerName, setManagerName]       = useState('');
     const [managerEmail, setManagerEmail]     = useState('');
-    const [managerContact, setManagerContact] = useState('');
+    const [phoneValue, setPhoneValue]         = useState('');
+    const [phoneCountry, setPhoneCountry]     = useState({ dialCode: '971', countryCode: 'ae' });
     const [password, setPassword]             = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
     const serviceDropdownRef                  = useRef(null);
     const [communityDetails, setCommunityDetails] = useState();
+
+    const getLocalMobile = () => {
+        if (!phoneValue || !phoneCountry?.dialCode) return '';
+        return phoneValue.startsWith(phoneCountry.dialCode)
+            ? phoneValue.slice(phoneCountry.dialCode.length)
+            : phoneValue;
+    };
+
+    const handlePhoneChange = (phone, country) => {
+        setPhoneValue(phone);
+        setPhoneCountry(country);
+        const localMobile = phone.startsWith(country.dialCode)
+            ? phone.slice(country.dialCode.length)
+            : phone;
+        if (localMobile) {
+            setErrors((prev) => ({ ...prev, managerContact: '' }));
+        }
+    };
 
     const handleCancel = () => {
         navigate('/community/community-list')
@@ -96,6 +117,7 @@ const EditCommunity = () => {
             newErrors.chargers = 'At least one charger with Charger ID and kW is required.';
         }
 
+        const managerContact = getLocalMobile();
         if (managerContact && (isNaN(managerContact) || managerContact.length < 9 || managerContact.length > 12)) {
             newErrors.managerContact = "Please enter a valid Contact No.";
         }
@@ -125,7 +147,8 @@ const EditCommunity = () => {
                 manager_id      : managerId,
                 manager_name    : managerName,
                 manager_email   : managerEmail,
-                manager_contact : managerContact,
+                manager_contact : getLocalMobile(),
+                country_code    : phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971',
                 password        : password,
                 confirm_password : confirmPassword,
             }
@@ -166,7 +189,10 @@ const EditCommunity = () => {
                 setManagerId(response?.manager?.manager_id || '');
                 setManagerName(response?.manager?.manager_name || '');
                 setManagerEmail(response?.manager?.manager_email || '');
-                setManagerContact(response?.manager?.manager_contact || '');
+                const dialCode = String(response?.manager?.country_code || '+971').replace('+', '');
+                const mobileNo = response?.manager?.manager_contact || '';
+                setPhoneValue(mobileNo ? `${dialCode}${mobileNo}` : '');
+                setPhoneCountry({ dialCode, countryCode: 'ae' });
 
             } else {
                 console.log('error in community-details API', response);
@@ -285,14 +311,17 @@ const EditCommunity = () => {
                             </div>
                             <div className={styles.addShopInputContainer}>
                                 <label className={styles.addShopLabel} htmlFor="managerContact">Contact No (Optional)</label>
-                                <input
-                                    type="text"
-                                    autoComplete="off"
-                                    id="managerContact"
+                                <PhoneInput
+                                    country="ae"
+                                    value={phoneValue}
+                                    onChange={handlePhoneChange}
+                                    enableSearch={true}
+                                    countryCodeEditable={false}
+                                    containerClass={styles.phoneInputContainer}
+                                    inputClass={styles.phoneInputField}
+                                    buttonClass={styles.phoneInputButton}
+                                    dropdownClass={styles.phoneInputDropdown}
                                     placeholder="Contact No"
-                                    className={styles.inputField}
-                                    value={managerContact}
-                                    onChange={(e) => setManagerContact(e.target.value)}
                                 />
                                 {errors.managerContact && <p className={styles.error} style={{ color: 'red' }}>{errors.managerContact}</p>}
                             </div>

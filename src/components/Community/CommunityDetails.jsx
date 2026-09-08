@@ -99,7 +99,9 @@ const CommunityDetails = () => {
         managerId      : managerDetails?.manager_id || '',
         managerName    : managerDetails?.manager_name || '',
         managerEmail   : managerDetails?.manager_email || '',
-        managerContact : managerDetails?.manager_contact || '',
+        managerContact : managerDetails?.manager_contact
+            ? `${managerDetails?.country_code || ''} ${managerDetails.manager_contact}`.trim()
+            : '',
     };
     const sectionTitles1 = {
         customerEmail  : "Area Name",
