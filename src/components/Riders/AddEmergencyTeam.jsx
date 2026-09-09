@@ -7,6 +7,8 @@ import { postRequestWithTokenAndFile } from '../../api/Requests';
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 
 const AddEmergencyTeam = () => {
     const userDetails                           = JSON.parse(sessionStorage.getItem('userDetails'));
@@ -14,12 +16,31 @@ const AddEmergencyTeam = () => {
     const [file, setFile]                       = useState();
     const [rsaName, setRsaName]                 = useState("");
     const [email, setEmail]                     = useState("");
-    const [mobileNo, setMobileNo]               = useState("");
+    const [phoneValue, setPhoneValue]           = useState('');
+    const [phoneCountry, setPhoneCountry]       = useState({ dialCode: '971', countryCode: 'ae' });
     const [serviceType, setServiceType]         = useState(null);
     const [password, setPassword]               = useState("");
     const [confirmPassword, setConfirmPassword] = useState(null);
     const [errors, setErrors]                   = useState({});
     const [loading, setLoading]                 = useState(false);
+
+    const getLocalMobile = () => {
+        if (!phoneValue || !phoneCountry?.dialCode) return '';
+        return phoneValue.startsWith(phoneCountry.dialCode)
+            ? phoneValue.slice(phoneCountry.dialCode.length)
+            : phoneValue;
+    };
+
+    const handlePhoneChange = (phone, country) => {
+        setPhoneValue(phone);
+        setPhoneCountry(country);
+        const localMobile = phone.startsWith(country.dialCode)
+            ? phone.slice(country.dialCode.length)
+            : phone;
+        if (localMobile) {
+            setErrors((prev) => ({ ...prev, mobileNo: '' }));
+        }
+    };
 
     const typeOpetions = [
         // { value: "", label: "Select Vehicle Type" },
@@ -54,6 +75,7 @@ const AddEmergencyTeam = () => {
     const serviceDropdownRef = useRef(null);
 
     const validateForm = () => {
+        const mobileNo = getLocalMobile();
         const fields = [
             { name: "rsaName", value: rsaName, errorMessage: "Driver Name is required." },
             { name: "email", value: email, errorMessage: "Please enter a valid Email ID.", isEmail: true },
@@ -97,7 +119,8 @@ const AddEmergencyTeam = () => {
             formData.append("email", userDetails?.email);
             formData.append("rsa_email", email);
             formData.append("rsa_name", rsaName);
-            formData.append("mobile", mobileNo);
+            formData.append("mobile", getLocalMobile());
+            formData.append("country_code", phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971');
             if (serviceType) {
                 formData.append("service_type", serviceType.value);
             }
@@ -174,18 +197,19 @@ const AddEmergencyTeam = () => {
                     <div className={styles.row}>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Mobile No</label>
-                            <input
-                                className={styles.inputField}
-                                type="text"
-                                autoComplete='off'
+                            <PhoneInput
+                                country="ae"
+                                value={phoneValue}
+                                onChange={handlePhoneChange}
+                                enableSearch={true}
+                                countryCodeEditable={false}
+                                containerClass={styles.phoneInputContainer}
+                                inputClass={styles.phoneInputField}
+                                buttonClass={styles.phoneInputButton}
+                                dropdownClass={styles.phoneInputDropdown}
                                 placeholder="Mobile No"
-                                value={mobileNo}
-                                onChange={(e) => {
-                                    const value = e.target.value.replace(/\D/g, '');
-                                    setMobileNo(value.slice(0, 12)); 
-                                }}
                             />
-                            {errors.mobileNo && mobileNo.length < 9 &&   <p className="error">{errors.mobileNo}</p>}
+                            {errors.mobileNo && getLocalMobile().length < 9 && <p className="error">{errors.mobileNo}</p>}
                         </div>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Service Type</label>

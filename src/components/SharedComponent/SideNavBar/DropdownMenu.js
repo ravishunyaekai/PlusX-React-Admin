@@ -14,7 +14,7 @@ export const menuItems = {
         { id: "timeSlot",       label: "Time Slot", path: "/portable-charger/charger-booking-time-slot-list" },
         { id: "chargingPackage", label: "Charging Packages", path: "/portable-charger/charging-package-list" },
 
-        { id: "deviceList", label: "Device List", path: "/portable-charger/device-list" },
+        { id: "deviceList", label: "Mobile Charging Van List", path: "/portable-charger/device-list" },
         { id: "areaList", label: "Area List", path: "/portable-charger/area-list" },
         { id: "failedBookingList", label: "Failed Booking", path: "/portable-charger/failed-booking-list" },
     ],

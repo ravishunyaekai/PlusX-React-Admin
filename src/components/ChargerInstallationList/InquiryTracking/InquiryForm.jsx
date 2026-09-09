@@ -252,26 +252,26 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
     const validateForm = () => {
         const localMobile = getLocalMobile();
         const fields = [
-            { name: 'customerName',       value: customerName,       errorMessage: 'Customer Name is required.' },
-            { name: 'customerMobile',     value: localMobile,        errorMessage: 'Phone Number is required.' },
-            { name: 'customerEmail',      value: customerEmail,      errorMessage: 'Email Address is required.' },
-            { name: 'leadSource',         value: leadSource,         errorMessage: 'Lead Source is required.' },
-            { name: 'assignedPersonName', value: assignedPersonName, errorMessage: 'Assigned Person Name is required.' },
-            { name: 'enquiryStatus',      value: enquiryStatus,      errorMessage: 'Enquiry Status is required.' },
+            { name: 'customerName',   value: customerName,  errorMessage: 'Customer Name is required.' },
+            { name: 'customerMobile', value: localMobile,   errorMessage: 'Phone Number is required.' },
+            // { name: 'customerEmail',      value: customerEmail,      errorMessage: 'Email Address is required.' },
+            { name: 'leadSource',     value: leadSource,    errorMessage: 'Lead Source is required.' },
+            // { name: 'assignedPersonName', value: assignedPersonName, errorMessage: 'Assigned Person Name is required.' },
+            { name: 'enquiryStatus',  value: enquiryStatus, errorMessage: 'Enquiry Status is required.' },
         ];
 
-        if (followUpRequired?.value === 'Yes') {
-            fields.push({ name: 'nextFollowUpDate', value: nextFollowUpDate, errorMessage: 'Next Follow-up Date is required.' });
-            fields.push({ name: 'followUpRemarks',  value: followUpRemarks,  errorMessage: 'Follow-up Remarks is required.' });
-        }
-        if (siteVisitRequired?.value === 'Yes') {
-            fields.push({ name: 'siteVisitDate',     value: siteVisitDate,     errorMessage: 'Site Visit Date is required.' });
-            fields.push({ name: 'siteVisitLocation', value: siteVisitLocation, errorMessage: 'Site Visit Location is required.' });
-            fields.push({ name: 'siteVisitPerson',   value: siteVisitPerson,   errorMessage: 'Person Assigned for Site Visit is required.' });
-        }
-        if (enquiryStatus?.value === 'Lost / Cancelled') {
-            fields.push({ name: 'lostCancelledRemark', value: lostCancelledRemark, errorMessage: 'Lost / Cancelled remark is required.' });
-        }
+        // if (followUpRequired?.value === 'Yes') {
+        //     fields.push({ name: 'nextFollowUpDate', value: nextFollowUpDate, errorMessage: 'Next Follow-up Date is required.' });
+        //     fields.push({ name: 'followUpRemarks',  value: followUpRemarks,  errorMessage: 'Follow-up Remarks is required.' });
+        // }
+        // if (siteVisitRequired?.value === 'Yes') {
+        //     fields.push({ name: 'siteVisitDate',     value: siteVisitDate,     errorMessage: 'Site Visit Date is required.' });
+        //     fields.push({ name: 'siteVisitLocation', value: siteVisitLocation, errorMessage: 'Site Visit Location is required.' });
+        //     fields.push({ name: 'siteVisitPerson',   value: siteVisitPerson,   errorMessage: 'Person Assigned for Site Visit is required.' });
+        // }
+        // if (enquiryStatus?.value === 'Lost / Cancelled') {
+        //     fields.push({ name: 'lostCancelledRemark', value: lostCancelledRemark, errorMessage: 'Lost / Cancelled remark is required.' });
+        // }
 
         const newErrors = fields.reduce((acc, { name, value, errorMessage }) => {
             if (!value || (typeof value === 'string' && value.trim() === '')) {

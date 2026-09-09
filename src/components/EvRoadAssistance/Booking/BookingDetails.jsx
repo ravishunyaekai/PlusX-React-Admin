@@ -14,7 +14,7 @@ const statusMapping = {
     'CNF': 'Booking Confirmed',
     'A'  : 'Assigned',
     'ER' : 'Enroute',
-    'RL' : 'Van Reached at Location',
+    'RL' : 'Mobile Charging Van Reached at Location',
     'CS' : 'Charging Started',
     'CC' : 'Charging Completed',
     'PU' : 'POD Picked Up',
@@ -23,7 +23,7 @@ const statusMapping = {
     'WC' : 'Work Completed',
     'DO' : 'Drop Off',
     'C'  : 'Cancel',
-    'RO' : 'Van Reached at Office',
+    'RO' : 'Mobile Charging Van Reached at Office',
 };
 
 const RoadAssistanceBookingDetails = () => {
@@ -116,8 +116,8 @@ const RoadAssistanceBookingDetails = () => {
                     history={history}
                     rsa={content}
                     statusOverrides={{
-                        RL: 'Van Reached at Location',
-                        RO: 'Van Reached at Office',
+                        RL: 'Mobile Charging Van Reached at Location',
+                        RO: 'Mobile Charging Van Reached at Office',
                     }}
                 />
             </div>

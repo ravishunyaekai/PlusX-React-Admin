@@ -24,10 +24,17 @@ const statusMapping = {
     'WC' : 'Work Completed',
 };
 
+const portableChargerStatusMapping = {
+    ...statusMapping,
+    'RL' : 'Mobile Charging Van Reached at Location',
+    'RO' : 'Mobile Charging Van Reached at Office',
+    'PU' : 'Mobile Charging Van Picked Up',
+};
+
 const rsaStatusMapping = {
     ...statusMapping,
-    'RL' : 'Van Reached at Location',
-    'RO' : 'Van Reached at Office',
+    'RL' : 'Mobile Charging Van Reached at Location',
+    'RO' : 'Mobile Charging Van Reached at Office',
 };
 
 const AppSignupDetails = () => {
@@ -171,7 +178,7 @@ const AppSignupDetails = () => {
                                     service_type   : booking.service_type,
                                     price          : `AED ${booking.service_price || '0'}`,
                                     datetime       : moment(booking.slot_date).format('DD MMM YYYY'),
-                                    status         : statusMapping[booking.status] || '',
+                                    status         : portableChargerStatusMapping[booking.status] || '',
                                     // slot_date_time : moment(booking.slot_date).format('DD MMM YYYY') +' '+ moment(booking.slot_time, 'HH:mm:ss').format('hh:mm A'),
                                 };
                             })}

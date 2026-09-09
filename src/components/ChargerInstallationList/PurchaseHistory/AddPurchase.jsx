@@ -13,6 +13,8 @@ import PdfIcon from "../../../assets/images/PdfIcon.svg";
 import { MultiSelect } from "react-multi-select-component";
 import Select from "react-select";
 import InputMask from 'react-input-mask';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 
 const AddPurchase = () => {
     const userDetails            = JSON.parse(sessionStorage.getItem('userDetails'));
@@ -24,8 +26,28 @@ const AddPurchase = () => {
 
     const [customerName, setCustomerName]       = useState(null);
     const [customerEmail, setCustomerEmail]     = useState(null);
-    const [customerMobile, setCustomerMobile]   = useState(null);
+    const [phoneValue, setPhoneValue]           = useState('');
+    const [phoneCountry, setPhoneCountry]       = useState({ dialCode: '971', countryCode: 'ae' });
     const [customerAddress, setCustomerAddress] = useState(null);
+
+    const getLocalMobile = () => {
+        if (!phoneValue || !phoneCountry?.dialCode) return '';
+        return phoneValue.startsWith(phoneCountry.dialCode)
+            ? phoneValue.slice(phoneCountry.dialCode.length)
+            : phoneValue;
+    };
+
+    const handlePhoneChange = (phone, country) => {
+        setPhoneValue(phone);
+        setPhoneCountry(country);
+        const localMobile = phone.startsWith(country.dialCode)
+            ? phone.slice(country.dialCode.length)
+            : phone;
+        if (localMobile) {
+            setErrors((prev) => ({ ...prev, customerMobile: '' }));
+        }
+        getCustomerData(localMobile);
+    };
 
     const [productName, setProductName]           = useState(null);
     const [outputPower, setoutputPower]           = useState([]);
@@ -63,10 +85,11 @@ const AddPurchase = () => {
         navigate('/charger-installation/purchase-list');
     }
     const validateForm = () => {
+        const customerMobile = getLocalMobile();
         const fields = [
             { name: "customerName",    value: customerName,     errorMessage: "Customer Name is required." },
             { name: "customerEmail",   value: customerEmail,    errorMessage: "Email is required.", },
-            { name: "customerMobile",  value: customerMobile,   errorMessage: "Contact No. is required."},
+            { name: "customerMobile",  value: customerMobile,   errorMessage: "Contact No. is required.", isMobile: true },
             // { name: "customerAddress", value: customerAddress,  errorMessage: "Address is required."},
             
             { name: "productName",  value: productName, errorMessage: "Product Name is required." },
@@ -77,10 +100,12 @@ const AddPurchase = () => {
             { name: "warrantyExpires",  value: warrantyExpires, errorMessage: "Warranty Expiry is required.",},
             { name: "installationDate",  value: installationDate, errorMessage: "Date of Installation is required.",},
         ];
-        const newErrors = fields.reduce((errors, { name, value, errorMessage, isArray }) => {
+        const newErrors = fields.reduce((errors, { name, value, errorMessage, isArray, isMobile }) => {
            
             if ( (!isArray && !value) || ( isArray && (!value || value.length === 0) )) {
                 errors[name] = errorMessage;
+            } else if (isMobile && (isNaN(value) || value.length < 9)) {
+                errors[name] = "Please enter a valid Contact No.";
             }
             if( (name == "purchaseDate" && purchaseInfo == false ) || (name == "warrantyExpires" && purchaseInfo == false) || (name == "installationDate" && installationInfo == false)){
                 delete errors[name];
@@ -103,7 +128,8 @@ const AddPurchase = () => {
 
             formData.append("customer_name", customerName);
             formData.append("customer_email", customerEmail);
-            formData.append("customer_mobile", customerMobile);
+            formData.append("customer_mobile", getLocalMobile());
+            formData.append("country_code", phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971');
             formData.append("customer_address", customerAddress);
 
             formData.append("product_name", productName);
@@ -209,20 +235,20 @@ const AddPurchase = () => {
                             {errors.customerName && customerName == null && <p className={styles.error} style={{ color: 'red' }}>{errors.customerName}</p>}
                         </div>
                         <div className={styles.addShopInputContainer}>
-                            <label className={styles.addShopLabel}>Contact No. (Add Number Without 0 )</label>
-                            <input
-                                className={styles.inputField}
-                                type="text"
-                                autoComplete='off'
+                            <label className={styles.addShopLabel}>Contact No.</label>
+                            <PhoneInput
+                                country="ae"
+                                value={phoneValue}
+                                onChange={handlePhoneChange}
+                                enableSearch={true}
+                                countryCodeEditable={false}
+                                containerClass={styles.phoneInputContainer}
+                                inputClass={styles.phoneInputField}
+                                buttonClass={styles.phoneInputButton}
+                                dropdownClass={styles.phoneInputDropdown}
                                 placeholder="Contact No."
-                                value={customerMobile}
-                                onChange={(e) => {
-                                    const value = e.target.value.replace(/\D/g, '');
-                                    setCustomerMobile(value.slice(0, 12)); 
-                                    getCustomerData(value.slice(0, 12)) ;
-                                }}
                             />
-                            {errors.customerMobile && (customerMobile?.length || 0 < 9) &&   <p className="error">{errors.customerMobile}</p>}
+                            {errors.customerMobile && getLocalMobile().length < 9 && <p className="error">{errors.customerMobile}</p>}
                         </div>
                     </div>
                     <div className={styles.row}>

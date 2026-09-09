@@ -122,8 +122,8 @@ const DeviceDetails = () => {
     }
     
     const sectionTitles1 = {
-        bookingStatus : "POD ID",
-        price         : "Pod Name",
+        bookingStatus : "Mobile Charging Van ID",
+        price         : "Mobile Charging Van Name",
         serviceName   : "Device ID",
         // design_model  : "Modal",
     }

@@ -36,13 +36,13 @@ const AddPodDevice = () => {
             { 
                 name         : "podId", 
                 value        : podId, 
-                errorMessage : "POd Id is required.", 
+                errorMessage : "Mobile Charging Van ID is required.", 
                 isValid      : val => val.trim() !== "" 
             },
             { 
                 name         : "podName", 
                 value        : podName, 
-                errorMessage : "Pod Name is required.", 
+                errorMessage : "Mobile Charging Van Name is required.", 
                 isValid      : val => val.trim() !== "" 
             },
             { 
@@ -177,16 +177,16 @@ const AddPodDevice = () => {
                     <ToastContainer />
                     <div className={styles.row}>
                         <div className={styles.inputGroup}>
-                            <label className={styles.label}>POD ID</label>
-                            <input className={styles.inputCharger} type="text" placeholder="Device ID"
+                            <label className={styles.label}>Mobile Charging Van ID</label>
+                            <input className={styles.inputCharger} type="text" placeholder="Mobile Charging Van ID"
                                 value={podId}
                                 onChange={(e) => setPodId(e.target.value) }
                             />
                             {errors.podId && podId =='' && <p className="error">{errors.podId}</p>}
                         </div>
                         <div className={styles.inputGroup}>
-                            <label className={styles.label}>POD Name</label>
-                            <input className={styles.inputCharger} type="text" placeholder="POD Name"
+                            <label className={styles.label}>Mobile Charging Van Name</label>
+                            <input className={styles.inputCharger} type="text" placeholder="Mobile Charging Van Name"
                                 value={podName}
                                 onChange={(e) => setPodName(e.target.value) }
                             />

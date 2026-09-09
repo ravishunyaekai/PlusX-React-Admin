@@ -80,7 +80,7 @@ const BookingDetailsAccordion = ({history, rsa, imageUrl, fieldMapping, title, s
                                 </>
                             )}
                             {section.order_status === 'CS' && (
-                                <p className={styles.accodionPTag}><strong>Pod Name :</strong> { section?.podName }</p>
+                                <p className={styles.accodionPTag}><strong>Mobile Charging Van Name :</strong> { section?.podName }</p>
                             )}
                             {section.remarks && (
                                 <p className={styles.accodionPTag}><strong>Remarks :</strong> { section?.remarks }</p>

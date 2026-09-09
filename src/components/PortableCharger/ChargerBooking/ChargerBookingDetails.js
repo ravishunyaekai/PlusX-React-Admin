@@ -15,16 +15,16 @@ const statusMapping = {
     'CNF': 'Booking Confirmed',
     'A'  : 'Assigned',
     'ER' : 'Enroute',
-    'RL' : 'POD Reached at Location',
+    'RL' : 'Mobile Charging Van Reached at Location',
     'CS' : 'Charging Started',
     'CC' : 'Charging Completed',
-    'PU' : 'POD Picked Up',
+    'PU' : 'Mobile Charging Van Picked Up',
     'VP' : 'Vehicle Pickup',
     'RS' : 'Reached Charging Spot',
     'WC' : 'Work Completed',
     'DO' : 'Drop Off',
     'C'  : 'Cancel',
-    'RO' : 'POD Reached at Office',
+    'RO' : 'Mobile Charging Van Reached at Office',
     'RSB' : 'Rescheduled Booking'
 };
 
@@ -143,7 +143,15 @@ const ChargerBookingDetails = () => {
                 <BookingLeftDetails titles={sectionTitles1} content={sectionContent1}
                     sectionTitles2={cleanedSectionTitles2} sectionContent2={cleanedSectionContent2}
                     type='portableChargerBooking' />
-                <BookingDetailsAccordion history={history} rsa={content} />
+                <BookingDetailsAccordion
+                    history={history}
+                    rsa={content}
+                    statusOverrides={{
+                        RL: 'Mobile Charging Van Reached at Location',
+                        RO: 'Mobile Charging Van Reached at Office',
+                        PU: 'Mobile Charging Van Picked Up',
+                    }}
+                />
             </div>
         </div>
     )
