@@ -75,7 +75,7 @@ const PodDeviceList = () => {
         setCurrentPage(1); 
     };
     const addButtonProps = {
-        heading: "Add Device", 
+        heading: "Add Mobile Charging Van", 
         link: "/portable-charger/add-device"
     };
     const setdecimal = (floatNo) => {
@@ -84,7 +84,7 @@ const PodDeviceList = () => {
     return (
         <div className='main-container'>
             <SubHeader
-                heading="POD Device List"
+                heading="Mobile Charging Van List"
                 addButtonProps={addButtonProps}
                 filterValues={filters}
                 searchTerm = {searchTerm}
@@ -94,17 +94,17 @@ const PodDeviceList = () => {
             {loading ? <Loader /> :
                 chargerBookingList.length === 0 ? (
                     <EmptyList
-                        tableHeaders={["POD ID", "POD Name", "Model Name", "Battery","Charger", "Regs Date & Time","Status", "Action"]}
+                        tableHeaders={["Van ID", "Van Name", "Model Name", "Battery","Charger", "Regs Date & Time","Status", "Action"]}
                         message="No data available"
                     />
                 ) : (
                     <>
                         <List
-                            tableHeaders={[ "POD ID", "POD Name", "Model Name", "Battery","Charger", "Regs Date & Time","Status", "Action"]}  //  "Inverter", 
+                            tableHeaders={[ "Van ID", "Van Name", "Model Name", "Battery","Charger", "Regs Date & Time","Status", "Action"]}  //  "Inverter", 
                             listData={chargerBookingList}
                             keyMapping={[
-                                { key : 'pod_id', label: 'POD ID' },
-                                { key : 'pod_name', label: 'POD Name' },
+                                { key : 'pod_id', label: 'Van ID' },
+                                { key : 'pod_name', label: 'Van Name' },
                                 { key : 'design_model', label: 'Model Name' },
                                 { key : 'avgBattery', label: 'Battery', format : (data) => setdecimal(data) },
                                 // { key : 'inverter', label: 'Inverter' },
@@ -112,7 +112,7 @@ const PodDeviceList = () => {
                                 { key : 'created_at', label: 'Regs Date & Time', format : (date) => moment(date).format('DD-MM-YY HH:mm A') },
                                 { key : 'status', label: 'Status', format: (status) => statusMapping[status] || status },
                             ]}
-                            pageHeading="POD Device List"
+                            pageHeading="Mobile Charging Van List"
                         />
                     
                         <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />

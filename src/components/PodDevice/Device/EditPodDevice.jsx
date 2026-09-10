@@ -194,7 +194,7 @@ const EditPodDevice = () => {
     console.log(deviceBatteryData)
     return (
         <div className={styles.containerCharger}>
-            <h2 className={styles.title}>Edit Device</h2>
+            <h2 className={styles.title}>Edit Mobile Charging Van</h2>
             <div className={styles.chargerSection}>
                 <form className={styles.form} onSubmit={handleSubmit}>
                     <ToastContainer />

@@ -170,7 +170,7 @@ const AddPodDevice = () => {
 
     return (
         <div className={styles.containerCharger}>
-            <h2 className={styles.title}>Add Device</h2>
+            <h2 className={styles.title}>Add Mobile Charging Van</h2>
             <div className={styles.chargerSection}>
                 
                 <form className={styles.form} onSubmit={handleSubmit}>

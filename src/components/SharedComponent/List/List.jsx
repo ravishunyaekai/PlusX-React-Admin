@@ -236,8 +236,8 @@ const List = ({ list, tableHeaders, listData, keyMapping, pageHeading, onDeleteS
                                             <img src={View}   alt="view" onClick={() => handleClickEvent('/offer/offer-details', data.offer_id)} />
                                         </>
                                     )}
-                                    {/* POD Device  */}
-                                    {pageHeading === 'POD Device List' && (
+                                    {/* Mobile Charging Van  */}
+                                    {pageHeading === 'Mobile Charging Van List' && (
                                         <>
                                             <img src={View} alt="view" onClick={() => handleClickEvent('/portable-charger/device-details', data.pod_id)} />
                                             
