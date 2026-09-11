@@ -7,7 +7,7 @@ import BookingMultipleImages from '../../SharedComponent/Details/BookingDetails/
 import { postRequestWithToken } from '../../../api/Requests';
 import { useParams, useNavigate } from 'react-router-dom';
 import moment from 'moment';
-import { chargerAvailabilityOption } from './inquiryOptions';
+import { chargerAvailabilityOption, isLostCancelledOnHoldStatus } from './inquiryOptions';
 
 const formatDate = (date) => (date ? moment(date).format('DD MMM YYYY') : '');
 const formatDateTime = (date) => (date ? moment(date).format('DD MMM YYYY h:mm A') : '');
@@ -91,7 +91,7 @@ const InquiryDetails = () => {
             followUpRequired : "Follow-up Required",
             nextFollowUpDate : "Next Follow-up Date",
             enquiryStatus    : "Enquiry Status",
-            lostRemark       : "Lost / Cancelled Remark",
+            lostRemark       : "Lost / Cancelled / On Hold Remark",
         },
         {
             leadSource       : details?.lead_source || '',
@@ -99,7 +99,7 @@ const InquiryDetails = () => {
             followUpRequired : details?.follow_up_required || '',
             nextFollowUpDate : formatDate(details?.next_follow_up_date),
             enquiryStatus    : details?.enquiry_status || '',
-            lostRemark       : details?.enquiry_status === 'Lost / Cancelled' ? (details?.lost_cancelled_remark || '') : '',
+            lostRemark       : isLostCancelledOnHoldStatus(details?.enquiry_status) ? (details?.lost_cancelled_remark || '') : '',
         }
     );
 

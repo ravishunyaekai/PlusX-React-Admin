@@ -17,6 +17,8 @@ import {
     siteVisitStatusOption,
     chargerAvailabilityOption,
     enquiryStatusOption,
+    LOST_CANCELLED_ON_HOLD,
+    isLostCancelledOnHoldStatus,
     findOption,
     toApiDate,
     toFormDate,
@@ -216,7 +218,12 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
         setCompletionCertificateUrl(data.completion_certificate_url || '');
         setPurchaseInvoiceUrl(data.charger_purchase_invoice_url || '');
 
-        setEnquiryStatus(findOption(enquiryStatusOption, data.enquiry_status));
+        setEnquiryStatus(
+            findOption(enquiryStatusOption, data.enquiry_status)
+            || (isLostCancelledOnHoldStatus(data.enquiry_status)
+                ? findOption(enquiryStatusOption, LOST_CANCELLED_ON_HOLD)
+                : null)
+        );
         setLostCancelledRemark(data.lost_cancelled_remark || '');
     }, [initialData]);
 
@@ -269,8 +276,8 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
         //     fields.push({ name: 'siteVisitLocation', value: siteVisitLocation, errorMessage: 'Site Visit Location is required.' });
         //     fields.push({ name: 'siteVisitPerson',   value: siteVisitPerson,   errorMessage: 'Person Assigned for Site Visit is required.' });
         // }
-        // if (enquiryStatus?.value === 'Lost / Cancelled') {
-        //     fields.push({ name: 'lostCancelledRemark', value: lostCancelledRemark, errorMessage: 'Lost / Cancelled remark is required.' });
+        // if (isLostCancelledOnHoldStatus(enquiryStatus?.value)) {
+        //     fields.push({ name: 'lostCancelledRemark', value: lostCancelledRemark, errorMessage: 'Lost / Cancelled / On Hold remark is required.' });
         // }
 
         const newErrors = fields.reduce((acc, { name, value, errorMessage }) => {
@@ -338,7 +345,7 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
         formData.append('final_amount', finalAmount);
 
         formData.append('enquiry_status', enquiryStatus?.value || '');
-        formData.append('lost_cancelled_remark', enquiryStatus?.value === 'Lost / Cancelled' ? lostCancelledRemark : '');
+        formData.append('lost_cancelled_remark', isLostCancelledOnHoldStatus(enquiryStatus?.value) ? lostCancelledRemark : '');
 
         if (completionCertificate && typeof completionCertificate !== 'string') {
             formData.append('completion_certificate', completionCertificate);
@@ -371,7 +378,7 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
     const showSiteVisitFields = siteVisitRequired?.value === 'Yes';
     const showExistingCharger = chargerAvailability?.value === 'already_has';
     const showBuyFromUs = chargerAvailability?.value === 'buy_from_us';
-    const showLostRemark = enquiryStatus?.value === 'Lost / Cancelled';
+    const showLostRemark = isLostCancelledOnHoldStatus(enquiryStatus?.value);
 
     return (
         <div className={styles.addShopContainer}>
@@ -840,7 +847,7 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
                                 value={enquiryStatus}
                                 onChange={(option) => {
                                     setEnquiryStatus(option);
-                                    if (option?.value !== 'Lost / Cancelled') {
+                                    if (!isLostCancelledOnHoldStatus(option?.value)) {
                                         setLostCancelledRemark('');
                                     }
                                 }}
@@ -851,10 +858,10 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
                         </div>
                         {showLostRemark ? (
                             <div className={styles.addShopInputContainer}>
-                                <label className={styles.addShopLabel}>Lost / Cancelled Remark</label>
+                                <label className={styles.addShopLabel}>Lost / Cancelled / On Hold Remark</label>
                                 <textarea
                                     rows="3"
-                                    placeholder="Reason for lost or cancelled"
+                                    placeholder="Reason for lost, cancelled, or on hold"
                                     className={styles.textAreaField}
                                     style={{ overflowY: 'auto' }}
                                     value={lostCancelledRemark}
