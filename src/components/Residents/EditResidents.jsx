@@ -14,6 +14,7 @@ import ReactInputMask from "react-input-mask"
 import Add from '../../assets/images/Add.svg';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+import { applyBackendFieldErrors, getBackendErrorMessage } from '../../utils/mapBackendErrorsToFields';
 // MULTI-SELECT COMMUNITY (new): shared helper to map API response → MultiSelect options
 import { mapCommunitiesFromApiResponse } from '../../utils/residentCommunityHelpers';
 
@@ -58,12 +59,7 @@ const EditResidents = () => {
     const handlePhoneChange = (phone, country) => {
         setPhoneValue(phone);
         setPhoneCountry(country);
-        const localMobile = phone.startsWith(country.dialCode)
-            ? phone.slice(country.dialCode.length)
-            : phone;
-        if (localMobile) {
-            setErrors((prev) => ({ ...prev, mobileNo: '' }));
-        }
+        setErrors((prev) => ({ ...prev, mobileNo: '' }));
     };
 
     const handleDecimalInput = (value, setter) => {
@@ -167,7 +163,13 @@ const EditResidents = () => {
                         navigate('/community/resident-list');
                     }, 1000);
                 } else {
-                    toast(response.message || response.message[0], {type:'error'})
+                    const applied = applyBackendFieldErrors(response, setErrors, {
+                        email: 'email',
+                        contact: 'mobileNo',
+                    });
+                    if (!applied) {
+                        toast(getBackendErrorMessage(response), { type: 'error' });
+                    }
                     console.log('Error in resident-add API:', response);
                     setLoading(false);
                 }
@@ -305,7 +307,7 @@ const EditResidents = () => {
                                 dropdownClass={styles.phoneInputDropdown}
                                 placeholder="Mobile Number"
                             />
-                            {errors.mobileNo && getLocalMobile().length < 9 && <p className="error" style={{ color: 'red' }}>{errors.mobileNo}</p>}
+                            {errors.mobileNo && <p className="error" style={{ color: 'red' }}>{errors.mobileNo}</p>}
                         </div>
                     </div>
                     <div className={styles.row}>
@@ -317,9 +319,12 @@ const EditResidents = () => {
                                 autoComplete='off'
                                 placeholder="Email ID"
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value.slice(0, 50))}
+                                onChange={(e) => {
+                                    setEmail(e.target.value.slice(0, 50));
+                                    setErrors((prev) => ({ ...prev, email: '' }));
+                                }}
                             />
-                            {errors.email && email == '' && <p className="error" style={{ color: 'red' }}>{errors.email}</p>}
+                            {errors.email && <p className="error" style={{ color: 'red' }}>{errors.email}</p>}
                         </div>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Community</label>

@@ -12,6 +12,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import Add from '../../assets/images/Add.svg';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+import { applyBackendFieldErrors, getBackendErrorMessage } from '../../utils/mapBackendErrorsToFields';
 // /import ReactInputMask from "react-input-mask";
 // import InputMask from 'react-input-mask';
 
@@ -47,12 +48,7 @@ const EditCommunity = () => {
     const handlePhoneChange = (phone, country) => {
         setPhoneValue(phone);
         setPhoneCountry(country);
-        const localMobile = phone.startsWith(country.dialCode)
-            ? phone.slice(country.dialCode.length)
-            : phone;
-        if (localMobile) {
-            setErrors((prev) => ({ ...prev, managerContact: '' }));
-        }
+        setErrors((prev) => ({ ...prev, managerContact: '' }));
     };
 
     const handleCancel = () => {
@@ -161,7 +157,15 @@ const EditCommunity = () => {
                         navigate('/community/community-list');
                     }, 1000);
                 } else {
-                    toast(response.message || response.message[0], {type:'error'})
+                    const applied = applyBackendFieldErrors(
+                        response,
+                        setErrors,
+                        { email: 'managerEmail', contact: 'managerContact' },
+                        { email: 'Email already exist', contact: 'Manager contact number already exist' }
+                    );
+                    if (!applied) {
+                        toast(getBackendErrorMessage(response), { type: 'error' });
+                    }
                     console.log('Error in community-edit API:', response);
                     setLoading(false);
                 }
@@ -305,7 +309,10 @@ const EditCommunity = () => {
                                     placeholder="Email ID"
                                     className={styles.inputField}
                                     value={managerEmail}
-                                    onChange={(e) => setManagerEmail(e.target.value)}
+                                    onChange={(e) => {
+                                        setManagerEmail(e.target.value);
+                                        setErrors((prev) => ({ ...prev, managerEmail: '' }));
+                                    }}
                                 />
                                 {errors.managerEmail && <p className={styles.error} style={{ color: 'red' }}>{errors.managerEmail}</p>}
                             </div>
