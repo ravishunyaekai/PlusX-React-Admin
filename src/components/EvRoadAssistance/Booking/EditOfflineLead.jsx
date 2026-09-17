@@ -28,6 +28,15 @@ const modeOfPaymentOption = [
     { value : 'Cash',   label : 'Cash' },
     { value : 'Online', label : 'Online' },
 ];
+const emiratesOption = [
+    { value : 'Abu Dhabi',      label : 'Abu Dhabi' },
+    { value : 'Ajman',          label : 'Ajman' },
+    { value : 'Dubai',          label : 'Dubai' },
+    { value : 'Fujairah',       label : 'Fujairah' },
+    { value : 'Ras Al Khaimah', label : 'Ras Al Khaimah' },
+    { value : 'Sharjah',        label : 'Sharjah' },
+    { value : 'Umm Al Quwain',  label : 'Umm Al Quwain' },
+];
 const ALLOWED_PROOF_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
 const PROOF_BASE_URL = `${process.env.REACT_APP_DIR_UPLOADS}rsa-offline-proof`;
 
@@ -86,6 +95,7 @@ const EditOfflineLead = () => {
     const [phoneValue, setPhoneValue]           = useState('');
     const [phoneCountry, setPhoneCountry]       = useState({ dialCode: '971', countryCode: 'ae' });
     const [customerEmail, setCustomerEmail]     = useState('');
+    const [emirates, setEmirates]               = useState(null);
     const [bookingDate, setBookingDate]         = useState('');
     const [customerAddress, setCustomerAddress] = useState('');
     const addressRef                            = useRef(null);
@@ -176,6 +186,9 @@ const EditOfflineLead = () => {
 
                 setCustomerName(data.customer_name || data.name || '');
                 setCustomerEmail(data.email || data.email_id || '');
+                setEmirates(
+                    emiratesOption.find((option) => option.value === (data.emirates || data.emirate)) || null
+                );
                 setBookingDate(toDateInputValue(data.booking_date));
                 setCustomerAddress(data.address || data.pickup_address || '');
                 setLocationLink(data.location_link || '');
@@ -305,6 +318,7 @@ const EditOfflineLead = () => {
             { name : "customerName",       value : customerName,       errorMessage : "Customer Name is required." },
             { name : "customerMobile",     value : localMobile,        errorMessage : "Phone Number is required." },
             { name : "customerEmail",         value : customerEmail,         errorMessage : "Email ID is required." },
+            { name : "emirates",              value : emirates,              errorMessage : "Emirates is required." },
             { name : "bookingDate",           value : bookingDate,           errorMessage : "Booking Date is required." },
             { name : "customerAddress",       value : customerAddress,       errorMessage : "Address is required." },
             { name : "locationLink",          value : locationLink,          errorMessage : "Location Link is required." },
@@ -365,6 +379,7 @@ const EditOfflineLead = () => {
             formData.append("customer_name", customerName);
             formData.append("mobile_no", getLocalMobile());
             formData.append("email_id", customerEmail);
+            formData.append("emirates", emirates?.value);
             formData.append("booking_date", bookingDate);
             formData.append("country_code", phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971');
             formData.append("location_link", locationLink);
@@ -466,6 +481,20 @@ const EditOfflineLead = () => {
                             {errors.customerEmail && !customerEmail && <p className={styles.error}>{errors.customerEmail}</p>}
                         </div>
                         <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel}>Emirates</label>
+                            <Select
+                                className={styles.addShopSelect}
+                                options={emiratesOption}
+                                value={emirates}
+                                onChange={(selectedOption) => setEmirates(selectedOption)}
+                                placeholder="Select Emirates"
+                                isClearable={true}
+                            />
+                            {errors.emirates && !emirates && <p className={styles.error}>{errors.emirates}</p>}
+                        </div>
+                    </div>
+                    <div className={styles.row}>
+                        <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Booking Date</label>
                             <input
                                 type="date"
@@ -475,8 +504,6 @@ const EditOfflineLead = () => {
                             />
                             {errors.bookingDate && !bookingDate && <p className={styles.error}>{errors.bookingDate}</p>}
                         </div>
-                    </div>
-                    <div className={styles.row}>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Location Link</label>
                             <input
@@ -494,6 +521,8 @@ const EditOfflineLead = () => {
                             />
                             {errors.locationLink && <p className={styles.error}>{errors.locationLink}</p>}
                         </div>
+                    </div>
+                    <div className={styles.row}>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Address</label>
                             <textarea
@@ -506,8 +535,6 @@ const EditOfflineLead = () => {
                             />
                             {errors.customerAddress && !customerAddress && <p className={styles.error}>{errors.customerAddress}</p>}
                         </div>
-                    </div>
-                    <div className={styles.row}>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Price including VAT</label>
                             <input
@@ -523,7 +550,6 @@ const EditOfflineLead = () => {
                             />
                             {errors.price && !price && <p className={styles.error}>{errors.price}</p>}
                         </div>
-                        <div className={styles.addShopInputContainer}></div>
                     </div>
 
                     <div className={styles.addHeading} style={{ marginBottom: "0px", marginTop: "10px" }}>Vehicle Details</div>

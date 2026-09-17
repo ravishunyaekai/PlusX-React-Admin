@@ -14,6 +14,7 @@ import PdfIcon from '../../../assets/images/PdfIcon.svg';
 import {
     yesNoOption,
     leadSourceOption,
+    emiratesOption,
     siteVisitStatusOption,
     chargerAvailabilityOption,
     enquiryStatusOption,
@@ -121,6 +122,7 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
     const [phoneValue, setPhoneValue]     = useState('');
     const [phoneCountry, setPhoneCountry] = useState({ dialCode: '971', countryCode: 'ae' });
     const [customerEmail, setCustomerEmail] = useState('');
+    const [emirates, setEmirates]           = useState(null);
     const [leadSource, setLeadSource]     = useState(null);
 
     const [assignedPersonName, setAssignedPersonName] = useState('');
@@ -175,6 +177,7 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
 
         setCustomerName(data.customer_name || data.name || '');
         setCustomerEmail(data.email || data.email_id || '');
+        setEmirates(findOption(emiratesOption, data.emirates || data.emirate));
         setLeadSource(findOption(leadSourceOption, data.lead_source));
 
         const dialCode = String(data.country_code || '+971').replace('+', '');
@@ -262,6 +265,7 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
             { name: 'customerName',   value: customerName,  errorMessage: 'Customer Name is required.' },
             { name: 'customerMobile', value: localMobile,   errorMessage: 'Phone Number is required.' },
             // { name: 'customerEmail',      value: customerEmail,      errorMessage: 'Email Address is required.' },
+            { name: 'emirates',      value: emirates,     errorMessage: 'Emirates is required.' },
             { name: 'leadSource',     value: leadSource,    errorMessage: 'Lead Source is required.' },
             // { name: 'assignedPersonName', value: assignedPersonName, errorMessage: 'Assigned Person Name is required.' },
             { name: 'enquiryStatus',  value: enquiryStatus, errorMessage: 'Enquiry Status is required.' },
@@ -311,6 +315,7 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
         formData.append('mobile_no', getLocalMobile());
         formData.append('country_code', phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971');
         formData.append('email_id', customerEmail);
+        formData.append('emirates', emirates?.value || '');
         formData.append('lead_source', leadSource?.value || '');
 
         formData.append('assigned_person_name', assignedPersonName);
@@ -432,6 +437,20 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
                             {errors.customerEmail && !customerEmail && <p className={styles.error}>{errors.customerEmail}</p>}
                         </div>
                         <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel}>Emirates</label>
+                            <Select
+                                className={styles.addShopSelect}
+                                options={emiratesOption}
+                                value={emirates}
+                                onChange={setEmirates}
+                                placeholder="Select Emirates"
+                                isClearable={true}
+                            />
+                            {errors.emirates && !emirates && <p className={styles.error}>{errors.emirates}</p>}
+                        </div>
+                    </div>
+                    <div className={styles.row}>
+                        <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Lead Source</label>
                             <Select
                                 className={styles.addShopSelect}
@@ -443,6 +462,7 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
                             />
                             {errors.leadSource && !leadSource && <p className={styles.error}>{errors.leadSource}</p>}
                         </div>
+                        <div className={styles.addShopInputContainer} />
                     </div>
 
                     <div className={styles.addHeading} style={{ marginBottom: '0px', marginTop: '10px' }}>Inquiry Assignment</div>

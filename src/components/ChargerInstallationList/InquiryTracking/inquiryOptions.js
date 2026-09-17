@@ -11,6 +11,16 @@ export const leadSourceOption = [
     { value: 'Other',    label: 'Other'    },
 ];
 
+export const emiratesOption = [
+    { value: 'Abu Dhabi',      label: 'Abu Dhabi' },
+    { value: 'Ajman',          label: 'Ajman' },
+    { value: 'Dubai',          label: 'Dubai' },
+    { value: 'Fujairah',       label: 'Fujairah' },
+    { value: 'Ras Al Khaimah', label: 'Ras Al Khaimah' },
+    { value: 'Sharjah',        label: 'Sharjah' },
+    { value: 'Umm Al Quwain',  label: 'Umm Al Quwain' },
+];
+
 export const siteVisitStatusOption = [
     { value: 'Planned',   label: 'Planned'   },
     { value: 'Completed', label: 'Completed' },
