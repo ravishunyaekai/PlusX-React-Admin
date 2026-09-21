@@ -23,6 +23,7 @@ const jumpStartOption = [
 const bookingStatusOption = [
     { value : 'CNF', label : 'Confirmed' },
     { value : 'PU',  label : 'Completed' },
+    { value : 'C',   label : 'Cancelled' },
 ];
 const modeOfPaymentOption = [
     { value : 'Cash',   label : 'Cash' },
@@ -126,6 +127,7 @@ const EditOfflineLead = () => {
     const [bookingStatus, setBookingStatus]                   = useState(null);
     const [bookingCompletedDate, setBookingCompletedDate]     = useState('');
     const [bookingCompletedBy, setBookingCompletedBy]         = useState(null);
+    const [cancellationRemarks, setCancellationRemarks]       = useState('');
     const [driverMatch, setDriverMatch]                       = useState({ rsa_id: null, name: null });
 
     const fetchVehicleList = (selectedMake = null, selectedModel = null) => {
@@ -229,6 +231,7 @@ const EditOfflineLead = () => {
                     bookingStatusOption.find((option) => option.value === (data.booking_status || data.order_status)) || null
                 );
                 setBookingCompletedDate(toDateInputValue(data.booking_completed_date));
+                setCancellationRemarks(data.cancellation_remarks || '');
 
                 setDriverMatch({
                     rsa_id : data.rsa_id,
@@ -329,11 +332,23 @@ const EditOfflineLead = () => {
             { name : "batteryLevel",          value : batteryLevel,          errorMessage : "Battery Level is required." },
             { name : "jumpStart",             value : jumpStart,             errorMessage : "Jump Start Required is required." },
 
-            { name : "modeOfPayment",         value : modeOfPayment,         errorMessage : "Mode of Payment is required." },
-
             { name : "bookingStatus",         value : bookingStatus,         errorMessage : "Booking Status is required." },
-            { name : "bookingCompletedBy",    value : bookingCompletedBy,    errorMessage : "Booking Completed By is required." },
         ];
+
+        if (bookingStatus?.value === 'C') {
+            fields.push({
+                name         : "cancellationRemarks",
+                value        : cancellationRemarks,
+                errorMessage : "Cancellation Remarks is required.",
+            });
+        }
+
+        if (bookingStatus?.value !== 'C') {
+            fields.push(
+                { name : "modeOfPayment",      value : modeOfPayment,      errorMessage : "Mode of Payment is required." },
+                { name : "bookingCompletedBy", value : bookingCompletedBy, errorMessage : "Booking Completed By is required." },
+            );
+        }
 
         if (bookingStatus?.value === 'PU') {
             fields.push({
@@ -343,7 +358,7 @@ const EditOfflineLead = () => {
             });
         }
 
-        if (modeOfPayment?.value === 'Online') {
+        if (bookingStatus?.value !== 'C' && modeOfPayment?.value === 'Online') {
             fields.push({
                 name         : "proofOfTransaction",
                 value        : proofOfTransaction,
@@ -391,19 +406,24 @@ const EditOfflineLead = () => {
             formData.append("battery_level", batteryLevel?.value);
             formData.append("jump_start_required", jumpStart?.value);
 
-            formData.append("mode_of_payment", modeOfPayment?.value);
-            formData.append("payment_status", 'Paid');
-
             formData.append("booking_status", bookingStatus?.value);
-            if (bookingStatus?.value === 'PU' && bookingCompletedDate) {
-                formData.append("booking_completed_date", bookingCompletedDate);
-            }
-            formData.append("booking_completed_by", bookingCompletedBy?.value);
-            formData.append("driver_name", bookingCompletedBy?.value);
-            formData.append("rsa_id", bookingCompletedBy?.rsa_id);
 
-            if (proofOfTransaction && typeof proofOfTransaction !== 'string') {
-                formData.append("proof_of_transaction", proofOfTransaction);
+            if (bookingStatus?.value === 'C') {
+                formData.append("cancellation_remarks", cancellationRemarks);
+            } else {
+                formData.append("mode_of_payment", modeOfPayment?.value);
+                formData.append("payment_status", 'Paid');
+                formData.append("booking_completed_by", bookingCompletedBy?.value);
+                formData.append("driver_name", bookingCompletedBy?.value);
+                formData.append("rsa_id", bookingCompletedBy?.rsa_id);
+
+                if (bookingStatus?.value === 'PU' && bookingCompletedDate) {
+                    formData.append("booking_completed_date", bookingCompletedDate);
+                }
+
+                if (proofOfTransaction && typeof proofOfTransaction !== 'string') {
+                    formData.append("proof_of_transaction", proofOfTransaction);
+                }
             }
 
             postRequestWithTokenAndFile('ev-road-assistance-edit-offline-booking', formData, async (response) => {
@@ -607,6 +627,8 @@ const EditOfflineLead = () => {
                         </div>
                     </div>
 
+                    {bookingStatus?.value !== 'C' && (
+                    <>
                     <div className={styles.addHeading} style={{ marginBottom: "0px", marginTop: "10px" }}>Payment Information</div>
                     <div className={styles.row} style={{ alignItems: 'flex-start' }}>
                         <div className={styles.addShopInputContainer}>
@@ -676,6 +698,8 @@ const EditOfflineLead = () => {
                             ) : null}
                         </div>
                     </div>
+                    </>
+                    )}
 
                     <div className={styles.addHeading} style={{ marginBottom: "0px", marginTop: "10px" }}>Booking Details</div>
                     <div className={styles.row}>
@@ -691,12 +715,43 @@ const EditOfflineLead = () => {
                                         setBookingCompletedDate('');
                                         setErrors((prev) => ({ ...prev, bookingCompletedDate: '' }));
                                     }
+                                    if (selectedOption?.value === 'C') {
+                                        setBookingCompletedBy(null);
+                                        setModeOfPayment(null);
+                                        setProofOfTransaction(null);
+                                        setExistingProofUrl('');
+                                        setErrors((prev) => ({
+                                            ...prev,
+                                            bookingCompletedBy: '',
+                                            modeOfPayment: '',
+                                            proofOfTransaction: '',
+                                            bookingCompletedDate: '',
+                                        }));
+                                    } else {
+                                        setCancellationRemarks('');
+                                        setErrors((prev) => ({ ...prev, cancellationRemarks: '' }));
+                                    }
                                 }}
                                 placeholder="Select Booking Status"
                                 isClearable={true}
                             />
                             {errors.bookingStatus && !bookingStatus && <p className={styles.error}>{errors.bookingStatus}</p>}
                         </div>
+                        {bookingStatus?.value === 'C' ? (
+                        <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel}>Cancellation Remarks</label>
+                            <textarea
+                                rows="2"
+                                placeholder="Enter Cancellation Remarks"
+                                className={styles.textAreaField}
+                                value={cancellationRemarks}
+                                onChange={(e) => setCancellationRemarks(e.target.value)}
+                            />
+                            {errors.cancellationRemarks && !cancellationRemarks && (
+                                <p className={styles.error}>{errors.cancellationRemarks}</p>
+                            )}
+                        </div>
+                        ) : (
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Booking Completed Date</label>
                             <input
@@ -710,7 +765,9 @@ const EditOfflineLead = () => {
                                 <p className={styles.error}>{errors.bookingCompletedDate}</p>
                             )}
                         </div>
+                        )}
                     </div>
+                    {bookingStatus?.value !== 'C' && (
                     <div className={styles.row}>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Booking Completed By</label>
@@ -726,6 +783,7 @@ const EditOfflineLead = () => {
                         </div>
                         <div className={styles.addShopInputContainer}></div>
                     </div>
+                    )}
 
                     <div className={styles.editButton}>
                         <button type="button" className={styles.editCancelBtn} onClick={handleCancel}>Cancel</button>

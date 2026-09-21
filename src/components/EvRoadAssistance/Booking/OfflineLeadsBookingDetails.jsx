@@ -24,7 +24,7 @@ const statusMapping = {
     'RS' : 'Reached Charging Spot',
     'WC' : 'Work Completed',
     'DO' : 'Drop Off',
-    'C'  : 'Cancel',
+    'C'  : 'Cancelled',
     'RO' : 'POD Reached at Office',
 };
 
@@ -86,20 +86,126 @@ const OfflineLeadsBookingDetails = () => {
         customerName    : bookingDetails?.name || bookingDetails?.customer_name,
         customerContact : `${bookingDetails?.country_code || ''} ${bookingDetails?.contact_no || bookingDetails?.mobile_no || ''}`.trim(),
         imageUrl        : bookingDetails?.imageUrl,
+        cancelled_by    : bookingDetails?.cancelled_by,
     };
-    const sectionTitles1 = {
-        bookingStatus         : "Booking Status",
-        bookingDate           : "Booking Date",
-        bookingCompletedDate  : "Booking Completed Date",
-        price                 : "Price",
-        vehicle               : "Vehicle",
-        battery               : "Vehicle Battery %",
-        jumpStart             : "Jump Start Required",
-        locationLink          : "Location Link",
-        address               : "Address",
-        modeOfPayment         : "Mode of Payment",
-        paymentStatus         : "Payment Status",
+
+    const hasValue = (value) => value !== null && value !== undefined && value !== '';
+
+    const sectionTitles1 = {};
+    const sectionContent1 = {};
+
+    const addField = (key, title, value) => {
+        if (!hasValue(value) && value !== 0 && typeof value !== 'object') return;
+        if (value === '-') return;
+        sectionTitles1[key] = title;
+        sectionContent1[key] = value;
     };
+
+    const statusCode = bookingDetails?.order_status || bookingDetails?.booking_status;
+    const statusLabel = statusMapping[statusCode]
+        || (statusCode === 'Cancel' ? 'Cancelled' : statusCode);
+    addField('bookingStatus', 'Booking Status', statusLabel);
+
+    if (bookingDetails?.booking_date) {
+        addField('bookingDate', 'Booking Date', moment(bookingDetails.booking_date).format('DD MMM YYYY'));
+    }
+    if (bookingDetails?.booking_completed_date) {
+        addField('bookingCompletedDate', 'Booking Completed Date', moment(bookingDetails.booking_completed_date).format('DD MMM YYYY'));
+    }
+    if (hasValue(bookingDetails?.price) || bookingDetails?.price === 0) {
+        addField('price', 'Price', bookingDetails.price);
+    }
+
+    const vehicle = bookingDetails?.vehicle_data
+        || `${bookingDetails?.vehicle_make || ''} ${bookingDetails?.vehicle_model || ''}`.trim();
+    if (hasValue(vehicle)) {
+        addField('vehicle', 'Vehicle', vehicle);
+    }
+
+    if (hasValue(bookingDetails?.current_percent) || hasValue(bookingDetails?.battery_level)) {
+        addField(
+            'battery',
+            'Vehicle Battery %',
+            bookingDetails?.current_percent == 1 || bookingDetails?.battery_level == 1 || bookingDetails?.battery_level === '1'
+                ? 'More than 5%'
+                : '0%'
+        );
+    }
+
+    if (hasValue(bookingDetails?.jump_start_required)) {
+        addField(
+            'jumpStart',
+            'Jump Start Required',
+            (
+                bookingDetails?.jump_start_required == 1
+                || bookingDetails?.jump_start_required === '1'
+                || String(bookingDetails?.jump_start_required).toLowerCase() === 'yes'
+            ) ? 'Yes' : 'No'
+        );
+    }
+
+    if (bookingDetails?.location_link) {
+        addField('locationLink', 'Location Link', (
+            <a
+                href      = {bookingDetails.location_link}
+                target    = "_blank"
+                rel       = "noopener noreferrer"
+                className = {styles.locationLink}
+            >
+                View Location
+            </a>
+        ));
+    }
+
+    const addressText = bookingDetails?.pickup_address || bookingDetails?.address;
+    if (hasValue(addressText)) {
+        addField('address', 'Address', (
+            <a
+                href      = {bookingDetails?.location_link || `https://www.google.com/maps?q=${bookingDetails?.pickup_latitude},${bookingDetails?.pickup_longitude}`}
+                target    = "_blank"
+                rel       = "noopener noreferrer"
+                className = 'linkSection'
+            >
+                {addressText}
+            </a>
+        ));
+    }
+
+    if (hasValue(bookingDetails?.mode_of_payment)) {
+        addField('modeOfPayment', 'Mode of Payment', bookingDetails.mode_of_payment);
+    }
+    if (statusCode !== 'C' && hasValue(bookingDetails?.payment_status)) {
+        addField('paymentStatus', 'Payment Status', bookingDetails.payment_status);
+    }
+
+    const historyWithRemarks = (() => {
+        const list = (history || []).map((item) => {
+            if (item?.order_status === 'C') {
+                return {
+                    ...item,
+                    remarks      : item.remarks || bookingDetails?.cancellation_remarks || '',
+                    cancelled_by : item.cancelled_by || item.cancel_by || bookingDetails?.cancelled_by || '',
+                };
+            }
+            return item;
+        });
+
+        const hasCancelledEntry = list.some((item) => item?.order_status === 'C');
+        if (
+            !hasCancelledEntry
+            && statusCode === 'C'
+            && (hasValue(bookingDetails?.cancellation_remarks) || hasValue(bookingDetails?.cancelled_by))
+        ) {
+            list.push({
+                order_status : 'C',
+                remarks      : bookingDetails?.cancellation_remarks || '',
+                cancelled_by : bookingDetails?.cancelled_by || '',
+                created_at   : bookingDetails?.updated_at || bookingDetails?.created_at || null,
+            });
+        }
+
+        return list;
+    })();
 
     const proofFilename = bookingDetails?.proof_of_transaction;
     const proofFullUrl = bookingDetails?.proof_of_transaction_url
@@ -125,47 +231,6 @@ const OfflineLeadsBookingDetails = () => {
         baseUrl        : '',
     };
 
-    const sectionContent1 = {
-        bookingStatus : statusMapping[bookingDetails?.order_status || bookingDetails?.booking_status] || bookingDetails?.order_status || bookingDetails?.booking_status,
-        bookingDate   : bookingDetails?.booking_date
-            ? moment(bookingDetails.booking_date).format('DD MMM YYYY')
-            : '-',
-        bookingCompletedDate : bookingDetails?.booking_completed_date
-            ? moment(bookingDetails.booking_completed_date).format('DD MMM YYYY')
-            : '-',
-        price         : bookingDetails?.price,
-        vehicle       : bookingDetails?.vehicle_data || `${bookingDetails?.vehicle_make || ''} ${bookingDetails?.vehicle_model || ''}`.trim(),
-        battery       : bookingDetails?.current_percent == 1 || bookingDetails?.battery_level == 1 || bookingDetails?.battery_level === '1'
-            ? 'More than 5%'
-            : '0%',
-        jumpStart     : (
-            bookingDetails?.jump_start_required == 1
-            || bookingDetails?.jump_start_required === '1'
-            || String(bookingDetails?.jump_start_required).toLowerCase() === 'yes'
-        ) ? 'Yes' : 'No',
-        locationLink  : bookingDetails?.location_link ? (
-            <a
-                href      = {bookingDetails.location_link}
-                target    = "_blank"
-                rel       = "noopener noreferrer"
-                className = {styles.locationLink}
-            >
-                View Location
-            </a>
-        ) : '-',
-        address : (
-            <a
-                href      = {bookingDetails?.location_link || `https://www.google.com/maps?q=${bookingDetails?.pickup_latitude},${bookingDetails?.pickup_longitude}`}
-                target    = "_blank"
-                rel       = "noopener noreferrer"
-                className = 'linkSection'
-            >
-                {bookingDetails?.pickup_address || bookingDetails?.address || 'View on Map'}
-            </a>
-        ),
-        modeOfPayment : bookingDetails?.mode_of_payment || '-',
-        paymentStatus : bookingDetails?.payment_status || '-',
-    }
     return (
         <div className='main-container'>
             <BookingDetailsHeader content={content} titles={headerTitles} sectionContent={sectionContent1}
@@ -188,7 +253,7 @@ const OfflineLeadsBookingDetails = () => {
                         type='evRoadAssitanceBooking'
                     />
                 )}
-                <BookingDetailsAccordion history={history} rsa={content} statusOverrides={{ PU : 'Booking Completed' }} />
+                <BookingDetailsAccordion history={historyWithRemarks} rsa={content} statusOverrides={{ PU : 'Booking Completed' }} />
             </div>
         </div>
     )

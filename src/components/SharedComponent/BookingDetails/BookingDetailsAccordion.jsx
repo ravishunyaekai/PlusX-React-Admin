@@ -41,7 +41,7 @@ const BookingDetailsAccordion = ({history, rsa, imageUrl, fieldMapping, title, s
         // imageUrls    : (item?.order_status === 'CS' || item?.order_status === 'PU') ? item?.image.split('*').map(img => rsa.imageUrl + img) : [],
         imageUrls    : ( item?.image && (item?.image != '' || item?.image != null ) ) ? item?.image.split('*').map(img => rsa.imageUrl + img) : [],
         order_status : item?.order_status,
-        cancel_by    : item?.cancel_by === 'Admin' ?  'Admin' : rsa?.customerName,
+        cancel_by    : item?.cancelled_by || item?.cancel_by || rsa?.cancelled_by || (item?.cancel_by === 'Admin' ? 'Admin' : rsa?.customerName),
         reason       : item?.reason,
         podId        : rsa?.podId || '',
         podName      : rsa?.podName || '',
