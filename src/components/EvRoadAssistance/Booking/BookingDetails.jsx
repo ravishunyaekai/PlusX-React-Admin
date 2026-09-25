@@ -119,6 +119,7 @@ const RoadAssistanceBookingDetails = () => {
                         RL: 'Mobile Charging Van Reached at Location',
                         RO: 'Mobile Charging Van Reached at Office',
                     }}
+                    imageStatuses={['CS', 'CC', 'PU', 'WC']}
                 />
             </div>
         </div>

@@ -6,7 +6,7 @@ import moment from 'moment';
 import S3Image from '../S3Image/S3Image';
 
 
-const BookingDetailsAccordion = ({history, rsa, imageUrl, fieldMapping, title, statusOverrides }) => {
+const BookingDetailsAccordion = ({history, rsa, imageUrl, fieldMapping, title, statusOverrides, imageStatuses = ['CS', 'PU', 'WC'] }) => {
     
     const statusTitles = {
         P   : 'Open',
@@ -36,7 +36,7 @@ const BookingDetailsAccordion = ({history, rsa, imageUrl, fieldMapping, title, s
         showRSA     : item?.order_status !== 'CNF',
         // showInvoice : item?.order_status === 'PU',
         // item?.order_status === 'CC' ||
-        showImage    : item?.order_status === 'CS' || item?.order_status === 'PU' || item?.order_status === 'WC',
+        showImage    : imageStatuses.includes(item?.order_status),
         // imageUrl  : rsa.imageUrl + ''+item?.image,
         // imageUrls    : (item?.order_status === 'CS' || item?.order_status === 'PU') ? item?.image.split('*').map(img => rsa.imageUrl + img) : [],
         imageUrls    : ( item?.image && (item?.image != '' || item?.image != null ) ) ? item?.image.split('*').map(img => rsa.imageUrl + img) : [],

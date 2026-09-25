@@ -151,6 +151,7 @@ const ChargerBookingDetails = () => {
                         RO: 'Mobile Charging Van Reached at Office',
                         PU: 'Mobile Charging Van Picked Up',
                     }}
+                    imageStatuses={['CS', 'CC', 'PU', 'WC']}
                 />
             </div>
         </div>
