@@ -14,9 +14,12 @@ import PdfIcon from '../../../assets/images/PdfIcon.svg';
 import {
     yesNoOption,
     leadSourceOption,
+    emiratesOption,
     siteVisitStatusOption,
     chargerAvailabilityOption,
     enquiryStatusOption,
+    LOST_CANCELLED_ON_HOLD,
+    isLostCancelledOnHoldStatus,
     findOption,
     toApiDate,
     toFormDate,
@@ -119,6 +122,7 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
     const [phoneValue, setPhoneValue]     = useState('');
     const [phoneCountry, setPhoneCountry] = useState({ dialCode: '971', countryCode: 'ae' });
     const [customerEmail, setCustomerEmail] = useState('');
+    const [emirates, setEmirates]           = useState(null);
     const [leadSource, setLeadSource]     = useState(null);
 
     const [assignedPersonName, setAssignedPersonName] = useState('');
@@ -173,6 +177,7 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
 
         setCustomerName(data.customer_name || data.name || '');
         setCustomerEmail(data.email || data.email_id || '');
+        setEmirates(findOption(emiratesOption, data.emirates || data.emirate));
         setLeadSource(findOption(leadSourceOption, data.lead_source));
 
         const dialCode = String(data.country_code || '+971').replace('+', '');
@@ -216,7 +221,12 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
         setCompletionCertificateUrl(data.completion_certificate_url || '');
         setPurchaseInvoiceUrl(data.charger_purchase_invoice_url || '');
 
-        setEnquiryStatus(findOption(enquiryStatusOption, data.enquiry_status));
+        setEnquiryStatus(
+            findOption(enquiryStatusOption, data.enquiry_status)
+            || (isLostCancelledOnHoldStatus(data.enquiry_status)
+                ? findOption(enquiryStatusOption, LOST_CANCELLED_ON_HOLD)
+                : null)
+        );
         setLostCancelledRemark(data.lost_cancelled_remark || '');
     }, [initialData]);
 
@@ -252,26 +262,27 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
     const validateForm = () => {
         const localMobile = getLocalMobile();
         const fields = [
-            { name: 'customerName',       value: customerName,       errorMessage: 'Customer Name is required.' },
-            { name: 'customerMobile',     value: localMobile,        errorMessage: 'Phone Number is required.' },
-            { name: 'customerEmail',      value: customerEmail,      errorMessage: 'Email Address is required.' },
-            { name: 'leadSource',         value: leadSource,         errorMessage: 'Lead Source is required.' },
-            { name: 'assignedPersonName', value: assignedPersonName, errorMessage: 'Assigned Person Name is required.' },
-            { name: 'enquiryStatus',      value: enquiryStatus,      errorMessage: 'Enquiry Status is required.' },
+            { name: 'customerName',   value: customerName,  errorMessage: 'Customer Name is required.' },
+            { name: 'customerMobile', value: localMobile,   errorMessage: 'Phone Number is required.' },
+            // { name: 'customerEmail',      value: customerEmail,      errorMessage: 'Email Address is required.' },
+            { name: 'emirates',      value: emirates,     errorMessage: 'Emirates is required.' },
+            { name: 'leadSource',     value: leadSource,    errorMessage: 'Lead Source is required.' },
+            // { name: 'assignedPersonName', value: assignedPersonName, errorMessage: 'Assigned Person Name is required.' },
+            { name: 'enquiryStatus',  value: enquiryStatus, errorMessage: 'Enquiry Status is required.' },
         ];
 
-        if (followUpRequired?.value === 'Yes') {
-            fields.push({ name: 'nextFollowUpDate', value: nextFollowUpDate, errorMessage: 'Next Follow-up Date is required.' });
-            fields.push({ name: 'followUpRemarks',  value: followUpRemarks,  errorMessage: 'Follow-up Remarks is required.' });
-        }
-        if (siteVisitRequired?.value === 'Yes') {
-            fields.push({ name: 'siteVisitDate',     value: siteVisitDate,     errorMessage: 'Site Visit Date is required.' });
-            fields.push({ name: 'siteVisitLocation', value: siteVisitLocation, errorMessage: 'Site Visit Location is required.' });
-            fields.push({ name: 'siteVisitPerson',   value: siteVisitPerson,   errorMessage: 'Person Assigned for Site Visit is required.' });
-        }
-        if (enquiryStatus?.value === 'Lost / Cancelled') {
-            fields.push({ name: 'lostCancelledRemark', value: lostCancelledRemark, errorMessage: 'Lost / Cancelled remark is required.' });
-        }
+        // if (followUpRequired?.value === 'Yes') {
+        //     fields.push({ name: 'nextFollowUpDate', value: nextFollowUpDate, errorMessage: 'Next Follow-up Date is required.' });
+        //     fields.push({ name: 'followUpRemarks',  value: followUpRemarks,  errorMessage: 'Follow-up Remarks is required.' });
+        // }
+        // if (siteVisitRequired?.value === 'Yes') {
+        //     fields.push({ name: 'siteVisitDate',     value: siteVisitDate,     errorMessage: 'Site Visit Date is required.' });
+        //     fields.push({ name: 'siteVisitLocation', value: siteVisitLocation, errorMessage: 'Site Visit Location is required.' });
+        //     fields.push({ name: 'siteVisitPerson',   value: siteVisitPerson,   errorMessage: 'Person Assigned for Site Visit is required.' });
+        // }
+        // if (isLostCancelledOnHoldStatus(enquiryStatus?.value)) {
+        //     fields.push({ name: 'lostCancelledRemark', value: lostCancelledRemark, errorMessage: 'Lost / Cancelled / On Hold remark is required.' });
+        // }
 
         const newErrors = fields.reduce((acc, { name, value, errorMessage }) => {
             if (!value || (typeof value === 'string' && value.trim() === '')) {
@@ -304,6 +315,7 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
         formData.append('mobile_no', getLocalMobile());
         formData.append('country_code', phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971');
         formData.append('email_id', customerEmail);
+        formData.append('emirates', emirates?.value || '');
         formData.append('lead_source', leadSource?.value || '');
 
         formData.append('assigned_person_name', assignedPersonName);
@@ -338,7 +350,7 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
         formData.append('final_amount', finalAmount);
 
         formData.append('enquiry_status', enquiryStatus?.value || '');
-        formData.append('lost_cancelled_remark', enquiryStatus?.value === 'Lost / Cancelled' ? lostCancelledRemark : '');
+        formData.append('lost_cancelled_remark', isLostCancelledOnHoldStatus(enquiryStatus?.value) ? lostCancelledRemark : '');
 
         if (completionCertificate && typeof completionCertificate !== 'string') {
             formData.append('completion_certificate', completionCertificate);
@@ -371,7 +383,7 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
     const showSiteVisitFields = siteVisitRequired?.value === 'Yes';
     const showExistingCharger = chargerAvailability?.value === 'already_has';
     const showBuyFromUs = chargerAvailability?.value === 'buy_from_us';
-    const showLostRemark = enquiryStatus?.value === 'Lost / Cancelled';
+    const showLostRemark = isLostCancelledOnHoldStatus(enquiryStatus?.value);
 
     return (
         <div className={styles.addShopContainer}>
@@ -425,6 +437,20 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
                             {errors.customerEmail && !customerEmail && <p className={styles.error}>{errors.customerEmail}</p>}
                         </div>
                         <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel}>Emirates</label>
+                            <Select
+                                className={styles.addShopSelect}
+                                options={emiratesOption}
+                                value={emirates}
+                                onChange={setEmirates}
+                                placeholder="Select Emirates"
+                                isClearable={true}
+                            />
+                            {errors.emirates && !emirates && <p className={styles.error}>{errors.emirates}</p>}
+                        </div>
+                    </div>
+                    <div className={styles.row}>
+                        <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Lead Source</label>
                             <Select
                                 className={styles.addShopSelect}
@@ -436,6 +462,7 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
                             />
                             {errors.leadSource && !leadSource && <p className={styles.error}>{errors.leadSource}</p>}
                         </div>
+                        <div className={styles.addShopInputContainer} />
                     </div>
 
                     <div className={styles.addHeading} style={{ marginBottom: '0px', marginTop: '10px' }}>Inquiry Assignment</div>
@@ -840,7 +867,7 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
                                 value={enquiryStatus}
                                 onChange={(option) => {
                                     setEnquiryStatus(option);
-                                    if (option?.value !== 'Lost / Cancelled') {
+                                    if (!isLostCancelledOnHoldStatus(option?.value)) {
                                         setLostCancelledRemark('');
                                     }
                                 }}
@@ -851,10 +878,10 @@ const InquiryForm = ({ mode = 'add', inquiryId, initialData }) => {
                         </div>
                         {showLostRemark ? (
                             <div className={styles.addShopInputContainer}>
-                                <label className={styles.addShopLabel}>Lost / Cancelled Remark</label>
+                                <label className={styles.addShopLabel}>Lost / Cancelled / On Hold Remark</label>
                                 <textarea
                                     rows="3"
-                                    placeholder="Reason for lost or cancelled"
+                                    placeholder="Reason for lost, cancelled, or on hold"
                                     className={styles.textAreaField}
                                     style={{ overflowY: 'auto' }}
                                     value={lostCancelledRemark}

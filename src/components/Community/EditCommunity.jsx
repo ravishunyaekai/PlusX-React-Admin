@@ -10,6 +10,9 @@ import { postRequestWithTokenAndFile, postRequestWithToken } from '../../api/Req
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import Add from '../../assets/images/Add.svg';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
+import { applyBackendFieldErrors, getBackendErrorMessage } from '../../utils/mapBackendErrorsToFields';
 // /import ReactInputMask from "react-input-mask";
 // import InputMask from 'react-input-mask';
 
@@ -24,16 +27,29 @@ const EditCommunity = () => {
     const [areaName, setAreaName]             = useState('')
     const [noofResidents, setNoofResidents]   = useState('')
     const [chargers, setChargers]             = useState([ { id : '', charger_id : '', kw : '' } ]);
-    // Manager Details - commented out for live (not ready to push)
-    // const [managerId, setManagerId]           = useState('');
-    // const [managerName, setManagerName]       = useState('');
-    // const [managerEmail, setManagerEmail]     = useState('');
-    // const [managerContact, setManagerContact] = useState('');
-    // const [password, setPassword]             = useState('');
-    // const [confirmPassword, setConfirmPassword] = useState('');
+    const [managerId, setManagerId]           = useState('');
+    const [managerName, setManagerName]       = useState('');
+    const [managerEmail, setManagerEmail]     = useState('');
+    const [phoneValue, setPhoneValue]         = useState('');
+    const [phoneCountry, setPhoneCountry]     = useState({ dialCode: '971', countryCode: 'ae' });
+    const [password, setPassword]             = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
 
     const serviceDropdownRef                  = useRef(null);
     const [communityDetails, setCommunityDetails] = useState();
+
+    const getLocalMobile = () => {
+        if (!phoneValue || !phoneCountry?.dialCode) return '';
+        return phoneValue.startsWith(phoneCountry.dialCode)
+            ? phoneValue.slice(phoneCountry.dialCode.length)
+            : phoneValue;
+    };
+
+    const handlePhoneChange = (phone, country) => {
+        setPhoneValue(phone);
+        setPhoneCountry(country);
+        setErrors((prev) => ({ ...prev, managerContact: '' }));
+    };
 
     const handleCancel = () => {
         navigate('/community/community-list')
@@ -44,33 +60,31 @@ const EditCommunity = () => {
             { name: "communityName", value: communityName,  errorMessage: "Community Name is required." },
             { name: "areaName",      value: areaName,       errorMessage: "Area Name is required." },
             { name: "noofResidents", value: noofResidents,  errorMessage: "Total number of Residents is required." },
-            // Manager Details - commented out for live
-            // { name: "managerName",   value: managerName,    errorMessage: "Manager Name is required." },
-            // { name: "managerEmail",  value: managerEmail,   errorMessage: "Please enter a valid Email ID.", isEmail: true },
+            { name: "managerName",   value: managerName,    errorMessage: "Manager Name is required." },
+            { name: "managerEmail",  value: managerEmail,   errorMessage: "Please enter a valid Email ID.", isEmail: true },
         ];
 
-        // Manager Details - commented out for live
-        // if (password || confirmPassword) {
-        //     if (!password) {
-        //         fields.push({ name: "password", value: password, errorMessage: "Password is required." });
-        //     }
-        //     if (!confirmPassword) {
-        //         fields.push({ name: "confirmPassword", value: confirmPassword, errorMessage: "Confirm Password is required." });
-        //     }
-        //     if (password && confirmPassword && password !== confirmPassword) {
-        //         fields.push({ name: "confirmPassword", value: confirmPassword, errorMessage: "Passwords do not match.", isPasswordMatch: true });
-        //     }
-        // }
+        if (password || confirmPassword) {
+            if (!password) {
+                fields.push({ name: "password", value: password, errorMessage: "Password is required." });
+            }
+            if (!confirmPassword) {
+                fields.push({ name: "confirmPassword", value: confirmPassword, errorMessage: "Confirm Password is required." });
+            }
+            if (password && confirmPassword && password !== confirmPassword) {
+                fields.push({ name: "confirmPassword", value: confirmPassword, errorMessage: "Passwords do not match.", isPasswordMatch: true });
+            }
+        }
     
         const newErrors = fields.reduce((errors, { name, value, errorMessage, isEmail, isPasswordMatch }) => {
             if (!value) {
                 errors[name] = errorMessage;
             } else if (isEmail && !/\S+@\S+\.\S+/.test(value)) {
                 errors[name] = errorMessage;
-            // } else if (isPasswordMatch && value !== password) {
-            //     errors[name] = errorMessage;
-            // } else if (name === 'password' && value.length < 6) {
-            //     errors[name] = "Password should be at least 6 characters long.";
+            } else if (isPasswordMatch && value !== password) {
+                errors[name] = errorMessage;
+            } else if (name === 'password' && value.length < 6) {
+                errors[name] = "Password should be at least 6 characters long.";
             }
             return errors;
         }, {});
@@ -99,10 +113,10 @@ const EditCommunity = () => {
             newErrors.chargers = 'At least one charger with Charger ID and kW is required.';
         }
 
-        // Manager Details - commented out for live
-        // if (managerContact && (isNaN(managerContact) || managerContact.length < 9 || managerContact.length > 12)) {
-        //     newErrors.managerContact = "Please enter a valid Contact No.";
-        // }
+        const managerContact = getLocalMobile();
+        if (managerContact && (isNaN(managerContact) || managerContact.length < 9 || managerContact.length > 12)) {
+            newErrors.managerContact = "Please enter a valid Contact No.";
+        }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -126,13 +140,13 @@ const EditCommunity = () => {
                 total_residence : noofResidents,
                 chargers        : JSON.stringify(chargersValues),
                 kwValues        : JSON.stringify(kwValues),
-                // Manager Details - commented out for live
-                // manager_id      : managerId,
-                // manager_name    : managerName,
-                // manager_email   : managerEmail,
-                // manager_contact : managerContact,
-                // password        : password,
-                // confirm_password : confirmPassword,
+                manager_id      : managerId,
+                manager_name    : managerName,
+                manager_email   : managerEmail,
+                manager_contact : getLocalMobile(),
+                country_code    : phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971',
+                password        : password,
+                confirm_password : confirmPassword,
             }
         
             postRequestWithToken('community-edit', obj, async (response) => {
@@ -143,7 +157,15 @@ const EditCommunity = () => {
                         navigate('/community/community-list');
                     }, 1000);
                 } else {
-                    toast(response.message || response.message[0], {type:'error'})
+                    const applied = applyBackendFieldErrors(
+                        response,
+                        setErrors,
+                        { email: 'managerEmail', contact: 'managerContact' },
+                        { email: 'Email already exist', contact: 'Manager contact number already exist' }
+                    );
+                    if (!applied) {
+                        toast(getBackendErrorMessage(response), { type: 'error' });
+                    }
                     console.log('Error in community-edit API:', response);
                     setLoading(false);
                 }
@@ -168,11 +190,13 @@ const EditCommunity = () => {
                 setAreaName(response?.data?.area_name)
                 setNoofResidents(response?.data?.total_residence)
                 setChargers(response?.chargers)
-                // Manager Details - commented out for live
-                // setManagerId(response?.manager?.manager_id || '');
-                // setManagerName(response?.manager?.manager_name || '');
-                // setManagerEmail(response?.manager?.manager_email || '');
-                // setManagerContact(response?.manager?.manager_contact || '');
+                setManagerId(response?.manager?.manager_id || '');
+                setManagerName(response?.manager?.manager_name || '');
+                setManagerEmail(response?.manager?.manager_email || '');
+                const dialCode = String(response?.manager?.country_code || '+971').replace('+', '');
+                const mobileNo = response?.manager?.manager_contact || '';
+                setPhoneValue(mobileNo ? `${dialCode}${mobileNo}` : '');
+                setPhoneCountry({ dialCode, countryCode: 'ae' });
 
             } else {
                 console.log('error in community-details API', response);
@@ -243,20 +267,23 @@ const EditCommunity = () => {
                                     Total Number of Residents
                                 </label>
                                 <input
-                                    type="number"
+                                    type="text"
                                     autoComplete="off"
                                     id="noofResidents"
                                     placeholder="Number of Residents"
                                     className={styles.inputField}
                                     value={noofResidents}
-                                    onChange={(e) => setNoofResidents(e.target.value)}
+                                    onChange={(e) => {
+                                        const value = e.target.value.replace(/\D/g, '');
+                                        setNoofResidents(value);
+                                    }}
                                 />
                                 {errors.noofResidents && noofResidents === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.noofResidents}</p>}
                             </div>
                         </div>
                     </div>
 
-                    {/* Manager Details Section - commented out for live (not ready to push)
+                    {/* Manager Details Section */}
                     <div className={styles.formSectionBlock}>
                         <div className={styles.formSectionHeading}>Manager Details</div>
                         <div className={styles.row}>
@@ -282,20 +309,26 @@ const EditCommunity = () => {
                                     placeholder="Email ID"
                                     className={styles.inputField}
                                     value={managerEmail}
-                                    onChange={(e) => setManagerEmail(e.target.value)}
+                                    onChange={(e) => {
+                                        setManagerEmail(e.target.value);
+                                        setErrors((prev) => ({ ...prev, managerEmail: '' }));
+                                    }}
                                 />
                                 {errors.managerEmail && <p className={styles.error} style={{ color: 'red' }}>{errors.managerEmail}</p>}
                             </div>
                             <div className={styles.addShopInputContainer}>
                                 <label className={styles.addShopLabel} htmlFor="managerContact">Contact No (Optional)</label>
-                                <input
-                                    type="text"
-                                    autoComplete="off"
-                                    id="managerContact"
+                                <PhoneInput
+                                    country="ae"
+                                    value={phoneValue}
+                                    onChange={handlePhoneChange}
+                                    enableSearch={true}
+                                    countryCodeEditable={false}
+                                    containerClass={styles.phoneInputContainer}
+                                    inputClass={styles.phoneInputField}
+                                    buttonClass={styles.phoneInputButton}
+                                    dropdownClass={styles.phoneInputDropdown}
                                     placeholder="Contact No"
-                                    className={styles.inputField}
-                                    value={managerContact}
-                                    onChange={(e) => setManagerContact(e.target.value)}
                                 />
                                 {errors.managerContact && <p className={styles.error} style={{ color: 'red' }}>{errors.managerContact}</p>}
                             </div>
@@ -329,7 +362,6 @@ const EditCommunity = () => {
                             </div>
                         </div>
                     </div>
-                    */}
 
                     {/* Charger Details Section */}
                     <div className={styles.formSectionBlock}>

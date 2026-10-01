@@ -43,6 +43,9 @@ const BookingDetailsHeader = ({ content, titles, sectionContent1, type, deviceBa
                                 <span className={styles.infoHeading}>{titles.customerDetailsTitle}</span>
                                 <span className={styles.infoHeadText}>{content.customerName}</span>
                                 <span className={styles.infoText}>{content.customerContact}</span>
+                                {type === 'inquiryTracking' && content.customerEmail && (
+                                    <span className={styles.infoText}>{content.customerEmail}</span>
+                                )}
                                 { type === 'portableChargerBooking' && 
                                     <span onClick={() => handleBookingDetails(content.customerId)} className={styles.infoHeadText}>See Previous Booking : {content.custBookingCount}</span> 
                                 }

@@ -23,10 +23,20 @@ const jumpStartOption = [
 const bookingStatusOption = [
     { value : 'CNF', label : 'Confirmed' },
     { value : 'PU',  label : 'Completed' },
+    { value : 'C',   label : 'Cancelled' },
 ];
 const modeOfPaymentOption = [
     { value : 'Cash',   label : 'Cash' },
     { value : 'Online', label : 'Online' },
+];
+const emiratesOption = [
+    { value : 'Abu Dhabi',      label : 'Abu Dhabi' },
+    { value : 'Ajman',          label : 'Ajman' },
+    { value : 'Dubai',          label : 'Dubai' },
+    { value : 'Fujairah',       label : 'Fujairah' },
+    { value : 'Ras Al Khaimah', label : 'Ras Al Khaimah' },
+    { value : 'Sharjah',        label : 'Sharjah' },
+    { value : 'Umm Al Quwain',  label : 'Umm Al Quwain' },
 ];
 const ALLOWED_PROOF_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
 const PROOF_BASE_URL = `${process.env.REACT_APP_DIR_UPLOADS}rsa-offline-proof`;
@@ -86,6 +96,7 @@ const EditOfflineLead = () => {
     const [phoneValue, setPhoneValue]           = useState('');
     const [phoneCountry, setPhoneCountry]       = useState({ dialCode: '971', countryCode: 'ae' });
     const [customerEmail, setCustomerEmail]     = useState('');
+    const [emirates, setEmirates]               = useState(null);
     const [bookingDate, setBookingDate]         = useState('');
     const [customerAddress, setCustomerAddress] = useState('');
     const addressRef                            = useRef(null);
@@ -116,6 +127,7 @@ const EditOfflineLead = () => {
     const [bookingStatus, setBookingStatus]                   = useState(null);
     const [bookingCompletedDate, setBookingCompletedDate]     = useState('');
     const [bookingCompletedBy, setBookingCompletedBy]         = useState(null);
+    const [cancellationRemarks, setCancellationRemarks]       = useState('');
     const [driverMatch, setDriverMatch]                       = useState({ rsa_id: null, name: null });
 
     const fetchVehicleList = (selectedMake = null, selectedModel = null) => {
@@ -176,6 +188,9 @@ const EditOfflineLead = () => {
 
                 setCustomerName(data.customer_name || data.name || '');
                 setCustomerEmail(data.email || data.email_id || '');
+                setEmirates(
+                    emiratesOption.find((option) => option.value === (data.emirates || data.emirate)) || null
+                );
                 setBookingDate(toDateInputValue(data.booking_date));
                 setCustomerAddress(data.address || data.pickup_address || '');
                 setLocationLink(data.location_link || '');
@@ -216,6 +231,7 @@ const EditOfflineLead = () => {
                     bookingStatusOption.find((option) => option.value === (data.booking_status || data.order_status)) || null
                 );
                 setBookingCompletedDate(toDateInputValue(data.booking_completed_date));
+                setCancellationRemarks(data.cancellation_remarks || '');
 
                 setDriverMatch({
                     rsa_id : data.rsa_id,
@@ -305,6 +321,7 @@ const EditOfflineLead = () => {
             { name : "customerName",       value : customerName,       errorMessage : "Customer Name is required." },
             { name : "customerMobile",     value : localMobile,        errorMessage : "Phone Number is required." },
             { name : "customerEmail",         value : customerEmail,         errorMessage : "Email ID is required." },
+            { name : "emirates",              value : emirates,              errorMessage : "Emirates is required." },
             { name : "bookingDate",           value : bookingDate,           errorMessage : "Booking Date is required." },
             { name : "customerAddress",       value : customerAddress,       errorMessage : "Address is required." },
             { name : "locationLink",          value : locationLink,          errorMessage : "Location Link is required." },
@@ -315,11 +332,23 @@ const EditOfflineLead = () => {
             { name : "batteryLevel",          value : batteryLevel,          errorMessage : "Battery Level is required." },
             { name : "jumpStart",             value : jumpStart,             errorMessage : "Jump Start Required is required." },
 
-            { name : "modeOfPayment",         value : modeOfPayment,         errorMessage : "Mode of Payment is required." },
-
             { name : "bookingStatus",         value : bookingStatus,         errorMessage : "Booking Status is required." },
-            { name : "bookingCompletedBy",    value : bookingCompletedBy,    errorMessage : "Booking Completed By is required." },
         ];
+
+        if (bookingStatus?.value === 'C') {
+            fields.push({
+                name         : "cancellationRemarks",
+                value        : cancellationRemarks,
+                errorMessage : "Cancellation Remarks is required.",
+            });
+        }
+
+        if (bookingStatus?.value !== 'C') {
+            fields.push(
+                { name : "modeOfPayment",      value : modeOfPayment,      errorMessage : "Mode of Payment is required." },
+                { name : "bookingCompletedBy", value : bookingCompletedBy, errorMessage : "Booking Completed By is required." },
+            );
+        }
 
         if (bookingStatus?.value === 'PU') {
             fields.push({
@@ -329,7 +358,7 @@ const EditOfflineLead = () => {
             });
         }
 
-        if (modeOfPayment?.value === 'Online') {
+        if (bookingStatus?.value !== 'C' && modeOfPayment?.value === 'Online') {
             fields.push({
                 name         : "proofOfTransaction",
                 value        : proofOfTransaction,
@@ -365,6 +394,7 @@ const EditOfflineLead = () => {
             formData.append("customer_name", customerName);
             formData.append("mobile_no", getLocalMobile());
             formData.append("email_id", customerEmail);
+            formData.append("emirates", emirates?.value);
             formData.append("booking_date", bookingDate);
             formData.append("country_code", phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971');
             formData.append("location_link", locationLink);
@@ -376,19 +406,24 @@ const EditOfflineLead = () => {
             formData.append("battery_level", batteryLevel?.value);
             formData.append("jump_start_required", jumpStart?.value);
 
-            formData.append("mode_of_payment", modeOfPayment?.value);
-            formData.append("payment_status", 'Paid');
-
             formData.append("booking_status", bookingStatus?.value);
-            if (bookingStatus?.value === 'PU' && bookingCompletedDate) {
-                formData.append("booking_completed_date", bookingCompletedDate);
-            }
-            formData.append("booking_completed_by", bookingCompletedBy?.value);
-            formData.append("driver_name", bookingCompletedBy?.value);
-            formData.append("rsa_id", bookingCompletedBy?.rsa_id);
 
-            if (proofOfTransaction && typeof proofOfTransaction !== 'string') {
-                formData.append("proof_of_transaction", proofOfTransaction);
+            if (bookingStatus?.value === 'C') {
+                formData.append("cancellation_remarks", cancellationRemarks);
+            } else {
+                formData.append("mode_of_payment", modeOfPayment?.value);
+                formData.append("payment_status", 'Paid');
+                formData.append("booking_completed_by", bookingCompletedBy?.value);
+                formData.append("driver_name", bookingCompletedBy?.value);
+                formData.append("rsa_id", bookingCompletedBy?.rsa_id);
+
+                if (bookingStatus?.value === 'PU' && bookingCompletedDate) {
+                    formData.append("booking_completed_date", bookingCompletedDate);
+                }
+
+                if (proofOfTransaction && typeof proofOfTransaction !== 'string') {
+                    formData.append("proof_of_transaction", proofOfTransaction);
+                }
             }
 
             postRequestWithTokenAndFile('ev-road-assistance-edit-offline-booking', formData, async (response) => {
@@ -466,6 +501,20 @@ const EditOfflineLead = () => {
                             {errors.customerEmail && !customerEmail && <p className={styles.error}>{errors.customerEmail}</p>}
                         </div>
                         <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel}>Emirates</label>
+                            <Select
+                                className={styles.addShopSelect}
+                                options={emiratesOption}
+                                value={emirates}
+                                onChange={(selectedOption) => setEmirates(selectedOption)}
+                                placeholder="Select Emirates"
+                                isClearable={true}
+                            />
+                            {errors.emirates && !emirates && <p className={styles.error}>{errors.emirates}</p>}
+                        </div>
+                    </div>
+                    <div className={styles.row}>
+                        <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Booking Date</label>
                             <input
                                 type="date"
@@ -475,8 +524,6 @@ const EditOfflineLead = () => {
                             />
                             {errors.bookingDate && !bookingDate && <p className={styles.error}>{errors.bookingDate}</p>}
                         </div>
-                    </div>
-                    <div className={styles.row}>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Location Link</label>
                             <input
@@ -494,6 +541,8 @@ const EditOfflineLead = () => {
                             />
                             {errors.locationLink && <p className={styles.error}>{errors.locationLink}</p>}
                         </div>
+                    </div>
+                    <div className={styles.row}>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Address</label>
                             <textarea
@@ -506,8 +555,6 @@ const EditOfflineLead = () => {
                             />
                             {errors.customerAddress && !customerAddress && <p className={styles.error}>{errors.customerAddress}</p>}
                         </div>
-                    </div>
-                    <div className={styles.row}>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Price including VAT</label>
                             <input
@@ -523,7 +570,6 @@ const EditOfflineLead = () => {
                             />
                             {errors.price && !price && <p className={styles.error}>{errors.price}</p>}
                         </div>
-                        <div className={styles.addShopInputContainer}></div>
                     </div>
 
                     <div className={styles.addHeading} style={{ marginBottom: "0px", marginTop: "10px" }}>Vehicle Details</div>
@@ -581,6 +627,8 @@ const EditOfflineLead = () => {
                         </div>
                     </div>
 
+                    {bookingStatus?.value !== 'C' && (
+                    <>
                     <div className={styles.addHeading} style={{ marginBottom: "0px", marginTop: "10px" }}>Payment Information</div>
                     <div className={styles.row} style={{ alignItems: 'flex-start' }}>
                         <div className={styles.addShopInputContainer}>
@@ -650,6 +698,8 @@ const EditOfflineLead = () => {
                             ) : null}
                         </div>
                     </div>
+                    </>
+                    )}
 
                     <div className={styles.addHeading} style={{ marginBottom: "0px", marginTop: "10px" }}>Booking Details</div>
                     <div className={styles.row}>
@@ -665,12 +715,43 @@ const EditOfflineLead = () => {
                                         setBookingCompletedDate('');
                                         setErrors((prev) => ({ ...prev, bookingCompletedDate: '' }));
                                     }
+                                    if (selectedOption?.value === 'C') {
+                                        setBookingCompletedBy(null);
+                                        setModeOfPayment(null);
+                                        setProofOfTransaction(null);
+                                        setExistingProofUrl('');
+                                        setErrors((prev) => ({
+                                            ...prev,
+                                            bookingCompletedBy: '',
+                                            modeOfPayment: '',
+                                            proofOfTransaction: '',
+                                            bookingCompletedDate: '',
+                                        }));
+                                    } else {
+                                        setCancellationRemarks('');
+                                        setErrors((prev) => ({ ...prev, cancellationRemarks: '' }));
+                                    }
                                 }}
                                 placeholder="Select Booking Status"
                                 isClearable={true}
                             />
                             {errors.bookingStatus && !bookingStatus && <p className={styles.error}>{errors.bookingStatus}</p>}
                         </div>
+                        {bookingStatus?.value === 'C' ? (
+                        <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel}>Cancellation Remarks</label>
+                            <textarea
+                                rows="2"
+                                placeholder="Enter Cancellation Remarks"
+                                className={styles.textAreaField}
+                                value={cancellationRemarks}
+                                onChange={(e) => setCancellationRemarks(e.target.value)}
+                            />
+                            {errors.cancellationRemarks && !cancellationRemarks && (
+                                <p className={styles.error}>{errors.cancellationRemarks}</p>
+                            )}
+                        </div>
+                        ) : (
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Booking Completed Date</label>
                             <input
@@ -684,7 +765,9 @@ const EditOfflineLead = () => {
                                 <p className={styles.error}>{errors.bookingCompletedDate}</p>
                             )}
                         </div>
+                        )}
                     </div>
+                    {bookingStatus?.value !== 'C' && (
                     <div className={styles.row}>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Booking Completed By</label>
@@ -700,6 +783,7 @@ const EditOfflineLead = () => {
                         </div>
                         <div className={styles.addShopInputContainer}></div>
                     </div>
+                    )}
 
                     <div className={styles.editButton}>
                         <button type="button" className={styles.editCancelBtn} onClick={handleCancel}>Cancel</button>

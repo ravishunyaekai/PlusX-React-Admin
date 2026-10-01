@@ -31,6 +31,7 @@ import EmptyList from "../../SharedComponent/EmptyList/EmptyList";
                 { value : '',    label : 'Select Status' },
                 { value : 'CNF', label : 'Booking Confirmed' },
                 { value : 'PU',  label : 'Booking Completed' },
+                { value : 'C',   label : 'Cancelled' },
             ]
         },
     ];
@@ -50,6 +51,7 @@ const OfflineLeadsList = () => {
     const [totalCount, setTotalCount]               = useState(0);
     const [totalPages, setTotalPages]               = useState(1);
     const [filters, setFilters]                     = useState({start_date: null,end_date: null});
+    const [scheduleFilters, setScheduleFilters]     = useState({start_date: null, end_date: null});
     const [loading, setLoading]                     = useState(false);
     const [rowOptions, setRowOptions]    = useState([10, 25, 50, 100]);
     const [rowSelected, setARowSelected] = useState(10);
@@ -57,7 +59,7 @@ const OfflineLeadsList = () => {
     const handleOfflineLeadDetails = (id) => navigate(`/ev-road-assistance/offline-leads-details/${id}`)
     const handleEditOfflineLead = (id) => navigate(`/ev-road-assistance/edit-offline-lead/${id}`)
 
-    const fetchList = (page, appliedFilters = {}, rowSelected) => {
+    const fetchList = (page, appliedFilters = {}, completedDateFilters = {}, rowSelected) => {
         if (page === 1 && Object.keys(appliedFilters).length === 0) {
             setLoading(false);
         } else {
@@ -69,6 +71,8 @@ const OfflineLeadsList = () => {
             page_no : page,
             rowSelected,
             ...appliedFilters,
+            booking_completed_start_date : completedDateFilters?.start_date || null,
+            booking_completed_end_date   : completedDateFilters?.end_date || null,
         };
         postRequestWithToken('ev-road-assistance-offline-booking-list', obj, async (response) => {
             if (response.code === 200) {
@@ -87,14 +91,18 @@ const OfflineLeadsList = () => {
             navigate('/login');
             return;
         }
-        fetchList(currentPage, filters, rowSelected);
-    }, [currentPage, filters, rowSelected ]);
+        fetchList(currentPage, filters, scheduleFilters, rowSelected);
+    }, [currentPage, filters, scheduleFilters, rowSelected ]);
 
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
     };
     const fetchFilteredData = (newFilters = {}) => {
         setFilters(newFilters);
+        setCurrentPage(1);
+    };
+    const scheduleFilteredData = (newFilters = {}) => {
+        setScheduleFilters(newFilters);
         setCurrentPage(1);
     };
     const handleRowperPagePage = (limit) => {
@@ -112,6 +120,8 @@ const OfflineLeadsList = () => {
                 fetchFilteredData    = {fetchFilteredData}
                 dynamicFilters       = {dynamicFilters}
                 filterValues         = {filters}
+                scheduleDateChange   = {scheduleFilteredData}
+                scheduleFilters      = {scheduleFilters}
                 searchTerm           = {searchTerm}
                 rowOptions           = {rowOptions}
                 rowSelected          = {rowSelected}
@@ -122,16 +132,17 @@ const OfflineLeadsList = () => {
             {loading ? <Loader /> :          
                 offlineLeadsList.length === 0 ? (
                     <EmptyList
-                        tableHeaders={["Booking Date", "Booking ID", "Customer Name", "Price", "Status", "Driver Name", "Action",""]}
+                        tableHeaders={["Booking Date", "Booking Completed Date", "Booking ID", "Customer Name", "Price", "Status", "Driver Name", "Action",""]}
                         message="No data available"
                     />
                 ) : (
                 <>
                     <List
-                        tableHeaders={["Booking Date", "Booking ID", "Customer Name", "Price", "Status", "Driver Name", "Action",""]}
+                        tableHeaders={["Booking Date", "Booking Completed Date", "Booking ID", "Customer Name", "Price", "Status", "Driver Name", "Action",""]}
                         listData={offlineLeadsList}
                         keyMapping={[
-                            { key: 'created_at', label: 'Date & Time', format: (date) => moment(date).format('DD MMM YYYY hh:mm A') },
+                            { key: 'booking_date', label: 'Booking Date', format: (date) => date ? moment(date).format('DD MMM YYYY') : '-' },
+                            { key: 'booking_completed_date', label: 'Booking Completed Date', format: (date) => date ? moment(date).format('DD MMM YYYY') : '-' },
                             { key: 'request_id', label: 'Order ID' },
                             { key: 'name', label: 'Customer Name' },
                             { key: 'price', label: 'Price', format: (price) => (price != null && price !== '' ? `AED ${Number(price).toFixed(2)}` : '0') },

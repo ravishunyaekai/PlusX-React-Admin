@@ -25,12 +25,12 @@ import { Tooltip } from 'react-tooltip';
         'CNF': 'Booking Confirmed',
         'A'  : 'Assigned',
         'ER' : 'Enroute',
-        'RL' : 'POD Reached at Location',
+        'RL' : 'Mobile Charging Van Reached at Location',
         'CS' : 'Charging Started',
         'CC' : 'Charging Completed',
-        'PU' : 'Completed',
+        'PU' : 'Mobile Charging Van Picked Up',
         'C'  : 'Cancelled',
-        'RO' : 'POD Reached at Office',
+        'RO' : 'Mobile Charging Van Reached at Office',
     };
 
     const dynamicFilters = [
@@ -43,11 +43,11 @@ import { Tooltip } from 'react-tooltip';
                 { value : 'CNF', label : 'Booking Confirmed' },
                 { value : 'A',   label : 'Assigned' },
                 { value : 'ER',  label : 'Enroute' },
-                { value : 'RL',  label : 'POD Reached at Location' },
+                { value : 'RL',  label : 'Mobile Charging Van Reached at Location' },
                 { value : 'CS',  label : 'Charging Started' },
                 { value : 'CC',  label : 'Charging Completed' },
-                { value : 'PU',  label : 'Completed' },
-                { value : 'RO',  label : 'POD Reached at Office' },
+                { value : 'PU',  label : 'Mobile Charging Van Picked Up' },
+                { value : 'RO',  label : 'Mobile Charging Van Reached at Office' },
                 { value : 'C',   label : 'Cancelled' },
             ]
         },

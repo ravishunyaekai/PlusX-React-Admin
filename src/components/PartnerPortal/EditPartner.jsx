@@ -8,6 +8,7 @@ import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate, useParams } from 'react-router-dom';
 import { onUploadImageError } from '../../utils/uploadUrl';
+import { applyBackendFieldErrors, getBackendErrorMessage } from '../../utils/mapBackendErrorsToFields';
 
 const EditEmergencyTeam = () => {
     const userDetails                           = JSON.parse(sessionStorage.getItem('userDetails'));
@@ -136,7 +137,13 @@ const EditEmergencyTeam = () => {
                         navigate('/drivers/driver-list')
                     }, 1000);
                 } else {
-                    toast(response.message[0] || response.message, {type:'error'})
+                    const applied = applyBackendFieldErrors(response, setErrors, {
+                        email: 'email',
+                        contact: 'mobileNo',
+                    });
+                    if (!applied) {
+                        toast(getBackendErrorMessage(response), { type: 'error' });
+                    }
                     console.log('error in rsa-update api', response);
                     setLoading(false);
                 }
@@ -218,9 +225,12 @@ const EditEmergencyTeam = () => {
                                 autoComplete='off'
                                 placeholder="Email ID"
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value.slice(0, 50))}
+                                onChange={(e) => {
+                                    setEmail(e.target.value.slice(0, 50));
+                                    setErrors((prev) => ({ ...prev, email: '' }));
+                                }}
                             />
-                            {errors.email && email == '' && <p className="error">{errors.email}</p>}
+                            {errors.email && <p className="error">{errors.email}</p>}
                         </div>
                     </div>
                     <div className={styles.row}>
@@ -234,10 +244,11 @@ const EditEmergencyTeam = () => {
                                 value={mobileNo}
                                 onChange={(e) => {
                                     const value = e.target.value.replace(/\D/g, '');
-                                    setMobileNo(value.slice(0, 12)); 
+                                    setMobileNo(value.slice(0, 12));
+                                    setErrors((prev) => ({ ...prev, mobileNo: '' }));
                                 }}
                             />
-                            {errors.mobileNo && mobileNo.length < 9 && <p className="error">{errors.mobileNo}</p>}
+                            {errors.mobileNo && <p className="error">{errors.mobileNo}</p>}
                         </div>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Service Type</label>

@@ -14,6 +14,7 @@ import ReactInputMask from "react-input-mask"
 import Add from '../../assets/images/Add.svg';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+import { applyBackendFieldErrors, getBackendErrorMessage } from '../../utils/mapBackendErrorsToFields';
 // MULTI-SELECT COMMUNITY (new): shared helper to map API response → MultiSelect options
 import { mapCommunitiesFromApiResponse } from '../../utils/residentCommunityHelpers';
 
@@ -58,12 +59,14 @@ const EditResidents = () => {
     const handlePhoneChange = (phone, country) => {
         setPhoneValue(phone);
         setPhoneCountry(country);
-        const localMobile = phone.startsWith(country.dialCode)
-            ? phone.slice(country.dialCode.length)
-            : phone;
-        if (localMobile) {
-            setErrors((prev) => ({ ...prev, mobileNo: '' }));
-        }
+        setErrors((prev) => ({ ...prev, mobileNo: '' }));
+    };
+
+    const handleDecimalInput = (value, setter) => {
+        const sanitized = value
+            .replace(/[^0-9.]/g, '')
+            .replace(/(\..*)\./g, '$1');
+        setter(sanitized);
     };
 
     // SINGLE-SELECT COMMUNITY (old):
@@ -160,7 +163,13 @@ const EditResidents = () => {
                         navigate('/community/resident-list');
                     }, 1000);
                 } else {
-                    toast(response.message || response.message[0], {type:'error'})
+                    const applied = applyBackendFieldErrors(response, setErrors, {
+                        email: 'email',
+                        contact: 'mobileNo',
+                    });
+                    if (!applied) {
+                        toast(getBackendErrorMessage(response), { type: 'error' });
+                    }
                     console.log('Error in resident-add API:', response);
                     setLoading(false);
                 }
@@ -298,7 +307,7 @@ const EditResidents = () => {
                                 dropdownClass={styles.phoneInputDropdown}
                                 placeholder="Mobile Number"
                             />
-                            {errors.mobileNo && getLocalMobile().length < 9 && <p className="error" style={{ color: 'red' }}>{errors.mobileNo}</p>}
+                            {errors.mobileNo && <p className="error" style={{ color: 'red' }}>{errors.mobileNo}</p>}
                         </div>
                     </div>
                     <div className={styles.row}>
@@ -310,9 +319,12 @@ const EditResidents = () => {
                                 autoComplete='off'
                                 placeholder="Email ID"
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value.slice(0, 50))}
+                                onChange={(e) => {
+                                    setEmail(e.target.value.slice(0, 50));
+                                    setErrors((prev) => ({ ...prev, email: '' }));
+                                }}
                             />
-                            {errors.email && email == '' && <p className="error" style={{ color: 'red' }}>{errors.email}</p>}
+                            {errors.email && <p className="error" style={{ color: 'red' }}>{errors.email}</p>}
                         </div>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Community</label>
@@ -364,13 +376,13 @@ const EditResidents = () => {
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel} htmlFor="sessionAllocation">Monthly Session Allocation</label>
                             <input
-                                type="number"
+                                type="text"
                                 autoComplete="off"
                                 id="sessionAllocation"
                                 placeholder="Monthly Session Allocation"
                                 className={styles.inputField}
                                 value={sessionAllocation}
-                                onChange={(e) => setSessionAllocation(e.target.value)}
+                                onChange={(e) => handleDecimalInput(e.target.value, setSessionAllocation)}
                             />
                             {errors.sessionAllocation && sessionAllocation === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.sessionAllocation}</p>}
                         </div>
@@ -382,24 +394,24 @@ const EditResidents = () => {
                             <label className={styles.addShopLabel} htmlFor="allocatedTime">Allocated Time In Minute</label>
                             <input
                                 className={styles.inputField}
-                                type="number"
+                                type="text"
                                 autoComplete='off'
                                 placeholder="Allocated Time"
                                 value={allocatedTime}
-                                onChange={(e) => setAllocatedTime(e.target.value)}
+                                onChange={(e) => handleDecimalInput(e.target.value, setAllocatedTime)}
                             />
                             {errors.allocatedTime && allocatedTime === "" &&   <p className="error" style={{ color: 'red' }}>{errors.allocatedTime}</p>}
                         </div>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel} htmlFor="kwhAllcation">kWh Allocation/Month</label>
                             <input
-                                type="number"
+                                type="text"
                                 autoComplete="off"
                                 id="kwhAllcation"
                                 placeholder="kWh Allocation/Month"
                                 className={styles.inputField}
                                 value={kwhAllocated}
-                                onChange={(e) => setkwhAllocated(e.target.value)}
+                                onChange={(e) => handleDecimalInput(e.target.value, setkwhAllocated)}
                             />
                             {errors.kwhAllocated && kwhAllocated === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.kwhAllocated}</p>}
                         </div>
@@ -411,24 +423,24 @@ const EditResidents = () => {
                             <label className={styles.addShopLabel} htmlFor="perkwhCharge">Per kWh charge (AED)</label>
                             <input
                                 className={styles.inputField}
-                                type="number"
+                                type="text"
                                 autoComplete='off'
                                 placeholder="Per kWh charge (AED)"
                                 value={perKwhCharge}
-                                onChange={(e) => setPerKwhCharge(e.target.value)}
+                                onChange={(e) => handleDecimalInput(e.target.value, setPerKwhCharge)}
                             />
                             {errors.perKwhCharge && perKwhCharge === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.perKwhCharge}</p>}
                         </div>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel} htmlFor="extraCharge">Extra Charge/Min Over Allocated Time (AED)</label>
                             <input
-                                type="number"
+                                type="text"
                                 autoComplete="off"
                                 id="extraCharge"
                                 placeholder="Extra Charge/Min Over Allocated Time (AED)"
                                 className={styles.inputField}
                                 value={extraCharge}
-                                onChange={(e) => setExtraCharge(e.target.value)}
+                                onChange={(e) => handleDecimalInput(e.target.value, setExtraCharge)}
                             />
                             {errors.extraCharge && extraCharge === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.extraCharge}</p>}
                         </div>

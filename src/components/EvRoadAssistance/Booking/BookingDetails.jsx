@@ -14,7 +14,7 @@ const statusMapping = {
     'CNF': 'Booking Confirmed',
     'A'  : 'Assigned',
     'ER' : 'Enroute',
-    'RL' : 'POD Reached at Location',
+    'RL' : 'Mobile Charging Van Reached at Location',
     'CS' : 'Charging Started',
     'CC' : 'Charging Completed',
     'PU' : 'POD Picked Up',
@@ -23,7 +23,7 @@ const statusMapping = {
     'WC' : 'Work Completed',
     'DO' : 'Drop Off',
     'C'  : 'Cancel',
-    'RO' : 'POD Reached at Office',
+    'RO' : 'Mobile Charging Van Reached at Office',
 };
 
 const RoadAssistanceBookingDetails = () => {
@@ -112,7 +112,15 @@ const RoadAssistanceBookingDetails = () => {
             <div className={styles.bookingDetailsSection}>
                 <BookingLeftDetails titles={sectionTitles1} content={sectionContent1}
                     type='evRoadAssitanceBooking' />
-                <BookingDetailsAccordion history={history} rsa={content} />
+                <BookingDetailsAccordion
+                    history={history}
+                    rsa={content}
+                    statusOverrides={{
+                        RL: 'Mobile Charging Van Reached at Location',
+                        RO: 'Mobile Charging Van Reached at Office',
+                    }}
+                    imageStatuses={['CS', 'CC', 'PU', 'WC']}
+                />
             </div>
         </div>
     )

@@ -11,6 +11,9 @@ import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import ReactInputMask from "react-input-mask"
 import Add from '../../assets/images/Add.svg';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
+import { applyBackendFieldErrors, getBackendErrorMessage } from '../../utils/mapBackendErrorsToFields';
 
 const AddCommunity = () => {
     const userDetails                         = JSON.parse(sessionStorage.getItem('userDetails'));
@@ -22,14 +25,27 @@ const AddCommunity = () => {
     const [areaName, setAreaName]             = useState('')
     const [noofResidents, setNoofResidents]   = useState('')
     const [chargers, setChargers]             = useState([ { chargers : '', kw : '' } ]);
-    // Manager Details - commented out for live (not ready to push)
-    // const [managerName, setManagerName]       = useState('');
-    // const [managerEmail, setManagerEmail]     = useState('');
-    // const [managerContact, setManagerContact] = useState('');
-    // const [password, setPassword]             = useState('');
-    // const [confirmPassword, setConfirmPassword] = useState('');
+    const [managerName, setManagerName]       = useState('');
+    const [managerEmail, setManagerEmail]     = useState('');
+    const [phoneValue, setPhoneValue]         = useState('');
+    const [phoneCountry, setPhoneCountry]     = useState({ dialCode: '971', countryCode: 'ae' });
+    const [password, setPassword]             = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
 
     const serviceDropdownRef                        = useRef(null);
+
+    const getLocalMobile = () => {
+        if (!phoneValue || !phoneCountry?.dialCode) return '';
+        return phoneValue.startsWith(phoneCountry.dialCode)
+            ? phoneValue.slice(phoneCountry.dialCode.length)
+            : phoneValue;
+    };
+
+    const handlePhoneChange = (phone, country) => {
+        setPhoneValue(phone);
+        setPhoneCountry(country);
+        setErrors((prev) => ({ ...prev, managerContact: '' }));
+    };
 
     const handleCancel = () => {
         navigate('/community/community-list')
@@ -40,21 +56,20 @@ const AddCommunity = () => {
             { name: "communityName", value: communityName,  errorMessage: "Community Name is required." },
             { name: "areaName",      value: areaName,       errorMessage: "Area Name is required." },
             { name: "noofResidents", value: noofResidents,  errorMessage: "Total number of Resident is required." },
-            // Manager Details - commented out for live
-            // { name: "managerName",   value: managerName,    errorMessage: "Manager Name is required." },
-            // { name: "managerEmail",  value: managerEmail,   errorMessage: "Please enter a valid Email ID.", isEmail: true },
-            // { name: "password",      value: password,       errorMessage: "Password is required." },
-            // { name: "confirmPassword", value: confirmPassword, errorMessage: "Passwords do not match.", isPasswordMatch: true },
+            { name: "managerName",   value: managerName,    errorMessage: "Manager Name is required." },
+            { name: "managerEmail",  value: managerEmail,   errorMessage: "Please enter a valid Email ID.", isEmail: true },
+            { name: "password",      value: password,       errorMessage: "Password is required." },
+            { name: "confirmPassword", value: confirmPassword, errorMessage: "Passwords do not match.", isPasswordMatch: true },
         ];
         const newErrors = fields.reduce((errors, { name, value, errorMessage, isEmail, isPasswordMatch }) => {
             if (!value) {
                 errors[name] = errorMessage;
             } else if (isEmail && !/\S+@\S+\.\S+/.test(value)) {
                 errors[name] = errorMessage;
-            // } else if (isPasswordMatch && value !== password) {
-            //     errors[name] = errorMessage;
-            // } else if (name === 'password' && value.length < 6) {
-            //     errors[name] = "Password should be at least 6 characters long.";
+            } else if (isPasswordMatch && value !== password) {
+                errors[name] = errorMessage;
+            } else if (name === 'password' && value.length < 6) {
+                errors[name] = "Password should be at least 6 characters long.";
             }
             return errors;
         }, {});
@@ -83,10 +98,10 @@ const AddCommunity = () => {
             newErrors.chargers = 'At least one charger with Charger ID and kW is required.';
         }
 
-        // Manager Details - commented out for live
-        // if (managerContact && (isNaN(managerContact) || managerContact.length < 9 || managerContact.length > 12)) {
-        //     newErrors.managerContact = "Please enter a valid Contact No.";
-        // }
+        const managerContact = getLocalMobile();
+        if (managerContact && (isNaN(managerContact) || managerContact.length < 9 || managerContact.length > 12)) {
+            newErrors.managerContact = "Please enter a valid Contact No.";
+        }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -109,12 +124,12 @@ const AddCommunity = () => {
                 total_residence : noofResidents,
                 chargers        : JSON.stringify(chargersValues),
                 kwValues        : JSON.stringify(kwValues),
-                // Manager Details - commented out for live
-                // manager_name    : managerName,
-                // manager_email   : managerEmail,
-                // manager_contact : managerContact,
-                // password        : password,
-                // confirm_password : confirmPassword,
+                manager_name    : managerName,
+                manager_email   : managerEmail,
+                manager_contact : getLocalMobile(),
+                country_code    : phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971',
+                password        : password,
+                confirm_password : confirmPassword,
             }
             postRequestWithToken('community-add', obj, async (response) => {
                 if (response.status === 1) {
@@ -124,7 +139,15 @@ const AddCommunity = () => {
                         navigate('/community/community-list');
                     }, 1000);
                 } else {
-                    toast(response.message || response.message[0], {type:'error'})
+                    const applied = applyBackendFieldErrors(
+                        response,
+                        setErrors,
+                        { email: 'managerEmail', contact: 'managerContact' },
+                        { email: 'Email already exist', contact: 'Manager contact number already exist' }
+                    );
+                    if (!applied) {
+                        toast(getBackendErrorMessage(response), { type: 'error' });
+                    }
                     console.log('Error in community-add API:', response);
                     setLoading(false);
                 }
@@ -189,20 +212,23 @@ const AddCommunity = () => {
                                     Total Number of Residents
                                 </label>
                                 <input
-                                    type="number"
+                                    type="text"
                                     autoComplete="off"
                                     id="noofResidents"
                                     placeholder="Number of Residents"
                                     className={styles.inputField}
                                     value={noofResidents}
-                                    onChange={(e) => setNoofResidents(e.target.value)}
+                                    onChange={(e) => {
+                                        const value = e.target.value.replace(/\D/g, '');
+                                        setNoofResidents(value);
+                                    }}
                                 />
                                 {errors.noofResidents && noofResidents === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.noofResidents}</p>}
                             </div>
                         </div>
                     </div>
 
-                    {/* Manager Details Section - commented out for live (not ready to push)
+                    {/* Manager Details Section */}
                     <div className={styles.formSectionBlock}>
                         <div className={styles.formSectionHeading}>Manager Details</div>
                         <div className={styles.row}>
@@ -228,20 +254,26 @@ const AddCommunity = () => {
                                     placeholder="Email ID"
                                     className={styles.inputField}
                                     value={managerEmail}
-                                    onChange={(e) => setManagerEmail(e.target.value)}
+                                    onChange={(e) => {
+                                        setManagerEmail(e.target.value);
+                                        setErrors((prev) => ({ ...prev, managerEmail: '' }));
+                                    }}
                                 />
                                 {errors.managerEmail && <p className={styles.error} style={{ color: 'red' }}>{errors.managerEmail}</p>}
                             </div>
                             <div className={styles.addShopInputContainer}>
                                 <label className={styles.addShopLabel} htmlFor="managerContact">Contact No (Optional)</label>
-                                <input
-                                    type="text"
-                                    autoComplete="off"
-                                    id="managerContact"
+                                <PhoneInput
+                                    country="ae"
+                                    value={phoneValue}
+                                    onChange={handlePhoneChange}
+                                    enableSearch={true}
+                                    countryCodeEditable={false}
+                                    containerClass={styles.phoneInputContainer}
+                                    inputClass={styles.phoneInputField}
+                                    buttonClass={styles.phoneInputButton}
+                                    dropdownClass={styles.phoneInputDropdown}
                                     placeholder="Contact No"
-                                    className={styles.inputField}
-                                    value={managerContact}
-                                    onChange={(e) => setManagerContact(e.target.value)}
                                 />
                                 {errors.managerContact && <p className={styles.error} style={{ color: 'red' }}>{errors.managerContact}</p>}
                             </div>
@@ -275,7 +307,6 @@ const AddCommunity = () => {
                             </div>
                         </div>
                     </div>
-                    */}
 
                     {/* Charger Details Section */}
                     <div className={styles.formSectionBlock}>

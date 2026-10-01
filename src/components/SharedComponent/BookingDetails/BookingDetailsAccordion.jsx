@@ -6,7 +6,7 @@ import moment from 'moment';
 import S3Image from '../S3Image/S3Image';
 
 
-const BookingDetailsAccordion = ({history, rsa, imageUrl, fieldMapping, title, statusOverrides }) => {
+const BookingDetailsAccordion = ({history, rsa, imageUrl, fieldMapping, title, statusOverrides, imageStatuses = ['CS', 'PU', 'WC'] }) => {
     
     const statusTitles = {
         P   : 'Open',
@@ -36,12 +36,12 @@ const BookingDetailsAccordion = ({history, rsa, imageUrl, fieldMapping, title, s
         showRSA     : item?.order_status !== 'CNF',
         // showInvoice : item?.order_status === 'PU',
         // item?.order_status === 'CC' ||
-        showImage    : item?.order_status === 'CS' || item?.order_status === 'PU' || item?.order_status === 'WC',
+        showImage    : imageStatuses.includes(item?.order_status),
         // imageUrl  : rsa.imageUrl + ''+item?.image,
         // imageUrls    : (item?.order_status === 'CS' || item?.order_status === 'PU') ? item?.image.split('*').map(img => rsa.imageUrl + img) : [],
         imageUrls    : ( item?.image && (item?.image != '' || item?.image != null ) ) ? item?.image.split('*').map(img => rsa.imageUrl + img) : [],
         order_status : item?.order_status,
-        cancel_by    : item?.cancel_by === 'Admin' ?  'Admin' : rsa?.customerName,
+        cancel_by    : item?.cancelled_by || item?.cancel_by || rsa?.cancelled_by || (item?.cancel_by === 'Admin' ? 'Admin' : rsa?.customerName),
         reason       : item?.reason,
         podId        : rsa?.podId || '',
         podName      : rsa?.podName || '',
@@ -80,7 +80,7 @@ const BookingDetailsAccordion = ({history, rsa, imageUrl, fieldMapping, title, s
                                 </>
                             )}
                             {section.order_status === 'CS' && (
-                                <p className={styles.accodionPTag}><strong>Pod Name :</strong> { section?.podName }</p>
+                                <p className={styles.accodionPTag}><strong>Mobile Charging Van Name :</strong> { section?.podName }</p>
                             )}
                             {section.remarks && (
                                 <p className={styles.accodionPTag}><strong>Remarks :</strong> { section?.remarks }</p>

@@ -11,6 +11,16 @@ export const leadSourceOption = [
     { value: 'Other',    label: 'Other'    },
 ];
 
+export const emiratesOption = [
+    { value: 'Abu Dhabi',      label: 'Abu Dhabi' },
+    { value: 'Ajman',          label: 'Ajman' },
+    { value: 'Dubai',          label: 'Dubai' },
+    { value: 'Fujairah',       label: 'Fujairah' },
+    { value: 'Ras Al Khaimah', label: 'Ras Al Khaimah' },
+    { value: 'Sharjah',        label: 'Sharjah' },
+    { value: 'Umm Al Quwain',  label: 'Umm Al Quwain' },
+];
+
 export const siteVisitStatusOption = [
     { value: 'Planned',   label: 'Planned'   },
     { value: 'Completed', label: 'Completed' },
@@ -31,8 +41,12 @@ export const enquiryStatusOption = [
     { value: 'Quotation Shared',         label: 'Quotation Shared' },
     { value: 'Installation Scheduled',   label: 'Installation Scheduled' },
     { value: 'Installation Completed',   label: 'Installation Completed' },
-    { value: 'Lost / Cancelled',         label: 'Lost / Cancelled' },
+    { value: 'Lost / Cancelled / On Hold', label: 'Lost / Cancelled / On Hold' },
 ];
+
+export const LOST_CANCELLED_ON_HOLD = 'Lost / Cancelled / On Hold';
+export const isLostCancelledOnHoldStatus = (value) =>
+    value === LOST_CANCELLED_ON_HOLD || value === 'Lost / Cancelled';
 
 export const findOption = (options, value) =>
     options.find((option) => String(option.value) === String(value || '')) || null;
