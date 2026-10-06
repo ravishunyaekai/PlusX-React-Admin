@@ -116,14 +116,15 @@ const CouponList = () => {
             {loading ? <Loader /> : 
                 carList.length === 0 ? 
                     <EmptyList
-                        tableHeaders={["Coupon Name", "Coupon Code", "Service Name", "Per User", "Usage Count", "Coupon %", "End Date", "Status", "Action"]}
+                        tableHeaders={["Date", "Coupon Name", "Coupon Code", "Service Name", "Per User", "Usage Count", "Coupon %", "End Date", "Status", "Action"]}
                         message="No data available"
                     />
                 : <>
                     <List
-                        tableHeaders={[ "Coupon Name", "Coupon Code", "Service Name", "Per User", "Usage Count","Coupon %", "End Date", "Status", "Action"]}
+                        tableHeaders={[ "Date", "Coupon Name", "Coupon Code", "Service Name", "Per User", "Usage Count","Coupon %", "End Date", "Status", "Action"]}
                         listData={carList}
                         keyMapping={[
+                            { key: 'created_at', label: 'Date', format: (date) => date ? moment(date).format('DD MMM YYYY') : '' },
                             { key: 'coupan_name', label: 'Coupon Name' },
                             { key: 'coupan_code', label: 'Coupon Code' },
                             {
