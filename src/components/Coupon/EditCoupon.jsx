@@ -114,7 +114,7 @@ const EditCoupon = () => {
                 setDetails(data);
                 setCouponName(data?.coupan_name || "");
                 setCouponCode(data?.coupan_code || "");
-                setCouponPercentage(data?.coupan_percentage || "");
+                setCouponPercentage(data?.coupan_percentage ? parseFloat(Number(data.coupan_percentage).toFixed(2)) : "");
                 const formattedDate = moment(data?.end_date).format('DD-MM-YYYY');
                 setExpiry(formattedDate);
                 setPerCustomer(data?.user_per_user || "");

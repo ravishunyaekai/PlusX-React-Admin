@@ -139,7 +139,7 @@ const CouponList = () => {
                             { key: 'user_per_user', label: 'Per User' },
                             // New API field: usage_count (old was counpon_used)
                             { key: 'usage_count', label: 'Usage Count', format: (count) => (count ?? 0) },
-                            { key: 'coupan_percentage', label: 'Coupon %' },
+                            { key: 'coupan_percentage', label: 'Coupon %', format: (value) => (value === null || value === undefined || value === '') ? '' : parseFloat(Number(value).toFixed(2)) },
                             { key: 'end_date', label: 'End Date', format: (date) => moment(date).format('DD MMM YYYY') },
                             // Status already comes as Active / Inactive / Expired from API
                             { key: 'status', label: 'Status' }

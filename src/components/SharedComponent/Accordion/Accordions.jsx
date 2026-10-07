@@ -57,6 +57,22 @@ const AccordionFilter = ({ type, isOpen, fetchFilteredData, dynamicFilters, filt
             end_date: formattedEnd
         });
     };
+    const handleCreatedDateChange = (range) => {
+        if (!range || range.length < 2) {
+            fetchFilteredData({
+                ...filterValues,
+                created_start_date: null,
+                created_end_date: null
+            });
+            return;
+        }
+        const [start, end] = range;
+        fetchFilteredData({
+            ...filterValues,
+            created_start_date: format(start, 'yyyy-MM-dd'),
+            created_end_date: format(end, 'yyyy-MM-dd')
+        });
+    };
     const handleScheduleDateChange = (range) => {
         scheduleDateChange({
             ...scheduleFilters,
@@ -120,9 +136,17 @@ const AccordionFilter = ({ type, isOpen, fetchFilteredData, dynamicFilters, filt
                                                     <label className={styles.filterLabel} htmlFor="date_filter">
                                                         {type === 'RSA Offline Leads'
                                                             ? 'Select Booking Date'
-                                                            : (type.includes('Booking') || type == 'Driver Details' ? 'Booking Date' : 'Select  Date')}
+                                                            : type === 'Coupon List'
+                                                                ? 'End Date'
+                                                                : (type.includes('Booking') || type == 'Driver Details' ? 'Booking Date' : 'Select  Date')}
                                                     </label>
                                                     <Calendar handleDateChange={handleDateChange}/>
+                                                </div>
+                                            )}
+                                            { type === 'Coupon List' && (
+                                                <div className={`col-xl-4 col-lg-6 col-12 ${styles.filterItem}`}>
+                                                    <label className={styles.filterLabel} htmlFor="created_date_filter">Created Date</label>
+                                                    <Calendar handleDateChange={handleCreatedDateChange}/>
                                                 </div>
                                             )}
                                             { type === 'RSA Offline Leads' && (
