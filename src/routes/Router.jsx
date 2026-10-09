@@ -201,7 +201,7 @@ import CommunityDetails from "../components/Community/CommunityDetails.jsx";
 import AddCommunity from "../components/Community/AddCommunity.jsx";
 import EditCommunity from "../components/Community/EditCommunity.jsx";
 
-import Residents from "../components/Residents/index.jsx";
+// import Residents from "../components/Residents/index.jsx";
 import ResidentsList from "../components/Residents/ResidentsList.jsx";
 import ResidentsDetails from "../components/Residents/ResidentsDetails.jsx";
 import AddResidents from "../components/Residents/AddResidents.jsx";
@@ -213,6 +213,18 @@ import ResidentsInvoiceDetails from "../components/Residents/ResidentsInvoiceDet
 
 import ResidentsSessionDetails from "../components/Residents/ResidentsSessionDetails.jsx";
 
+
+import Vendors from "../components/Vendor/index.jsx";
+import VendorList from "../components/Vendor/VendorList.jsx";
+import VendorDetails from "../components/Vendor/VendorDetails.jsx";
+import AddVendor from "../components/Vendor/AddVendor.jsx";
+import EditVendor from "../components/Vendor/EditVendor.jsx";
+
+import CustomerLists from "../components/VendorCustomer/CustomerLists.jsx";
+import AddCustomer from "../components/VendorCustomer/AddCustomer.jsx";
+import EditCustomer from "../components/VendorCustomer/EditCustomer.jsx";
+import CustomerDetails from "../components/VendorCustomer/CustomerDetails.jsx";
+ 
 const router = createBrowserRouter([ 
     {
         path    : "/login",
@@ -1020,7 +1032,41 @@ const router = createBrowserRouter([
             {
                 path: "/profile",
                 element: <Profile/>
-            }
+            },
+            // Vendors
+            {
+                path: "/vendors",
+                element: <Vendors/>,
+                children: [
+                    {
+                        path: "vendor-list",
+                        element: <VendorList />,
+                    }, {
+                        path: "vendor-details/:vendorId",
+                        element: <VendorDetails />,
+                    }, {
+                        path: "add-vendor",
+                        element: <AddVendor />,
+                    }, {
+                        path: "vendor-edit/:vendorId",
+                        element: <EditVendor />,
+                    },  
+                    // Vendor Customer
+                    {
+                        path: "customer-list",
+                        element: <CustomerLists />,
+                    }, {
+                        path: "add-customer",
+                        element: <AddCustomer />,
+                    }, {
+                        path: "customer-details/:vendorId",
+                        element: <CustomerDetails />,
+                    }, {
+                        path: "customer-edit/:vendorId",
+                        element: <EditCustomer />,
+                    }, 
+                ],
+            },
         ],
     },
     {

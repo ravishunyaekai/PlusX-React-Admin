@@ -1,3 +1,4 @@
+
 import React from 'react';  //, { useState }
 import styles from './list.module.css';
 import Edit from '../../../assets/images/Pen.svg';
@@ -11,8 +12,134 @@ const List = ({ list, tableHeaders, listData, keyMapping, pageHeading, onDeleteS
     const departmentId = userDetails.departmentId; //  == 1
 
     const navigate         = useNavigate();
-    const handleClickEvent = (hrefLink, id) => navigate(`${hrefLink}/${id}`)
+    const handleClickEvent = (hrefLink, id) => navigate(`${hrefLink}/${id}`);
 
+    const detailsObject = {
+        'Emergency Team List' : {
+            edit_url : '/drivers/edit-driver', detail_url : '/drivers/drivers-details', detail_id : 'rsa_id' 
+        },
+        'Mobile & Portable EV Charging Service List' : {
+            edit_url : '/portable-charger/edit-charger', detail_url : '', detail_id : 'charger_id' 
+        },
+        'Mobile & Portable EV Charging Service Invoice List' : {
+            edit_url : '', detail_url : '/portable-charger/invoice', detail_id : 'invoice_id' 
+        },
+        'Mobile & Portable EV Charging Service Slot List' : {
+            edit_url : '/portable-charger/edit-time-slot', detail_url : '', detail_id : 'slot_id' 
+        },
+        'App Signup List' : {
+            edit_url : '', detail_url : '/app-signup/rider-details', detail_id : 'rider_id' 
+        },
+        'Deleted Account List' : {
+            edit_url : '', detail_url : '/app-signup/rider-details', detail_id : 'rider_id' 
+        },
+        'Vendor List' : {
+            edit_url : '/vendors/vendor-edit', detail_url : '/vendors/vendor-details', detail_id : 'vendor_id' 
+        },
+        'Pick & Drop Time Slot List' : {
+            edit_url : '/pick-and-drop/edit-time-slot', detail_url : '', detail_id : 'slot_id' 
+        },
+        'Pick & Drop Invoice List' : {
+            edit_url : '', detail_url : '/pick-and-drop/invoice-details', detail_id : 'invoice_id' 
+        },
+        'Add POD List' : {
+            edit_url : '/editpod-form', detail_url : '/addpod-details', detail_id : 'slot_id' 
+        },
+        'Public Chargers List' : {
+            edit_url : '/public-charger-station/edit-charger-station', detail_url : '/public-charger-station/public-charger-station-details', detail_id : 'station_id' 
+        },
+        'Shop List' : {
+            edit_url : '/ev-specialized/edit-shop', detail_url : '/ev-specialized/shop-details', detail_id : 'shop_id' 
+        },
+        'EV Pre-Sale Testing Booking List' : {
+            edit_url : '', detail_url : '/ev-pre-sales-testing/pre-sales-details', detail_id : 'booking_id' 
+        },
+        'Road Assistance Invoice List' : {
+            edit_url : '', detail_url : '/ev-road-assistance/invoice-details', detail_id : 'invoice_id' 
+        },
+        'Board List' : {
+            edit_url : '', detail_url : '/discussion-board/discussion-board-details', detail_id : 'board_id' 
+        },
+        'Insurance List' : {
+            edit_url : '', detail_url : '/ev-insurance/ev-insurance-details', detail_id : 'insurance_id' 
+        },
+        'Buy Sell List' : {
+            edit_url : '', detail_url : '/ev-buy-sell/ev-buy-sell-details', detail_id : 'sell_id' 
+        },
+        'Subscription List' : {
+            edit_url : '', detail_url : '/subscription/subscription-details', detail_id : 'subscription_id' 
+        },
+        'POD Area List' : {
+            edit_url : '', detail_url : '/portable-charger/edit-area', detail_id : 'area_id' 
+        },
+        'Fixed Charger Bookings' : {
+            edit_url : '', detail_url : '/charger-installation/ev-charger-booking-detail', detail_id : 'request_id' 
+        },
+        'EV Accessories Bookings' : {
+            edit_url : '', detail_url : '/charger-installation/ev-accessories-booking-detail', detail_id : 'request_id' 
+        },
+        'Charger Installation Booking List' : {
+            edit_url : '', detail_url : '/charger-installation/charger-installation-details', detail_id : 'request_id' 
+        },
+        'Scan Charge Invoice List' : {
+            edit_url : '', detail_url : '/community/invoice-details', detail_id : 'invoice_id' 
+        },
+        'Club List' : {
+            edit_url : '/ev-rider-club/edit-club', detail_url : '/ev-rider-club/club-details', detail_id : 'club_id' 
+        },
+        'Electric Cars Leasing List' : {
+            edit_url : '/electric-car-leasing/edit-electric-car', detail_url : '/electric-car-leasing/electric-car-details', detail_id : 'rental_id' 
+        },
+        'Electric Bikes Leasing List' : {
+            edit_url : '/electric-bike-leasing/edit-electric-bike', detail_url : '/electric-bike-leasing/electric-bike-details', detail_id : 'rental_id' 
+        },
+        'EV Guide List' : {
+            edit_url : '/ev-guide/edit-ev-guide', detail_url : '/ev-guide/ev-guide-details', detail_id : 'vehicle_id' 
+        },
+        'Coupon List' : {
+            edit_url : '/coupon/edit-coupon', detail_url : '', detail_id : 'id' 
+        },
+        'Offer List' : {
+            edit_url : '/offer/edit-offer', detail_url : '/offer/offer-details', detail_id : 'offer_id' 
+        },
+        'Mobile Charging Van List' : {
+            edit_url : '/portable-charger/edit-device', detail_url : '/portable-charger/device-details', detail_id : 'pod_id'
+        },
+        'Truck List' : {
+            edit_url : '/drivers/edit-truck', detail_url : '/drivers/truck-details', detail_id : 'truck_id'
+        },
+        'Bike List' : {
+            edit_url : '/ev-battery-swipe/edit-bike', detail_url : '/ev-battery-swipe/bike-details', detail_id : 'bike_id'
+        },
+        'Swipe Station List' : {
+            edit_url : '/ev-battery-swipe/edit-station', detail_url : '/ev-battery-swipe/station-details', detail_id : 'station_id'
+        },
+        'EV Charger List' : {
+            edit_url : '/charger-installation/ev-charger-edit', detail_url : '/charger-installation/ev-charger-details', detail_id : 'charger_id'
+        },
+        'EV Accessories List' : {
+            edit_url : '/charger-installation/accessories-edit', detail_url : '/charger-installation/accessories-details', detail_id : 'charger_id'
+        },
+        'EV Products & Installation' : {
+            edit_url : '/charger-installation/purchase-edit', detail_url : '/charger-installation/purchase-detail', detail_id : 'charger_id'
+        },
+        'Charger Share List' : {
+            edit_url : '/charger-share/request-edit', detail_url : '/charger-share/request-detail', detail_id : 'charger_id'
+        },
+        'Community List' : {
+            edit_url : '/community/community-edit', detail_url : '/community/community-details', detail_id : 'community_id'
+        },
+        'Resident List' : {
+            edit_url : '/community/resident-edit', detail_url : '/community/resident-details', detail_id : 'resident_id'
+        },
+        'Charger Installation Inquiry Tracking' : {
+            edit_url : '/charger-installation/inquiry-tracking-edit', detail_url : '/charger-installation/inquiry-tracking-details', detail_id : 'inquiry_id'
+        },
+        'Customer List' : {
+            edit_url : '/vendors/customer-edit', detail_url : '/vendors/customer-details', detail_id : 'customer_id'
+        },
+    }
+    const pageConfig = detailsObject[pageHeading] || { edit_url : '', detail_url : '', detail_id : '' };
     return (
         <div className={styles.containerCharger}>
             <table className={styles.table}>
@@ -32,7 +159,7 @@ const List = ({ list, tableHeaders, listData, keyMapping, pageHeading, onDeleteS
                     }
                     {listData.map((data, index) => (
                         <tr key={index}>
-                            {keyMapping.map((keyObj, keyIndex) => (
+                            { keyMapping.map((keyObj, keyIndex) => (
                                 <td key={keyIndex}>
                                     {keyObj.format
                                         ? keyObj.relatedKeys
@@ -44,217 +171,8 @@ const List = ({ list, tableHeaders, listData, keyMapping, pageHeading, onDeleteS
                             ))}
                             <td>
                                 <div className={styles.editContent}>
-
-                                    {pageHeading === 'Emergency Team List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/drivers/drivers-details', data.rsa_id)} />
-                                            { departmentId == 1 && ( 
-                                                <>
-                                                    <img src={Edit} alt='edit' onClick={() => handleClickEvent('/drivers/edit-driver', data.rsa_id)} />
-                                                    {/* <img src={Delete} alt='delete' onClick={() => onDeleteSlot(data.rsa_id)} /> */}
-                                               </> )
-                                            }
-                                        </>
-                                    )}
-                                    {/* pageHeading === 'Portable Charger List' */}
-                                    {pageHeading === 'Mobile & Portable EV Charging Service List' && (
-                                        <>
-                                            { departmentId == 1 && ( 
-                                                <>
-                                                    <img src={Edit} alt='edit' onClick={() => handleClickEvent('/portable-charger/edit-charger', data.charger_id)} />
-                                                    {/* <img src={Cancel} alt='cancel' onClick={() => onDeleteSlot(data.charger_id)} /> */}
-                                               </> )
-                                            }
-                                        </>
-                                    )}
-                                    {/* pageHeading === 'Portable Charger Invoice List' */}
-                                    {pageHeading === 'Mobile & Portable EV Charging Service Invoice List' && (
-                                        <img src={View} alt="view" onClick={() => handleClickEvent('/portable-charger/invoice', data.invoice_id)} />
-                                    )}
-                                    {/* pageHeading === 'Portable Charger Slot List' */}
-                                    {pageHeading === 'Mobile & Portable EV Charging Service Slot List' && departmentId == 1 && (
-                                        <>
-                                            <img src={Edit} alt='edit'
-                                                onClick={() => handleClickEvent('/portable-charger/edit-time-slot', data.slot_id)}
-                                            />
-                                        </>
-                                    )}
-                                    { (pageHeading === 'App Signup List' || pageHeading === 'Deleted Account List') && (
-                                        <>
-                                            <img src={View} alt="view"
-                                                onClick={() => handleClickEvent('/app-signup/rider-details', data.rider_id)}
-                                            />
-                                        </>
-                                    )}
-                                    {pageHeading === 'Pick & Drop Time Slot List' && departmentId == 1 && (
-                                        <>
-                                            <img src={Edit} alt='edit' onClick={() => handleClickEvent('/pick-and-drop/edit-time-slot', data.slot_id)} />
-                                        </>
-                                    )}
-                                    {pageHeading === 'Pick & Drop Invoice List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/pick-and-drop/invoice-details', data.invoice_id)} />
-                                        </>
-                                    )}
-                                    {pageHeading === 'Add POD List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/addpod-details', data.slot_id)} />
-                                            { departmentId == 1 && ( 
-                                                <>
-                                                    <img src={Edit} alt='edit' onClick={() => handleClickEvent('/editpod-form', data.slot_id)} />
-                                               </> )
-                                            }
-                                        </>
-                                    )}
-                                    {pageHeading === 'Public Chargers List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/public-charger-station/public-charger-station-details', data.station_id)} />
-                                            { departmentId == 1 && ( 
-                                                <>
-                                                    <img src={Edit} alt='edit' onClick={() => handleClickEvent('/public-charger-station/edit-charger-station', data.station_id)} />
-                                                    {/* <img src={Delete} alt='delete' onClick={() => onDeleteSlot(data.station_id)} /> */}
-                                               </> )
-                                            }
-                                        </>
-                                    )}
                                     
-
-                                    {pageHeading === 'Shop List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/ev-specialized/shop-details', data.shop_id)}/>
-                                            { departmentId == 1 && ( 
-                                                <>
-                                                    <img src={Edit} alt='edit' onClick={() => handleClickEvent('/ev-specialized/edit-shop', data.shop_id)}/>
-                                                    {/* <img src={Delete} alt='delete' onClick={() => onDeleteSlot(data.shop_id)} /> */}
-                                                </> )
-                                            }
-                                        </>
-                                    )}
-
-                                    {pageHeading === 'EV Pre-Sale Testing Booking List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/ev-pre-sales-testing/pre-sales-details', data.booking_id)} />
-                                        </>
-                                    )}
-                                    {pageHeading === 'Club List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/ev-rider-club/club-details', data.club_id)} />
-                                            { departmentId == 1 && ( 
-                                                <>
-                                                    <img src={Edit} alt='edit' onClick={() => handleClickEvent('/ev-rider-club/edit-club', data.club_id)} />
-                                                    {/* <img src={Delete} alt='delete' onClick={() => onDeleteSlot(data.club_id)} /> */}
-                                                </> )
-                                            }
-                                        </>
-                                    )}
-                                    {pageHeading === 'Electric Cars Leasing List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/electric-car-leasing/electric-car-details', data.rental_id)} />
-                                            { departmentId == 1 && ( 
-                                                <>
-                                                    <img src={Edit} alt='edit' onClick={() => handleClickEvent('/electric-car-leasing/edit-electric-car', data.rental_id)} />
-                                                </> )
-                                            }
-                                        </>
-                                    )}
-                                    {pageHeading === 'Electric Bikes Leasing List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/electric-bike-leasing/electric-bike-details', data.rental_id)} />
-                                            { departmentId == 1 && ( 
-                                                <>
-                                                    <img src={Edit} alt='edit' onClick={() => handleClickEvent('/electric-bike-leasing/edit-electric-bike', data.rental_id)} />
-                                                </> )
-                                            }
-                                        </>
-                                    )}
-
-                                    {/* EV Guide */}
-                                    {pageHeading === 'EV Guide List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/ev-guide/ev-guide-details', data.vehicle_id)} />
-                                            { departmentId == 1 && ( 
-                                                <>
-                                                    <img src={Edit} alt='edit' onClick={() => handleClickEvent('/ev-guide/edit-ev-guide', data.vehicle_id)} />
-                                                    {/* <img src={Delete} alt='delete' onClick={() => onDeleteSlot(data.vehicle_id)} /> */}
-                                                </> )
-                                            }
-                                        </>
-                                    )}
-
-                                    {/* Ev Road Assitance */}
-                                    {pageHeading === 'Road Assistance Invoice List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/ev-road-assistance/invoice-details', data.invoice_id)} />
-                                        </>
-                                    )}
-
-                                    {pageHeading === 'Board List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/discussion-board/discussion-board-details', data.board_id)} />
-                                        </>
-                                    )}
-
-                                    {pageHeading === 'Insurance List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/ev-insurance/ev-insurance-details', data.insurance_id)} />
-                                            {/* <img src={Delete} alt='delete' onClick={() => onDeleteSlot(data.board_id)} /> */}
-                                        </>
-                                    )}
-
-                                    {pageHeading === 'Buy Sell List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/ev-buy-sell/ev-buy-sell-details', data.sell_id)} />
-                                            {/* <img src={Delete} alt='delete' onClick={() => onDeleteSlot(data.board_id)} /> */}
-                                        </>
-                                    )}
-
-                                    {pageHeading === 'Subscription List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/subscription/subscription-details', data.subscription_id)} />
-                                            {/* <img src={Delete} alt='delete' onClick={() => onDeleteSlot(data.board_id)} /> */}
-                                        </>
-                                    )}
-                                    {pageHeading === 'Coupon List' && (
-                                        <>
-                                            { departmentId == 1 && ( 
-                                                <>
-                                                    <img src={Edit} alt='edit' onClick={() => handleClickEvent('/coupon/edit-coupon', data.id)} />
-                                                    {/* <img src={Delete} alt='delete' onClick={() => onDeleteSlot(data.coupan_code)} /> */}
-                                                </> )
-                                            }
-                                        </>
-                                    )}
-
-                                    {pageHeading === 'Offer List' && (
-                                        <>
-                                            { departmentId == 1 && ( 
-                                                <>
-                                                    <img src={Edit}   alt='edit'   onClick={() => handleClickEvent('/offer/edit-offer', data.offer_id)} />
-                                                    {/* <img src={Delete} alt='delete' onClick={() => onDeleteSlot(data.offer_id)} />  */}
-                                                </> )
-                                            }
-                                            <img src={View}   alt="view" onClick={() => handleClickEvent('/offer/offer-details', data.offer_id)} />
-                                        </>
-                                    )}
-                                    {/* Mobile Charging Van  */}
-                                    {pageHeading === 'Mobile Charging Van List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/portable-charger/device-details', data.pod_id)} />
-                                            
-                                            { departmentId == 1 && ( 
-                                                <>
-                                                    <img src={Edit} alt='edit' onClick={() => handleClickEvent('/portable-charger/edit-device', data.pod_id)} />
-                                                </> )
-                                            }
-                                        </>
-                                    )}
-                                    {/* POD Area  */}
-                                    {pageHeading === 'POD Area List' && (
-                                        <>
-                                            <img src={Edit} alt='edit' onClick={() => handleClickEvent('/portable-charger/edit-area', data.area_id)} />
-                                        </>
-                                    )}
-                                    {pageHeading === 'Charging Packages List' && departmentId == 1 && (
+                                    { pageHeading === 'Charging Packages List' && departmentId == 1 && (
                                         <>
                                             <img
                                                 src={Edit}
@@ -268,121 +186,13 @@ const List = ({ list, tableHeaders, listData, keyMapping, pageHeading, onDeleteS
                                             />
                                         </>
                                     )}
-                                    {/* Truck  */}
-                                    {pageHeading === 'Truck List' && (
+                                    { pageHeading !== 'Charging Packages List' && (
                                         <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/drivers/truck-details', data.truck_id)} />
-                                            { departmentId == 1 && ( 
-                                                <>
-                                                    <img src={Edit} alt='edit' onClick={() => handleClickEvent('/drivers/edit-truck', data.truck_id)} />
-                                                </> )
-                                            }
-                                        </>
-                                    )}
-                                    {pageHeading === 'Bike List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/ev-battery-swipe/bike-details', data.bike_id)} />
-                                            { departmentId == 1 && ( 
-                                                <>
-                                                    <img src={Edit} alt='edit' onClick={() => handleClickEvent('/ev-battery-swipe/edit-bike', data.bike_id)} />
-                                                </> )
-                                            }
-                                        </>
-                                    )}
-                                    {pageHeading === 'Swipe Station List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/ev-battery-swipe/station-details', data.station_id)} />
-                                            { departmentId == 1 && ( 
-                                                <>
-                                                    <img src={Edit} alt='edit' onClick={() => handleClickEvent('/ev-battery-swipe/edit-station', data.station_id)} />
-                                                </> )
-                                            }
-                                        </>
-                                    )}
-                                    { pageHeading === 'EV Charger List'  && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/charger-installation/ev-charger-details', data.charger_id)} />
-                                            { departmentId == 1 && ( 
-                                                <>
-                                                    <img src={Edit} alt='edit' onClick={() => handleClickEvent('/charger-installation/ev-charger-edit', data.charger_id)} />
-                                                </> )
-                                            } 
-                                        </>
-                                    )}
-                                    { pageHeading === 'EV Accessories List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/charger-installation/accessories-details', data.charger_id)} />
-                                            { departmentId == 1 && ( 
-                                                <>
-                                                    <img src={Edit} alt='edit' onClick={() => handleClickEvent('/charger-installation/accessories-edit', data.charger_id)} />
-                                                </> )
-                                            } 
-                                        </>
-                                    )}
-                                    { pageHeading === 'Fixed Charger Bookings' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/charger-installation/ev-charger-booking-detail', data.request_id)} />
-                                        </>
-                                    )}
-                                    { pageHeading === 'EV Accessories Bookings' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/charger-installation/ev-accessories-booking-detail', data.request_id)} />
-                                        </>
-                                    )}
-                                    { pageHeading === 'Charger Installation Booking List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/charger-installation/charger-installation-details', data.request_id)} />
-                                        </>
-                                    )}
-                                    { pageHeading === 'EV Products & Installation' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/charger-installation/purchase-detail', data.purchase_id)} />
-                                            { departmentId == 1 && ( <>
-                                                    <img src={Edit} alt='edit' onClick={() => handleClickEvent('/charger-installation/purchase-edit', data.purchase_id)} />
-                                                </> )
-                                            } 
-                                        </>
-                                    )}
-
-                                    { pageHeading === 'Charger Share List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/charger-share/request-detail', data.charger_id)} />
-                                            { departmentId == 1 && ( <>
-                                                    <img src={Edit} alt='edit' onClick={() => handleClickEvent('/charger-share/request-edit', data.charger_id)} />
-                                                </> )
-                                            } 
-                                        </>
-                                    )}
-                                    
-                                    { pageHeading === 'Community List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/community/community-details', data.community_id)} />
-                                            { departmentId == 1 && ( <>
-                                                    <img src={Edit} alt='edit' onClick={() => handleClickEvent('/community/community-edit', data.community_id)} />
-                                                </> )
-                                            }
-                                        </>
-                                    )}
-                                    
-                                    { pageHeading === 'Resident List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/community/resident-details', data.resident_id)} />
-                                            { departmentId == 1 && ( <>
-                                                    <img src={Edit} alt='edit' onClick={() => handleClickEvent('/community/resident-edit', data.resident_id)} />
-                                                </> )
-                                            } 
-                                        </>
-                                    )}
-                                    { pageHeading === 'Scan Charge Invoice List' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/community/invoice-details', data.invoice_id)} />
-                                        </>
-                                    )}
-                                    { pageHeading === 'Charger Installation Inquiry Tracking' && (
-                                        <>
-                                            <img src={View} alt="view" onClick={() => handleClickEvent('/charger-installation/inquiry-tracking-details', data.inquiry_id)} />
-                                            { departmentId == 1 && (
-                                                <img src={Edit} alt='edit' onClick={() => handleClickEvent('/charger-installation/inquiry-tracking-edit', data.inquiry_id)} />
+                                            { pageConfig.detail_url && (
+                                                <img src={View} alt="view" onClick={() => handleClickEvent(pageConfig.detail_url, data[pageConfig.detail_id]) } />
+                                            )}
+                                            { departmentId == 1 && pageConfig.edit_url && (
+                                                <img src={Edit} alt='edit' onClick={() => handleClickEvent(pageConfig.edit_url, data[pageConfig.detail_id])} />
                                             )}
                                         </>
                                     )}

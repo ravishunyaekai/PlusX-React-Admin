@@ -75,14 +75,10 @@ const SubHeader = ({ heading, fetchFilteredData, dynamicFilters, filterValues, a
         setIsFilterAccordionOpen(!isFilterAccordionOpen);
         setIsSearchAccordionOpen(false);
     };
-    // Renamed display: "Portable Charger ..." -> "Mobile & Portable EV Charging Service ..."
-    // shouldShowFilterButtonArr = "Portable Charger Slot List", "Pick & Drop Time Slot List", "Ev Insurance List",
-    // "Resident List" removed — filter with community dropdown is now enabled for this page
-    const shouldShowFilterButtonArr = [  "Offer List", "Time Slot List" , "Register Interest List","Ev Buy & Sell List","Mobile & Portable EV Charging Service List",'Ev Specialized Shop List', "Ev Specialized Shop Service List", "Ev Specialized Shop Brand List","Ev Discussion Board List", "Ev Rider Clubs List" ,  "Notification List", "Electric Cars Leasing List", "Electric Bikes Leasing List", "EV Guide List", 'Bike List', 'Swipe Station List', 'EV Charger Brand List',"Community List"]
+    const shouldShowFilterButtonArr = [  "Offer List", "Time Slot List" , "Register Interest List","Ev Buy & Sell List","Mobile & Portable EV Charging Service List",'Ev Specialized Shop List', "Ev Specialized Shop Service List", "Ev Specialized Shop Brand List","Ev Discussion Board List", "Ev Rider Clubs List" ,  "Notification List", "Electric Cars Leasing List", "Electric Bikes Leasing List", "EV Guide List", 'Bike List', 'Swipe Station List', 'EV Charger Brand List',"Community List", "Vendor List"]
     const shouldShowFilterButton = !shouldShowFilterButtonArr.includes(heading)
 
-    // "Resident List" removed — search is now enabled for this page
-    const shouldShowSearchButtonArr = [ "Ev Road Assistance Invoice List" , "Pick & Drop Invoice List", "Notification List", "Ev Buy Sell List", "Offer List", "Pick & Drop Time Slot List","Mobile & Portable EV Charging Service Slot List" ,"Time Slot List",'Top Rated Area',"Community List"]
+    const shouldShowSearchButtonArr = [ "Ev Road Assistance Invoice List" , "Pick & Drop Invoice List", "Notification List", "Ev Buy Sell List", "Offer List", "Pick & Drop Time Slot List","Mobile & Portable EV Charging Service Slot List" ,"Time Slot List",'Top Rated Area',"Community List", "Vendor List"]
     const shouldShowSearchButton = !shouldShowSearchButtonArr.includes(heading)
 
     // "Portable Charger Booking List" / "Portable Charger Invoice List"
@@ -94,7 +90,7 @@ const SubHeader = ({ heading, fetchFilteredData, dynamicFilters, filterValues, a
 
     const shouldShowAddButton = !shouldShowAddButtonArr.includes(heading);
     // "Portable Charger Booking List"
-    const cardArray = [ "App Signup List", "Mobile & Portable EV Charging Service Booking List", "Offer List", "Subscription List", "Coupon List", "Register Interest List", "Ev Buy & Sell List", "Ev Specialized Shop List", "Ev Insurance List", "Ev Discussion Board List", "Ev Rider Clubs List", "EV Guide List", "Electric Bikes Leasing List", "Electric Cars Leasing List", "Public Chargers List", "Failed POD Booking List", "Failed Pick & Drop Booking List", "Deleted Account List", "Failed RSA Booking List", 'EV Charger List', 'EV Accessories List', 'Ev Road Assitance Booking List', "RSA Offline Leads", "Pick & Drop Booking List", "Community List", "Resident List", "Invoice List", "Session History", "Invoice History", "Charger Installation Inquiry Tracking"]
+    const cardArray = [ "App Signup List", "Mobile & Portable EV Charging Service Booking List", "Offer List", "Subscription List", "Coupon List", "Register Interest List", "Ev Buy & Sell List", "Ev Specialized Shop List", "Ev Insurance List", "Ev Discussion Board List", "Ev Rider Clubs List", "EV Guide List", "Electric Bikes Leasing List", "Electric Cars Leasing List", "Public Chargers List", "Failed POD Booking List", "Failed Pick & Drop Booking List", "Deleted Account List", "Failed RSA Booking List", 'EV Charger List', 'EV Accessories List', 'Ev Road Assitance Booking List', "RSA Offline Leads", "Pick & Drop Booking List", "Community List", "Resident List", "Invoice List", "Session History", "Invoice History", "Charger Installation Inquiry Tracking", "Vendor List", "Customer List"]
 
     const showCard = cardArray.includes(heading);
     // "Portable Charger List", "Portable Charger Invoice List", "Portable Charger Slot List"

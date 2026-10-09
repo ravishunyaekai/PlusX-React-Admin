@@ -8,7 +8,6 @@ export const menuItems = {
         { id: "truckList", label: "Truck List", path: "/drivers/truck-list" },
     ],
     portableCharger: [
-        // { id: "chargerList",    label: "Charger List", path: "/portable-charger/charger-list" },
         { id: "chargerBooking", label: "Bookings", path: "/portable-charger/charger-booking-list" },
         { id: "invoiceList",    label: "Invoice List", path: "/portable-charger/charger-booking-invoice-list" },
         { id: "timeSlot",       label: "Time Slot", path: "/portable-charger/charger-booking-time-slot-list" },
@@ -31,16 +30,6 @@ export const menuItems = {
         { id: "invoiceList",       label: "Invoice List", path: "/ev-road-assistance/invoice-list" },
         { id: "failedBookingList", label: "Failed Booking", path: "/ev-road-assistance/failed-booking-list" },
     ],
-    
-    // evPreSalesTesting: [
-    //     { id: "testingBooking", label: "Testing Booking", path: "/ev-pre-sales-testing/pre-sales-list" },
-    //     { id: "timeSlot", label: "Time Slot", path: "/ev-pre-sales-testing/time-slot-list" },
-    // ],
-    // evSpecializedShops: [
-    //     { id: "shopList", label: "Shop List", path: "/ev-specialized/shop-list" },
-    //     { id: "shopServices", label: "Shop Services", path: "/ev-specialized/service-list" },
-    //     { id: "shopBrands", label: "Shop Brands", path: "/ev-specialized/brand-list" },
-    // ],
     eVSwipeStation: [
         { id: "bikeList",    label: "Bike List", path: "/ev-battery-swipe/bike-list" },
         { id: "stationList", label: "Swipe Station List", path: "/ev-battery-swipe/station-list" },
@@ -62,13 +51,9 @@ export const menuItems = {
         { id: "communityList",   label: "Community List", path: "/community/community-list" },
         { id: "residentList",    label: "Resident List",  path: "/community/resident-list" },
         { id: "residentInvoice", label: "Invoice",        path: "/community/resident-invoice" },
-        // { id: "sessionList",     label: "Session List",   path: "/community/session-list" },
     ],
-    // evCharger : [
-    //     { id: "chargerList", label: "EV Charger List", path: "/charger-installation/ev-charger-list" },
-    //     { id: "brandList",   label: "Brand List", path: "/charger-installation/ev-charger-brand-list" },
-    // ],
-    // evAccessories: [
-    //     { id: "productList", label: "EV Accessories List", path: "/charger-installation/accessories-list" },
-    // ],
+    vendorChargingPackage: [
+        { id: "vendorList",   label: "Vendor List",    path: "/vendors/vendor-list" },
+        { id: "customerList", label: "Customer List",  path: "/vendors/customer-list" },
+    ],
 };
