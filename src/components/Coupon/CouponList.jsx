@@ -116,14 +116,15 @@ const CouponList = () => {
             {loading ? <Loader /> : 
                 carList.length === 0 ? 
                     <EmptyList
-                        tableHeaders={["Coupon Name", "Coupon Code", "Service Name", "Per User", "Usage Count", "Coupon %", "End Date", "Status", "Action"]}
+                        tableHeaders={["Date", "Coupon Name", "Coupon Code", "Service Name", "Per User", "Usage Count", "Coupon %", "End Date", "Status", "Action"]}
                         message="No data available"
                     />
                 : <>
                     <List
-                        tableHeaders={[ "Coupon Name", "Coupon Code", "Service Name", "Per User", "Usage Count","Coupon %", "End Date", "Status", "Action"]}
+                        tableHeaders={[ "Date", "Coupon Name", "Coupon Code", "Service Name", "Per User", "Usage Count","Coupon %", "End Date", "Status", "Action"]}
                         listData={carList}
                         keyMapping={[
+                            { key: 'created_at', label: 'Date', format: (date) => date ? moment(date).format('DD MMM YYYY') : '' },
                             { key: 'coupan_name', label: 'Coupon Name' },
                             { key: 'coupan_code', label: 'Coupon Code' },
                             {
@@ -138,7 +139,7 @@ const CouponList = () => {
                             { key: 'user_per_user', label: 'Per User' },
                             // New API field: usage_count (old was counpon_used)
                             { key: 'usage_count', label: 'Usage Count', format: (count) => (count ?? 0) },
-                            { key: 'coupan_percentage', label: 'Coupon %' },
+                            { key: 'coupan_percentage', label: 'Coupon %', format: (value) => (value === null || value === undefined || value === '') ? '' : parseFloat(Number(value).toFixed(2)) },
                             { key: 'end_date', label: 'End Date', format: (date) => moment(date).format('DD MMM YYYY') },
                             // Status already comes as Active / Inactive / Expired from API
                             { key: 'status', label: 'Status' }
