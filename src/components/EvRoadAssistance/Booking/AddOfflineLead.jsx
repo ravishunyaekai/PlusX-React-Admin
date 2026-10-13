@@ -10,6 +10,7 @@ import 'react-phone-input-2/lib/style.css';
 import { AiOutlineClose } from 'react-icons/ai';
 import UploadIcon from '../../../assets/images/uploadicon.svg';
 import PdfIcon from '../../../assets/images/PdfIcon.svg';
+import { applyBackendFieldErrors, getBackendErrorMessage, OFFLINE_RSA_ERROR_FIELDS } from '../../../utils/mapBackendErrorsToFields';
 
 const batteryLevelOption = [
     { value : '0',  label : '0%' },
@@ -296,7 +297,16 @@ const AddOfflineLead = () => {
                         navigate('/ev-road-assistance/offline-leads');
                     }, 1000);
                 } else {
-                    toast(response.message, { type : 'error' });
+                    const applied = applyBackendFieldErrors(
+                        response,
+                        setErrors,
+                        { email : 'customerEmail', contact : 'customerMobile' },
+                        undefined,
+                        OFFLINE_RSA_ERROR_FIELDS
+                    );
+                    if (!applied) {
+                        toast(getBackendErrorMessage(response), { type : 'error' });
+                    }
                     console.log('Error in add-rsa-offline-lead API:', response);
                     setLoading(false);
                 }
@@ -356,9 +366,12 @@ const AddOfflineLead = () => {
                                 placeholder="Email ID"
                                 className={styles.inputField}
                                 value={customerEmail}
-                                onChange={(e) => setCustomerEmail(e.target.value)}
+                                onChange={(e) => {
+                                    setCustomerEmail(e.target.value);
+                                    setErrors((prev) => ({ ...prev, customerEmail: '' }));
+                                }}
                             />
-                            {errors.customerEmail && !customerEmail && <p className={styles.error}>{errors.customerEmail}</p>}
+                            {errors.customerEmail && <p className={styles.error}>{errors.customerEmail}</p>}
                         </div>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Emirates</label>
@@ -380,9 +393,12 @@ const AddOfflineLead = () => {
                                 type="date"
                                 className={styles.inputField}
                                 value={bookingDate}
-                                onChange={(e) => setBookingDate(e.target.value)}
+                                onChange={(e) => {
+                                    setBookingDate(e.target.value);
+                                    setErrors((prev) => ({ ...prev, bookingDate: '' }));
+                                }}
                             />
-                            {errors.bookingDate && !bookingDate && <p className={styles.error}>{errors.bookingDate}</p>}
+                            {errors.bookingDate && <p className={styles.error}>{errors.bookingDate}</p>}
                         </div>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Location Link</label>
@@ -563,6 +579,7 @@ const AddOfflineLead = () => {
                                 value={bookingStatus}
                                 onChange={(selectedOption) => {
                                     setBookingStatus(selectedOption);
+                                    setErrors((prev) => ({ ...prev, bookingStatus: '' }));
                                     if (selectedOption?.value !== 'PU') {
                                         setBookingCompletedDate('');
                                         setErrors((prev) => ({ ...prev, bookingCompletedDate: '' }));
@@ -586,7 +603,7 @@ const AddOfflineLead = () => {
                                 placeholder="Select Booking Status"
                                 isClearable={true}
                             />
-                            {errors.bookingStatus && !bookingStatus && <p className={styles.error}>{errors.bookingStatus}</p>}
+                            {errors.bookingStatus && <p className={styles.error}>{errors.bookingStatus}</p>}
                         </div>
                         {bookingStatus?.value === 'C' ? (
                         <div className={styles.addShopInputContainer}>
@@ -609,10 +626,13 @@ const AddOfflineLead = () => {
                                 type="date"
                                 className={styles.inputField}
                                 value={bookingCompletedDate}
-                                onChange={(e) => setBookingCompletedDate(e.target.value)}
+                                onChange={(e) => {
+                                    setBookingCompletedDate(e.target.value);
+                                    setErrors((prev) => ({ ...prev, bookingCompletedDate: '' }));
+                                }}
                                 disabled={bookingStatus?.value !== 'PU'}
                             />
-                            {errors.bookingCompletedDate && !bookingCompletedDate && (
+                            {errors.bookingCompletedDate && (
                                 <p className={styles.error}>{errors.bookingCompletedDate}</p>
                             )}
                         </div>
@@ -626,11 +646,14 @@ const AddOfflineLead = () => {
                                 className={styles.addShopSelect}
                                 options={rsaDriverOption}
                                 value={bookingCompletedBy}
-                                onChange={(selectedOption) => setBookingCompletedBy(selectedOption)}
+                                onChange={(selectedOption) => {
+                                    setBookingCompletedBy(selectedOption);
+                                    setErrors((prev) => ({ ...prev, bookingCompletedBy: '' }));
+                                }}
                                 placeholder="Select RSA Driver"
                                 isClearable={true}
                             />
-                            {errors.bookingCompletedBy && !bookingCompletedBy && <p className={styles.error}>{errors.bookingCompletedBy}</p>}
+                            {errors.bookingCompletedBy && <p className={styles.error}>{errors.bookingCompletedBy}</p>}
                         </div>
                         <div className={styles.addShopInputContainer}></div>
                     </div>
