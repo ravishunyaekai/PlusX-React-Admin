@@ -3,6 +3,7 @@ import Select from "react-select";
 // import { GoogleMap, useJsApiLoader, useLoadScript, Marker } from "@react-google-maps/api";
 import UploadIcon from '../../assets/images/uploadicon.svg';
 import { AiOutlineClose } from 'react-icons/ai';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import styles from './EditCommunity.module.css';
 import { MultiSelect } from "react-multi-select-component";
 import { useNavigate, useParams } from 'react-router-dom';
@@ -34,6 +35,8 @@ const EditCommunity = () => {
     const [phoneCountry, setPhoneCountry]     = useState({ dialCode: '971', countryCode: 'ae' });
     const [password, setPassword]             = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword]     = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const serviceDropdownRef                  = useRef(null);
     const [communityDetails, setCommunityDetails] = useState();
@@ -336,28 +339,46 @@ const EditCommunity = () => {
                         <div className={styles.row}>
                             <div className={styles.addShopInputContainer}>
                                 <label className={styles.addShopLabel} htmlFor="password">Password</label>
-                                <input
-                                    type="password"
-                                    autoComplete="new-password"
-                                    id="password"
-                                    placeholder="Password"
-                                    className={styles.inputField}
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                />
+                                <div className={styles.passwordContainer}>
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        autoComplete="new-password"
+                                        id="password"
+                                        placeholder="Password"
+                                        className={styles.inputField}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                    />
+                                    <div
+                                        className={styles.eyeIcon}
+                                        onClick={() => setShowPassword((prev) => !prev)}
+                                        style={{ color: showPassword ? '#00ffc3' : '#fff' }}
+                                    >
+                                        {showPassword ? <FaEye /> : <FaEyeSlash />}
+                                    </div>
+                                </div>
                                 {errors.password && <p className={styles.error} style={{ color: 'red' }}>{errors.password}</p>}
                             </div>
                             <div className={styles.addShopInputContainer}>
                                 <label className={styles.addShopLabel} htmlFor="confirmPassword">Confirm Password</label>
-                                <input
-                                    type="password"
-                                    autoComplete="new-password"
-                                    id="confirmPassword"
-                                    placeholder="Confirm Password"
-                                    className={styles.inputField}
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                />
+                                <div className={styles.passwordContainer}>
+                                    <input
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        autoComplete="new-password"
+                                        id="confirmPassword"
+                                        placeholder="Confirm Password"
+                                        className={styles.inputField}
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                    />
+                                    <div
+                                        className={styles.eyeIcon}
+                                        onClick={() => setShowConfirmPassword((prev) => !prev)}
+                                        style={{ color: showConfirmPassword ? '#00ffc3' : '#fff' }}
+                                    >
+                                        {showConfirmPassword ? <FaEye /> : <FaEyeSlash />}
+                                    </div>
+                                </div>
                                 {errors.confirmPassword && <p className={styles.error} style={{ color: 'red' }}>{errors.confirmPassword}</p>}
                             </div>
                         </div>
