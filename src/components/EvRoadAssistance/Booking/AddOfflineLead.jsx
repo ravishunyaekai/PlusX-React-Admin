@@ -598,7 +598,9 @@ const AddOfflineLead = () => {
                             <label className={styles.addShopLabel}>Booking Status</label>
                             <Select
                                 className={styles.addShopSelect}
-                                options={bookingStatusOption}
+                                options={isBookingCompleted
+                                    ? bookingStatusOption
+                                    : bookingStatusOption.filter((option) => option.value === 'CNF')}
                                 value={bookingStatus}
                                 onChange={(selectedOption) => {
                                     setBookingStatus(selectedOption);
