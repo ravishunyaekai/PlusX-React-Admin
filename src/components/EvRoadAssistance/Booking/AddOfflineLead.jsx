@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import styles from './addOfflineLead.module.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { postRequestWithToken, postRequestWithTokenAndFile } from '../../../api/Requests';
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
@@ -52,6 +52,8 @@ const isValidLocationUrl = (value) => {
 const AddOfflineLead = () => {
     const userDetails = JSON.parse(sessionStorage.getItem('userDetails'));
     const navigate    = useNavigate();
+    const [searchParams] = useSearchParams();
+    const isBookingCompleted = searchParams.get('completed') !== 'no';
 
     const [errors, setErrors]   = useState({});
     const [loading, setLoading] = useState(false);
@@ -181,6 +183,19 @@ const AddOfflineLead = () => {
 
     const validateForm = () => {
         const localMobile = getLocalMobile();
+
+        if (!isBookingCompleted) {
+            const newErrors = {};
+            if (!localMobile) {
+                newErrors.customerMobile = "Phone Number is required.";
+            }
+            if (locationLink.trim() && !isValidLocationUrl(locationLink)) {
+                newErrors.locationLink = 'Please enter a valid URL.';
+            }
+            setErrors(newErrors);
+            return Object.keys(newErrors).length === 0;
+        }
+
         const fields = [
             { name : "customerName",       value : customerName,       errorMessage : "Customer Name is required." },
             { name : "customerMobile",     value : localMobile,        errorMessage : "Phone Number is required." },
@@ -251,34 +266,42 @@ const AddOfflineLead = () => {
 
         if (validateForm()) {
             const formData = new FormData();
+            const appendIfSet = (key, value) => {
+                if (value !== undefined && value !== null && value !== '') {
+                    formData.append(key, value);
+                }
+            };
             formData.append("userId", userDetails?.user_id);
             formData.append("email", userDetails?.email);
+            formData.append("is_booking_completed", isBookingCompleted ? 'Yes' : 'No');
 
-            formData.append("customer_name", customerName);
+            appendIfSet("customer_name", customerName);
             formData.append("mobile_no", getLocalMobile());
-            formData.append("email_id", customerEmail);
-            formData.append("emirates", emirates?.value);
-            formData.append("booking_date", bookingDate);
+            appendIfSet("email_id", customerEmail);
+            appendIfSet("emirates", emirates?.value);
+            appendIfSet("booking_date", bookingDate);
             formData.append("country_code", phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971');
-            formData.append("location_link", locationLink);
-            formData.append("address", customerAddress);
-            formData.append("price", price);
+            appendIfSet("location_link", locationLink);
+            appendIfSet("address", customerAddress);
+            appendIfSet("price", price);
 
-            formData.append("vehicle_make", vehicleMake?.value);
-            formData.append("vehicle_model", vehicleModel?.value);
-            formData.append("battery_level", batteryLevel?.value);
-            formData.append("jump_start_required", jumpStart?.value);
+            appendIfSet("vehicle_make", vehicleMake?.value);
+            appendIfSet("vehicle_model", vehicleModel?.value);
+            appendIfSet("battery_level", batteryLevel?.value);
+            appendIfSet("jump_start_required", jumpStart?.value);
 
-            formData.append("booking_status", bookingStatus?.value);
+            appendIfSet("booking_status", bookingStatus?.value);
 
             if (bookingStatus?.value === 'C') {
                 formData.append("cancellation_remarks", cancellationRemarks);
             } else {
-                formData.append("mode_of_payment", modeOfPayment?.value);
-                formData.append("payment_status", 'Paid');
-                formData.append("booking_completed_by", bookingCompletedBy?.value);
-                formData.append("driver_name", bookingCompletedBy?.value);
-                formData.append("rsa_id", bookingCompletedBy?.rsa_id);
+                appendIfSet("mode_of_payment", modeOfPayment?.value);
+                if (modeOfPayment) {
+                    formData.append("payment_status", 'Paid');
+                }
+                appendIfSet("booking_completed_by", bookingCompletedBy?.value);
+                appendIfSet("driver_name", bookingCompletedBy?.value);
+                appendIfSet("rsa_id", bookingCompletedBy?.rsa_id);
 
                 if (bookingStatus?.value === 'PU' && bookingCompletedDate) {
                     formData.append("booking_completed_date", bookingCompletedDate);
