@@ -98,11 +98,11 @@ const AddOfflineLead = () => {
             userId : userDetails?.user_id,
             email  : userDetails?.email,
         };
-        postRequestWithToken('ev-road-assistance-offline-vehicle-list', obj, (response) => {
+        postRequestWithToken('vehicle-brand-list', obj, (response) => {
             if (response.code === 200) {
                 setVehicleMakeOption(response?.data || []);
             } else {
-                console.log('error in ev-road-assistance-offline-vehicle-list', response);
+                console.log('error in vehicle-brand-list', response);
             }
         });
     };
@@ -159,8 +159,8 @@ const AddOfflineLead = () => {
         const localMobile = phone.startsWith(country.dialCode)
             ? phone.slice(country.dialCode.length)
             : phone;
-        if (localMobile) {
-            setErrors((prev) => ({ ...prev, customerMobile: '' }));
+        if (localMobile || customerEmail?.trim()) {
+            setErrors((prev) => ({ ...prev, customerMobile: '', customerEmail: '' }));
         }
     };
 
@@ -186,8 +186,11 @@ const AddOfflineLead = () => {
 
         if (!isBookingCompleted) {
             const newErrors = {};
-            if (!localMobile) {
-                newErrors.customerMobile = "Phone Number is required.";
+            const hasMobile = Boolean(localMobile);
+            const hasEmail  = Boolean(customerEmail?.trim());
+            if (!hasMobile && !hasEmail) {
+                newErrors.customerMobile = "Please enter Phone Number or Email ID.";
+                newErrors.customerEmail  = "Please enter Phone Number or Email ID.";
             }
             if (locationLink.trim() && !isValidLocationUrl(locationLink)) {
                 newErrors.locationLink = 'Please enter a valid URL.';
@@ -391,7 +394,9 @@ const AddOfflineLead = () => {
                                 value={customerEmail}
                                 onChange={(e) => {
                                     setCustomerEmail(e.target.value);
-                                    setErrors((prev) => ({ ...prev, customerEmail: '' }));
+                                    if (e.target.value.trim() || getLocalMobile()) {
+                                        setErrors((prev) => ({ ...prev, customerEmail: '', customerMobile: '' }));
+                                    }
                                 }}
                             />
                             {errors.customerEmail && <p className={styles.error}>{errors.customerEmail}</p>}

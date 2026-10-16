@@ -137,6 +137,7 @@
   row-gap: 20px;
   justify-content: start;
   align-items: start;
+  width: 100%;
 }
 
 .secondTitle {
@@ -156,6 +157,11 @@
   border-radius: 14px !important;
   overflow: hidden;
   padding: 12px !important;
+  width: 100% !important;
+  margin-bottom: 0 !important;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 8px;
 }
 
 .customTable thead {
@@ -179,10 +185,19 @@
   font-size: 13px !important;
 }
 
-.customTable {
-  border-collapse: separate;
-  border-spacing: 0;
-  border-radius: 8px;
+/* Match signup-details Vehicle List: black card, white row separators (no line under headers) */
+.vehicleListTable {
+  border: none !important;
+}
+
+.vehicleListTable th {
+  border: none !important;
+  border-bottom: none !important;
+}
+
+.vehicleListTable td {
+  border: none !important;
+  border-bottom: 1px solid #ffffff !important;
 }
 
 /* start the list section */

@@ -16,14 +16,40 @@ import Pagination from '../SharedComponent/Pagination/Pagination';
 
 import ResidentSessionList from '../SharedComponent/Details/ResidentSessionList';
 import ResidentInvoiceList from '../SharedComponent/Details/ResidentInvoiceList';
+import DetailsVehicleList from '../SharedComponent/Details/DetailsVehicleList';
 // MULTI-SELECT COMMUNITY (new): shared helper to format multiple community names for display
 import { formatCommunityNamesForDisplay } from '../../utils/residentCommunityHelpers';
+
+const mapResidentVehicles = (data = {}) => {
+    const vehicles = data?.residentVehicles || data?.vehicles || data?.vehicle_list || [];
+    if (Array.isArray(vehicles) && vehicles.length > 0) {
+        return vehicles.map((vehicle) => ({
+            ...vehicle,
+            emirates: vehicle.emirates || vehicle.vehicle_emirates,
+        }));
+    }
+
+    if (data?.vehicle_type || data?.vehicle_make || data?.vehicle_number) {
+        return [{
+            vehicle_type          : data.vehicle_type,
+            vehicle_code          : data.vehicle_code,
+            vehicle_number        : data.vehicle_number,
+            vehicle_make          : data.vehicle_make,
+            vehicle_model         : data.vehicle_model,
+            vehicle_specification : data.vehicle_specification,
+            emirates              : data.vehicle_emirates || data.emirates,
+        }];
+    }
+
+    return [];
+};
 
 const ResidentsDetails = () => {
     const userDetails                           = JSON.parse(sessionStorage.getItem('userDetails'));
     const { residentId }                        = useParams(); 
     const navigate                              = useNavigate();
     const [residentDetails, setResidentDetails] = useState();
+    const [vehicleList, setVehicleList]         = useState([]);
     const [filters, setFilters]                 = useState({start_date: null,end_date: null});
      
     const staturArr = { 0 : 'In-active', 1: 'Active' }
@@ -36,8 +62,9 @@ const ResidentsDetails = () => {
         };
         postRequestWithToken('resident-details', obj, (response) => {
             if (response.code === 200) {
-                setResidentDetails(response?.data || {});
-                 
+                const data = response?.data || {};
+                setResidentDetails(data);
+                setVehicleList(mapResidentVehicles(data));
             } else {
                 console.log('error in charger-installation-details API', response);
             }
@@ -204,6 +231,11 @@ const ResidentsDetails = () => {
             <div className={styles.bookingLeftContainer}>
                 <BookingLeftDetails titles={sectionTitles1} content={sectionContent1} 
                 type='chargerInstallation' />
+            </div>
+            <div className='Details-container-section'>
+                {vehicleList.length > 0 && (
+                    <DetailsVehicleList vehicleList={vehicleList} />
+                )}
             </div>
             <div style={{margin : "0px 10px 0px 15px" }}>
                 <SubHeader heading = "Session History"

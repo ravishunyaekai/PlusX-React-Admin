@@ -136,7 +136,7 @@ const EditOfflineLead = () => {
             userId : userDetails?.user_id,
             email  : userDetails?.email,
         };
-        postRequestWithToken('ev-road-assistance-offline-vehicle-list', obj, (response) => {
+        postRequestWithToken('vehicle-brand-list', obj, (response) => {
             if (response.code === 200) {
                 const options = response?.data || [];
                 setVehicleMakeOption(options);
@@ -152,7 +152,7 @@ const EditOfflineLead = () => {
                     }
                 }
             } else {
-                console.log('error in ev-road-assistance-offline-vehicle-list', response);
+                console.log('error in vehicle-brand-list', response);
             }
         });
     };

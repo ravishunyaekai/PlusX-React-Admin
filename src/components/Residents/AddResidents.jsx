@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-// SINGLE-SELECT COMMUNITY (old):
-// import Select from "react-select";
+import Select from "react-select";
 // import { GoogleMap, useJsApiLoader, useLoadScript, Marker } from "@react-google-maps/api";
 import UploadIcon from '../../assets/images/uploadicon.svg';
 import { AiOutlineClose } from 'react-icons/ai';
@@ -16,6 +15,51 @@ import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { applyBackendFieldErrors, getBackendErrorMessage } from '../../utils/mapBackendErrorsToFields';
 
+const vehicleTypeOptions = [
+    { value: 'Car',  label: 'Car' },
+    { value: 'Bike', label: 'Bike' },
+];
+
+const vehicleSpecificationOptions = [
+    { value: 'GCC',     label: 'GCC' },
+    { value: 'Non-GCC', label: 'Non-GCC' },
+];
+
+const emiratesOptions = [
+    { value: 'Abu Dhabi',      label: 'Abu Dhabi' },
+    { value: 'Ajman',          label: 'Ajman' },
+    { value: 'Dubai',          label: 'Dubai' },
+    { value: 'Fujairah',       label: 'Fujairah' },
+    { value: 'Ras Al Khaimah', label: 'Ras Al Khaimah' },
+    { value: 'Sharjah',        label: 'Sharjah' },
+    { value: 'Umm Al Quwain',  label: 'Umm Al Quwain' },
+];
+
+const selectMenuStyles = {
+    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+    menu: (base) => ({
+        ...base,
+        backgroundColor: '#242424',
+        border: '1px solid #3a3a3a',
+        zIndex: 9999,
+    }),
+    menuList: (base) => ({
+        ...base,
+        backgroundColor: '#242424',
+        padding: 0,
+    }),
+    option: (base, state) => ({
+        ...base,
+        backgroundColor: state.isSelected
+            ? '#00ffc3'
+            : state.isFocused
+                ? '#333333'
+                : '#242424',
+        color: state.isSelected ? '#000000' : '#ffffff',
+        cursor: 'pointer',
+    }),
+};
+
 const AddResidents = () => {
     const userDetails           = JSON.parse(sessionStorage.getItem('userDetails'));
     const navigate              = useNavigate();
@@ -27,6 +71,17 @@ const AddResidents = () => {
     const [phoneValue, setPhoneValue]               = useState('');
     const [phoneCountry, setPhoneCountry]           = useState({ dialCode: '971', countryCode: 'ae' });
     const [email, setEmail]                         = useState("");
+    const [emirates, setEmirates]                   = useState(null);
+    const [vehicleType, setVehicleType]             = useState(null);
+    const [vehicleMakeOption, setVehicleMakeOption] = useState([]);
+    const [vehicleModelOption, setVehicleModelOption] = useState([]);
+    const [vehicleMake, setVehicleMake]             = useState(null);
+    const [vehicleModel, setVehicleModel]           = useState(null);
+    const [vehicleSpecification, setVehicleSpecification] = useState(null);
+    const [plateEmiratesOptions, setPlateEmiratesOptions] = useState([]);
+    const [plateEmirates, setPlateEmirates]         = useState(null);
+    const [plateCode, setPlateCode]                 = useState('');
+    const [plateNumber, setPlateNumber]             = useState('');
     // SINGLE-SELECT COMMUNITY (old):
     // const [community, setCommunity]                 = useState("");
     // MULTI-SELECT COMMUNITY (new): selected options as [{ label, value }, ...]
@@ -43,6 +98,25 @@ const AddResidents = () => {
     // const [communityOptions, setCommunityOptions] = useState('');
     // MULTI-SELECT COMMUNITY (new): dropdown options from all-community-list API
     const [communityOptions, setCommunityOptions] = useState([]);
+
+    const handleVehicleMakeChange = (selectedOption) => {
+        setVehicleMake(selectedOption);
+        setVehicleModel(null);
+        setVehicleModelOption(selectedOption?.models || []);
+        setErrors((prev) => ({ ...prev, vehicleMake: '', vehicleModel: '' }));
+    };
+
+    const handleVehicleTypeChange = (selectedOption) => {
+        setVehicleType(selectedOption);
+        setVehicleMake(null);
+        setVehicleModel(null);
+        setVehicleMakeOption([]);
+        setVehicleModelOption([]);
+        setErrors((prev) => ({ ...prev, vehicleType: '', vehicleMake: '', vehicleModel: '' }));
+        if (selectedOption?.value) {
+            fetchVehicleList(selectedOption.value);
+        }
+    };
 
     const getLocalMobile = () => {
         if (!phoneValue || !phoneCountry?.dialCode) return '';
@@ -84,6 +158,14 @@ const AddResidents = () => {
             { name: "residentName",        value: residentName,         errorMessage: "Residant Name is required." },
             { name: "mobileNo",            value: mobileNo,             errorMessage: "Please enter a valid Mobile No.", isMobile: true },
             { name: "email",               value: email,                errorMessage: "Please enter a valid Email ID.", isEmail: true },
+            { name: "emirates",            value: emirates,             errorMessage: "Emirates is required." },
+            { name: "vehicleType",         value: vehicleType,          errorMessage: "Vehicle Type is required." },
+            { name: "vehicleMake",         value: vehicleMake,          errorMessage: "Vehicle Brand is required." },
+            { name: "vehicleModel",        value: vehicleModel,         errorMessage: "Vehicle Model is required." },
+            { name: "vehicleSpecification", value: vehicleSpecification, errorMessage: "Vehicle Specification is required." },
+            { name: "plateEmirates",       value: plateEmirates,        errorMessage: "Emirates is required." },
+            { name: "plateCode",           value: plateCode,            errorMessage: "Plate Code is required." },
+            { name: "plateNumber",         value: plateNumber,          errorMessage: "Plate Number is required." },
             // SINGLE-SELECT COMMUNITY (old):
             // { name: "community",           value: community,            errorMessage: "Community is required." },
             // MULTI-SELECT COMMUNITY (new): at least one community must be selected
@@ -136,6 +218,14 @@ const AddResidents = () => {
                 mobile_number              : getLocalMobile(),
                 country_code               : phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971',
                 resident_email             : email,
+                emirates                   : emirates?.value,
+                vehicle_type               : vehicleType?.value,
+                vehicle_make               : vehicleMake?.value,
+                vehicle_model              : vehicleModel?.value,
+                vehicle_specification      : vehicleSpecification?.value,
+                vehicle_emirates           : plateEmirates?.value,
+                vehicle_code               : plateCode,
+                vehicle_number             : plateNumber,
                 // SINGLE-SELECT COMMUNITY (old):
                 // community_id               : community.value,
                 // MULTI-SELECT COMMUNITY (new): send array of IDs to resident-add API
@@ -192,12 +282,47 @@ const AddResidents = () => {
         });
     };
 
+    const fetchVehicleList = (type) => {
+        const apiEndpoint = type === 'Bike' ? 'vehicle-bike-brand-list' : 'vehicle-brand-list';
+        const obj = {
+            userId: userDetails?.user_id,
+            email: userDetails?.email,
+        };
+        postRequestWithToken(apiEndpoint, obj, (response) => {
+            if (response.code === 200) {
+                setVehicleMakeOption(response?.data || []);
+            } else {
+                console.log(`error in ${apiEndpoint}`, response);
+            }
+        });
+    };
+
+    const fetchLocationList = () => {
+        const obj = {
+            userId: userDetails?.user_id,
+            email: userDetails?.email,
+        };
+        postRequestWithToken('location-list', obj, (response) => {
+            if (response.code === 200) {
+                const options = (response?.data || []).map((item) => ({
+                    ...item,
+                    value: item.code || item.value,
+                    label: item.code || item.label,
+                }));
+                setPlateEmiratesOptions(options);
+            } else {
+                console.log('error in location-list API', response);
+            }
+        });
+    };
+
     useEffect(() => {
         if (!userDetails || !userDetails.access_token) {
             navigate('/login');
             return;
         }
         fetchDetails();
+        fetchLocationList();
     }, []);
     
     return (
@@ -266,20 +391,162 @@ const AddResidents = () => {
                             {errors.email && <p className="error" style={{ color: 'red' }}>{errors.email}</p>}
                         </div>
                         <div className={styles.addShopInputContainer}>
-                            <label className={styles.addShopLabel}>Community</label>
-                            {/* SINGLE-SELECT COMMUNITY (old):
-                            <div ref={serviceDropdownRef}>
-                                <Select
-                                    className={styles.addShopSelect}
-                                    options={communityOptions}
-                                    value={community}
-                                    onChange={handleCommunity}
-                                    placeholder="Select Community"
-                                    isClearable={true}
-                                />
+                            <label className={styles.addShopLabel}>Emirates</label>
+                            <Select
+                                className={styles.addShopSelect}
+                                options={emiratesOptions}
+                                value={emirates}
+                                onChange={(selectedOption) => {
+                                    setEmirates(selectedOption);
+                                    setErrors((prev) => ({ ...prev, emirates: '' }));
+                                }}
+                                placeholder="Select Emirates"
+                                isClearable={true}
+                                menuPortalTarget={document.body}
+                                menuPosition="fixed"
+                                styles={selectMenuStyles}
+                            />
+                            {errors.emirates && !emirates && <p className={styles.error} style={{ color: 'red' }}>{errors.emirates}</p>}
+                        </div>
+                    </div>
+
+                    <div className={styles.row}>
+                        <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel} htmlFor="vehicleType">Vehicle Type</label>
+                            <Select
+                                className={styles.addShopSelect}
+                                options={vehicleTypeOptions}
+                                value={vehicleType}
+                                onChange={handleVehicleTypeChange}
+                                placeholder="Select Vehicle Type"
+                                isClearable={true}
+                                menuPortalTarget={document.body}
+                                menuPosition="fixed"
+                                styles={selectMenuStyles}
+                            />
+                            {errors.vehicleType && !vehicleType && <p className={styles.error} style={{ color: 'red' }}>{errors.vehicleType}</p>}
+                        </div>
+                        <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel}>Vehicle Brand</label>
+                            <Select
+                                className={styles.addShopSelect}
+                                options={vehicleMakeOption}
+                                value={vehicleMake}
+                                onChange={handleVehicleMakeChange}
+                                placeholder="Select Vehicle Brand"
+                                isClearable={true}
+                                isDisabled={!vehicleType}
+                                menuPortalTarget={document.body}
+                                menuPosition="fixed"
+                                styles={selectMenuStyles}
+                            />
+                            {errors.vehicleMake && !vehicleMake && <p className={styles.error} style={{ color: 'red' }}>{errors.vehicleMake}</p>}
+                        </div>
+                    </div>
+
+                    <div className={styles.row}>
+                        <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel}>Vehicle Model</label>
+                            <Select
+                                className={styles.addShopSelect}
+                                options={vehicleModelOption}
+                                value={vehicleModel}
+                                onChange={(selectedOption) => {
+                                    setVehicleModel(selectedOption);
+                                    setErrors((prev) => ({ ...prev, vehicleModel: '' }));
+                                }}
+                                placeholder="Select Vehicle Model"
+                                isClearable={true}
+                                isDisabled={!vehicleMake}
+                                menuPortalTarget={document.body}
+                                menuPosition="fixed"
+                                styles={selectMenuStyles}
+                            />
+                            {errors.vehicleModel && !vehicleModel && <p className={styles.error} style={{ color: 'red' }}>{errors.vehicleModel}</p>}
+                        </div>
+                        <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel}>Vehicle Details</label>
+                            <div className={styles.vehicleSpecField}>
+                                <div className={styles.vehicleSpecEmirates}>
+                                    <Select
+                                        className={styles.addShopSelect}
+                                        options={plateEmiratesOptions}
+                                        value={plateEmirates}
+                                        onChange={(selectedOption) => {
+                                            setPlateEmirates(selectedOption);
+                                            setErrors((prev) => ({ ...prev, plateEmirates: '' }));
+                                        }}
+                                        placeholder="Emirates"
+                                        isClearable={true}
+                                        menuPortalTarget={document.body}
+                                        menuPosition="fixed"
+                                        styles={{
+                                            ...selectMenuStyles,
+                                            menu: (base) => ({
+                                                ...selectMenuStyles.menu(base),
+                                                minWidth: 160,
+                                            }),
+                                        }}
+                                    />
+                                </div>
+                                <div className={styles.vehicleSpecPlate}>
+                                    <input
+                                        type="text"
+                                        autoComplete="off"
+                                        id="plateCode"
+                                        placeholder="Plate Code"
+                                        className={styles.vehicleSpecInput}
+                                        value={plateCode}
+                                        onChange={(e) => {
+                                            setPlateCode(e.target.value);
+                                            setErrors((prev) => ({ ...prev, plateCode: '' }));
+                                        }}
+                                    />
+                                    <input
+                                        type="text"
+                                        autoComplete="off"
+                                        id="plateNumber"
+                                        placeholder="Plate Number"
+                                        className={styles.vehicleSpecInput}
+                                        value={plateNumber}
+                                        onChange={(e) => {
+                                            setPlateNumber(e.target.value);
+                                            setErrors((prev) => ({ ...prev, plateNumber: '' }));
+                                        }}
+                                    />
+                                </div>
                             </div>
-                            {errors.community && community == null && <p className="error">{errors.community}</p>}
-                            */}
+                            {(errors.plateEmirates || errors.plateCode || errors.plateNumber) && (
+                                <p className={styles.error} style={{ color: 'red' }}>
+                                    {errors.plateEmirates || errors.plateCode || errors.plateNumber}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className={styles.row}>
+                        <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel}>Vehicle Specification</label>
+                            <Select
+                                className={styles.addShopSelect}
+                                options={vehicleSpecificationOptions}
+                                value={vehicleSpecification}
+                                onChange={(selectedOption) => {
+                                    setVehicleSpecification(selectedOption);
+                                    setErrors((prev) => ({ ...prev, vehicleSpecification: '' }));
+                                }}
+                                placeholder="Select Vehicle Specification"
+                                isClearable={true}
+                                menuPortalTarget={document.body}
+                                menuPosition="fixed"
+                                styles={selectMenuStyles}
+                            />
+                            {errors.vehicleSpecification && !vehicleSpecification && (
+                                <p className={styles.error} style={{ color: 'red' }}>{errors.vehicleSpecification}</p>
+                            )}
+                        </div>
+                        <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel}>Community</label>
                             {/* MULTI-SELECT COMMUNITY (new): allows assigning resident to multiple communities */}
                             <div ref={serviceDropdownRef}>
                                 <MultiSelect
@@ -328,7 +595,6 @@ const AddResidents = () => {
                     </div>
 
                     <div className={styles.row}>
-                        
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel} htmlFor="allocatedTime">Allocated Time In Minute</label>
                             <input
@@ -357,7 +623,6 @@ const AddResidents = () => {
                     </div>
 
                     <div className={styles.row}>
-                        
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel} htmlFor="perkwhCharge">Per kWh charge (AED)</label>
                             <input
