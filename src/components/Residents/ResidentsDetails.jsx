@@ -150,8 +150,8 @@ const ResidentsDetails = () => {
         };
         postRequestWithToken('session-list', obj, (response) => {
             if (response.code === 200) {
-                setSessionList(response?.data);
-                setTotalPages(response?.totalPage || 1);
+                setSessionList(response?.data || []);
+                setTotalPages(response?.total_page || response?.totalPage || 1);
                 setTotalCount(response?.total || 0)
             }
         });
@@ -167,9 +167,10 @@ const ResidentsDetails = () => {
         name  : 'search_text', 
         type  : 'text'
     }];
+    const [invoiceFilters, setInvoiceFilters]         = useState({start_date: null, end_date: null});
     const invoiceFetchFilteredData = (newFilters = {}) => {   
-        setFilters(newFilters);  
-        setCurrentPage(1); 
+        setInvoiceFilters(newFilters);  
+        setInvoiceCurrentPage(1); 
     };
     const [invoiceList, setInvoiceList]               = useState([]);
     const [invoiceCurrentPage, setInvoiceCurrentPage] = useState(1);
@@ -183,25 +184,6 @@ const ResidentsDetails = () => {
     const invoiceHandlePageChange = (pageNumber) => {
         setInvoiceCurrentPage(pageNumber);
     };
-    // const fetchInvoiceList = (page, appliedFilters = {}) => {
-    //     const obj = {
-    //         userId          : userDetails?.user_id,
-    //         email           : userDetails?.email,
-    //         resident_mobile : residentDetails?.resident_mobile,
-    //         page_no         : page,
-    //         ...appliedFilters,
-    //     };
-    //     postRequestWithToken('scan-charge-invoice-list', obj, (response) => {
-    //         if (response.code === 200) {
-    //             setInvoiceList(response?.data);
-    //             setInvoiceTotalPages(response?.totalPage || 1);
-    //             setInvoiceTotalCount(response?.total || 1)
-    //         }
-    //     });
-    // };
-    // useEffect(() => {
-    //     fetchInvoiceList(currentPage, filters);
-    // }, [ currentPage, filters ]);
 
     const fetchInvoiceList = (page, appliedFilters = {}) => {
         
@@ -215,15 +197,15 @@ const ResidentsDetails = () => {
         };
         postRequestWithToken('scan-charge-invoice-list', obj, (response) => {
             if (response.code === 200) {
-                setInvoiceList(response?.data);
-                setInvoiceTotalPages(response?.totalPage || 1);
+                setInvoiceList(response?.data || []);
+                setInvoiceTotalPages(response?.total_page || response?.totalPage || 1);
                 setInvoiceTotalCount(response?.total || 0)
             }
         });
     };
     useEffect(() => {
-        fetchInvoiceList(currentPage, filters);
-    }, [ residentDetails, currentPage, filters ]);
+        fetchInvoiceList(invoiceCurrentPage, invoiceFilters);
+    }, [ residentDetails, invoiceCurrentPage, invoiceFilters ]);
 
     return (
         <div className='main-container'>
@@ -260,7 +242,7 @@ const ResidentsDetails = () => {
             <div style={{margin : "0px 10px 0px 15px" }}>
                 <SubHeader heading = "Invoice History"
                     count={invoicetotalCount}
-                    filterValues={invoiceSearchTerm}
+                    filterValues={invoiceFilters}
                     fetchFilteredData={invoiceFetchFilteredData}
                     searchTerm= {invoiceSearchTerm}
                 />

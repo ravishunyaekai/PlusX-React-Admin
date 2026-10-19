@@ -41,6 +41,10 @@ const emiratesOption = [
 ];
 const ALLOWED_PROOF_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
 const PROOF_BASE_URL = `${process.env.REACT_APP_DIR_UPLOADS}rsa-offline-proof`;
+const MIN_MOBILE_DIGITS = 8;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const isValidEmailFormat = (value) => EMAIL_REGEX.test(String(value || '').trim());
 
 const toDateInputValue = (value) => {
     if (!value) return '';
@@ -130,6 +134,30 @@ const EditOfflineLead = () => {
     const [bookingCompletedBy, setBookingCompletedBy]         = useState(null);
     const [cancellationRemarks, setCancellationRemarks]       = useState('');
     const [driverMatch, setDriverMatch]                       = useState({ rsa_id: null, name: null });
+    const [isBookingNotCompleted, setIsBookingNotCompleted]   = useState(false);
+
+    const formValuesRef              = useRef({});
+    const lastLookupKeyRef           = useRef('');
+    const lookupTimerRef             = useRef(null);
+    const isBookingNotCompletedRef   = useRef(false);
+
+    useEffect(() => {
+        formValuesRef.current = {
+            customerName,
+            customerEmail,
+            emirates,
+            phoneValue,
+            phoneCountry,
+        };
+    }, [customerName, customerEmail, emirates, phoneValue, phoneCountry]);
+
+    useEffect(() => {
+        isBookingNotCompletedRef.current = isBookingNotCompleted;
+    }, [isBookingNotCompleted]);
+
+    useEffect(() => () => {
+        if (lookupTimerRef.current) clearTimeout(lookupTimerRef.current);
+    }, []);
 
     const fetchVehicleList = (selectedMake = null, selectedModel = null) => {
         const obj = {
@@ -187,6 +215,9 @@ const EditOfflineLead = () => {
             if (response.code === 200) {
                 const data = response?.data?.booking || response?.data || {};
 
+                setIsBookingNotCompleted(
+                    String(data.is_booking_completed || 'Yes').trim().toLowerCase() === 'no'
+                );
                 setCustomerName(data.customer_name || data.name || '');
                 setCustomerEmail(data.email || data.email_id || '');
                 setEmirates(
@@ -279,11 +310,74 @@ const EditOfflineLead = () => {
         navigate('/ev-road-assistance/offline-leads');
     };
 
-    const getLocalMobile = () => {
-        if (!phoneValue || !phoneCountry?.dialCode) return '';
-        return phoneValue.startsWith(phoneCountry.dialCode)
-            ? phoneValue.slice(phoneCountry.dialCode.length)
-            : phoneValue;
+    const getLocalMobile = (phone = phoneValue, country = phoneCountry) => {
+        if (!phone || !country?.dialCode) return '';
+        return phone.startsWith(country.dialCode)
+            ? phone.slice(country.dialCode.length)
+            : phone;
+    };
+
+    const applyRiderLookupData = (rider) => {
+        if (!rider) return;
+        const current = formValuesRef.current;
+
+        if (!String(current.customerName || '').trim() && rider.customer_name) {
+            setCustomerName(rider.customer_name);
+        }
+        if (!current.emirates && rider.emirates) {
+            const match = emiratesOption.find((option) => option.value === rider.emirates);
+            if (match) setEmirates(match);
+        }
+        if (!String(current.customerEmail || '').trim() && rider.email_id) {
+            setCustomerEmail(rider.email_id);
+        }
+
+        const localMobile = getLocalMobile(current.phoneValue, current.phoneCountry);
+        if (!localMobile && rider.mobile_no) {
+            const riderDial = String(rider.country_code || '+971').replace('+', '');
+            setPhoneValue(`${riderDial}${rider.mobile_no}`);
+            setPhoneCountry((prev) => ({ ...prev, dialCode: riderDial }));
+        }
+
+        setErrors((prev) => ({
+            ...prev,
+            customerName   : '',
+            customerMobile : '',
+            customerEmail  : '',
+            emirates       : '',
+        }));
+    };
+
+    const lookupRider = ({ mobile, email }) => {
+        if (!isBookingNotCompletedRef.current) return;
+
+        const mobileNo = String(mobile || '').trim();
+        const emailId  = String(email || '').trim();
+        if (!mobileNo && !emailId) return;
+        if (emailId && !isValidEmailFormat(emailId) && !mobileNo) return;
+
+        const key = `${mobileNo}|${emailId.toLowerCase()}`;
+        if (key === lastLookupKeyRef.current) return;
+        lastLookupKeyRef.current = key;
+
+        const obj = {
+            userId       : userDetails?.user_id,
+            email        : userDetails?.email,
+            country_code : phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971',
+        };
+        if (mobileNo) obj.mobile_no = mobileNo;
+        if (emailId && isValidEmailFormat(emailId)) obj.email_id = emailId;
+
+        postRequestWithToken('ev-road-assistance-offline-rider-lookup', obj, (response) => {
+            if (response.code === 200 && Number(response.found) === 1 && response.data) {
+                applyRiderLookupData(response.data);
+            }
+        });
+    };
+
+    const scheduleRiderLookup = (payload) => {
+        if (lookupTimerRef.current) clearTimeout(lookupTimerRef.current);
+        lookupTimerRef.current = setTimeout(() => lookupRider(payload), 400);
     };
 
     const handlePhoneChange = (phone, country) => {
@@ -294,6 +388,36 @@ const EditOfflineLead = () => {
             : phone;
         if (localMobile) {
             setErrors((prev) => ({ ...prev, customerMobile: '' }));
+        }
+        if (isBookingNotCompleted && localMobile.length >= MIN_MOBILE_DIGITS) {
+            scheduleRiderLookup({ mobile: localMobile, email: customerEmail });
+        } else if (isBookingNotCompleted) {
+            lastLookupKeyRef.current = '';
+        }
+    };
+
+    const handlePhoneBlur = () => {
+        const localMobile = getLocalMobile();
+        if (localMobile.length >= MIN_MOBILE_DIGITS) {
+            lookupRider({ mobile: localMobile, email: customerEmail });
+        }
+    };
+
+    const handleEmailChange = (e) => {
+        const value = e.target.value;
+        setCustomerEmail(value);
+        setErrors((prev) => ({ ...prev, customerEmail: '' }));
+        if (isBookingNotCompleted && isValidEmailFormat(value)) {
+            scheduleRiderLookup({ mobile: getLocalMobile(), email: value.trim() });
+        } else if (isBookingNotCompleted) {
+            lastLookupKeyRef.current = '';
+        }
+    };
+
+    const handleEmailBlur = () => {
+        const email = customerEmail.trim();
+        if (isValidEmailFormat(email)) {
+            lookupRider({ mobile: getLocalMobile(), email });
         }
     };
 
@@ -484,6 +608,7 @@ const EditOfflineLead = () => {
                                 country="ae"
                                 value={phoneValue}
                                 onChange={handlePhoneChange}
+                                onBlur={handlePhoneBlur}
                                 enableSearch={true}
                                 countryCodeEditable={false}
                                 containerClass={styles.phoneInputContainer}
@@ -506,10 +631,8 @@ const EditOfflineLead = () => {
                                 placeholder="Email ID"
                                 className={styles.inputField}
                                 value={customerEmail}
-                                onChange={(e) => {
-                                    setCustomerEmail(e.target.value);
-                                    setErrors((prev) => ({ ...prev, customerEmail: '' }));
-                                }}
+                                onChange={handleEmailChange}
+                                onBlur={handleEmailBlur}
                             />
                             {errors.customerEmail && <p className={styles.error}>{errors.customerEmail}</p>}
                         </div>

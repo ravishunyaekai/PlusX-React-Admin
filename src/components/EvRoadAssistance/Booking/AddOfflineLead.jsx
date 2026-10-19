@@ -39,6 +39,8 @@ const emiratesOption = [
     { value : 'Umm Al Quwain',  label : 'Umm Al Quwain' },
 ];
 const ALLOWED_PROOF_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+const MIN_MOBILE_DIGITS = 8;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const isValidLocationUrl = (value) => {
     try {
@@ -48,6 +50,8 @@ const isValidLocationUrl = (value) => {
         return false;
     }
 };
+
+const isValidEmailFormat = (value) => EMAIL_REGEX.test(String(value || '').trim());
 
 const AddOfflineLead = () => {
     const userDetails = JSON.parse(sessionStorage.getItem('userDetails'));
@@ -92,6 +96,24 @@ const AddOfflineLead = () => {
     const [bookingCompletedDate, setBookingCompletedDate]     = useState('');
     const [bookingCompletedBy, setBookingCompletedBy]         = useState(null);
     const [cancellationRemarks, setCancellationRemarks]       = useState('');
+
+    const formValuesRef     = useRef({});
+    const lastLookupKeyRef  = useRef('');
+    const lookupTimerRef    = useRef(null);
+
+    useEffect(() => {
+        formValuesRef.current = {
+            customerName,
+            customerEmail,
+            emirates,
+            phoneValue,
+            phoneCountry,
+        };
+    }, [customerName, customerEmail, emirates, phoneValue, phoneCountry]);
+
+    useEffect(() => () => {
+        if (lookupTimerRef.current) clearTimeout(lookupTimerRef.current);
+    }, []);
 
     const fetchVehicleList = () => {
         const obj = {
@@ -146,11 +168,72 @@ const AddOfflineLead = () => {
         navigate('/ev-road-assistance/offline-leads');
     };
 
-    const getLocalMobile = () => {
-        if (!phoneValue || !phoneCountry?.dialCode) return '';
-        return phoneValue.startsWith(phoneCountry.dialCode)
-            ? phoneValue.slice(phoneCountry.dialCode.length)
-            : phoneValue;
+    const getLocalMobile = (phone = phoneValue, country = phoneCountry) => {
+        if (!phone || !country?.dialCode) return '';
+        return phone.startsWith(country.dialCode)
+            ? phone.slice(country.dialCode.length)
+            : phone;
+    };
+
+    const applyRiderLookupData = (rider) => {
+        if (!rider) return;
+        const current = formValuesRef.current;
+
+        if (!String(current.customerName || '').trim() && rider.customer_name) {
+            setCustomerName(rider.customer_name);
+        }
+        if (!current.emirates && rider.emirates) {
+            const match = emiratesOption.find((option) => option.value === rider.emirates);
+            if (match) setEmirates(match);
+        }
+        if (!String(current.customerEmail || '').trim() && rider.email_id) {
+            setCustomerEmail(rider.email_id);
+        }
+
+        const localMobile = getLocalMobile(current.phoneValue, current.phoneCountry);
+        if (!localMobile && rider.mobile_no) {
+            const riderDial = String(rider.country_code || '+971').replace('+', '');
+            setPhoneValue(`${riderDial}${rider.mobile_no}`);
+            setPhoneCountry((prev) => ({ ...prev, dialCode: riderDial }));
+        }
+
+        setErrors((prev) => ({
+            ...prev,
+            customerName   : '',
+            customerMobile : '',
+            customerEmail  : '',
+            emirates       : '',
+        }));
+    };
+
+    const lookupRider = ({ mobile, email }) => {
+        const mobileNo = String(mobile || '').trim();
+        const emailId  = String(email || '').trim();
+        if (!mobileNo && !emailId) return;
+        if (emailId && !isValidEmailFormat(emailId) && !mobileNo) return;
+
+        const key = `${mobileNo}|${emailId.toLowerCase()}`;
+        if (key === lastLookupKeyRef.current) return;
+        lastLookupKeyRef.current = key;
+
+        const obj = {
+            userId       : userDetails?.user_id,
+            email        : userDetails?.email,
+            country_code : phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971',
+        };
+        if (mobileNo) obj.mobile_no = mobileNo;
+        if (emailId && isValidEmailFormat(emailId)) obj.email_id = emailId;
+
+        postRequestWithToken('ev-road-assistance-offline-rider-lookup', obj, (response) => {
+            if (response.code === 200 && Number(response.found) === 1 && response.data) {
+                applyRiderLookupData(response.data);
+            }
+        });
+    };
+
+    const scheduleRiderLookup = (payload) => {
+        if (lookupTimerRef.current) clearTimeout(lookupTimerRef.current);
+        lookupTimerRef.current = setTimeout(() => lookupRider(payload), 400);
     };
 
     const handlePhoneChange = (phone, country) => {
@@ -161,6 +244,38 @@ const AddOfflineLead = () => {
             : phone;
         if (localMobile || customerEmail?.trim()) {
             setErrors((prev) => ({ ...prev, customerMobile: '', customerEmail: '' }));
+        }
+        if (localMobile.length >= MIN_MOBILE_DIGITS) {
+            scheduleRiderLookup({ mobile: localMobile, email: customerEmail });
+        } else {
+            lastLookupKeyRef.current = '';
+        }
+    };
+
+    const handlePhoneBlur = () => {
+        const localMobile = getLocalMobile();
+        if (localMobile.length >= MIN_MOBILE_DIGITS) {
+            lookupRider({ mobile: localMobile, email: customerEmail });
+        }
+    };
+
+    const handleEmailChange = (e) => {
+        const value = e.target.value;
+        setCustomerEmail(value);
+        if (value.trim() || getLocalMobile()) {
+            setErrors((prev) => ({ ...prev, customerEmail: '', customerMobile: '' }));
+        }
+        if (isValidEmailFormat(value)) {
+            scheduleRiderLookup({ mobile: getLocalMobile(), email: value.trim() });
+        } else {
+            lastLookupKeyRef.current = '';
+        }
+    };
+
+    const handleEmailBlur = () => {
+        const email = customerEmail.trim();
+        if (isValidEmailFormat(email)) {
+            lookupRider({ mobile: getLocalMobile(), email });
         }
     };
 
@@ -370,6 +485,7 @@ const AddOfflineLead = () => {
                                 country="ae"
                                 value={phoneValue}
                                 onChange={handlePhoneChange}
+                                onBlur={handlePhoneBlur}
                                 enableSearch={true}
                                 countryCodeEditable={false}
                                 containerClass={styles.phoneInputContainer}
@@ -392,12 +508,8 @@ const AddOfflineLead = () => {
                                 placeholder="Email ID"
                                 className={styles.inputField}
                                 value={customerEmail}
-                                onChange={(e) => {
-                                    setCustomerEmail(e.target.value);
-                                    if (e.target.value.trim() || getLocalMobile()) {
-                                        setErrors((prev) => ({ ...prev, customerEmail: '', customerMobile: '' }));
-                                    }
-                                }}
+                                onChange={handleEmailChange}
+                                onBlur={handleEmailBlur}
                             />
                             {errors.customerEmail && <p className={styles.error}>{errors.customerEmail}</p>}
                         </div>
