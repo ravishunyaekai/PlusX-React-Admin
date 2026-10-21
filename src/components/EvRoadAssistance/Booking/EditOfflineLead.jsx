@@ -386,8 +386,8 @@ const EditOfflineLead = () => {
         const localMobile = phone.startsWith(country.dialCode)
             ? phone.slice(country.dialCode.length)
             : phone;
-        if (localMobile) {
-            setErrors((prev) => ({ ...prev, customerMobile: '' }));
+        if (localMobile || (isBookingNotCompleted && customerEmail?.trim())) {
+            setErrors((prev) => ({ ...prev, customerMobile: '', customerEmail: '' }));
         }
         if (isBookingNotCompleted && localMobile.length >= MIN_MOBILE_DIGITS) {
             scheduleRiderLookup({ mobile: localMobile, email: customerEmail });
@@ -406,7 +406,11 @@ const EditOfflineLead = () => {
     const handleEmailChange = (e) => {
         const value = e.target.value;
         setCustomerEmail(value);
-        setErrors((prev) => ({ ...prev, customerEmail: '' }));
+        if (value.trim() || (isBookingNotCompleted && getLocalMobile())) {
+            setErrors((prev) => ({ ...prev, customerEmail: '', customerMobile: '' }));
+        } else if (value.trim()) {
+            setErrors((prev) => ({ ...prev, customerEmail: '' }));
+        }
         if (isBookingNotCompleted && isValidEmailFormat(value)) {
             scheduleRiderLookup({ mobile: getLocalMobile(), email: value.trim() });
         } else if (isBookingNotCompleted) {
@@ -440,8 +444,26 @@ const EditOfflineLead = () => {
         setExistingProofUrl('');
     };
 
+    const shouldSaveAsCompleted = () => !isBookingNotCompleted || bookingStatus?.value === 'PU';
+
     const validateForm = () => {
         const localMobile = getLocalMobile();
+
+        if (isBookingNotCompleted && bookingStatus?.value !== 'PU' && bookingStatus?.value !== 'C') {
+            const newErrors = {};
+            const hasMobile = Boolean(localMobile);
+            const hasEmail  = Boolean(customerEmail?.trim());
+            if (!hasMobile && !hasEmail) {
+                newErrors.customerMobile = "Please enter Phone Number or Email ID.";
+                newErrors.customerEmail  = "Please enter Phone Number or Email ID.";
+            }
+            if (locationLink.trim() && !isValidLocationUrl(locationLink)) {
+                newErrors.locationLink = 'Please enter a valid URL.';
+            }
+            setErrors(newErrors);
+            return Object.keys(newErrors).length === 0;
+        }
+
         const fields = [
             { name : "customerName",       value : customerName,       errorMessage : "Customer Name is required." },
             { name : "customerMobile",     value : localMobile,        errorMessage : "Phone Number is required." },
@@ -512,42 +534,86 @@ const EditOfflineLead = () => {
 
         if (validateForm()) {
             const formData = new FormData();
+            const appendIfSet = (key, value) => {
+                if (value !== undefined && value !== null && value !== '') {
+                    formData.append(key, value);
+                }
+            };
             formData.append("userId", userDetails?.user_id);
             formData.append("email", userDetails?.email);
             formData.append("request_id", requestId);
+            formData.append("is_booking_completed", shouldSaveAsCompleted() ? 'Yes' : 'No');
 
-            formData.append("customer_name", customerName);
-            formData.append("mobile_no", getLocalMobile());
-            formData.append("email_id", customerEmail);
-            formData.append("emirates", emirates?.value);
-            formData.append("booking_date", bookingDate);
-            formData.append("country_code", phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971');
-            formData.append("location_link", locationLink);
-            formData.append("address", customerAddress);
-            formData.append("price", price);
+            if (!shouldSaveAsCompleted()) {
+                appendIfSet("customer_name", customerName);
+                appendIfSet("mobile_no", getLocalMobile());
+                appendIfSet("email_id", customerEmail);
+                appendIfSet("emirates", emirates?.value);
+                appendIfSet("booking_date", bookingDate);
+                formData.append("country_code", phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971');
+                appendIfSet("location_link", locationLink);
+                appendIfSet("address", customerAddress);
+                appendIfSet("price", price);
 
-            formData.append("vehicle_make", vehicleMake?.value);
-            formData.append("vehicle_model", vehicleModel?.value);
-            formData.append("battery_level", batteryLevel?.value);
-            formData.append("jump_start_required", jumpStart?.value);
+                appendIfSet("vehicle_make", vehicleMake?.value);
+                appendIfSet("vehicle_model", vehicleModel?.value);
+                appendIfSet("battery_level", batteryLevel?.value);
+                appendIfSet("jump_start_required", jumpStart?.value);
+                appendIfSet("booking_status", bookingStatus?.value);
 
-            formData.append("booking_status", bookingStatus?.value);
+                if (bookingStatus?.value === 'C') {
+                    appendIfSet("cancellation_remarks", cancellationRemarks);
+                } else {
+                    appendIfSet("mode_of_payment", modeOfPayment?.value);
+                    if (modeOfPayment) {
+                        formData.append("payment_status", 'Paid');
+                    }
+                    appendIfSet("booking_completed_by", bookingCompletedBy?.value);
+                    appendIfSet("driver_name", bookingCompletedBy?.value);
+                    appendIfSet("rsa_id", bookingCompletedBy?.rsa_id);
 
-            if (bookingStatus?.value === 'C') {
-                formData.append("cancellation_remarks", cancellationRemarks);
-            } else {
-                formData.append("mode_of_payment", modeOfPayment?.value);
-                formData.append("payment_status", 'Paid');
-                formData.append("booking_completed_by", bookingCompletedBy?.value);
-                formData.append("driver_name", bookingCompletedBy?.value);
-                formData.append("rsa_id", bookingCompletedBy?.rsa_id);
+                    if (bookingStatus?.value === 'PU' && bookingCompletedDate) {
+                        formData.append("booking_completed_date", bookingCompletedDate);
+                    }
 
-                if (bookingStatus?.value === 'PU' && bookingCompletedDate) {
-                    formData.append("booking_completed_date", bookingCompletedDate);
+                    if (proofOfTransaction && typeof proofOfTransaction !== 'string') {
+                        formData.append("proof_of_transaction", proofOfTransaction);
+                    }
                 }
+            } else {
+                formData.append("customer_name", customerName);
+                formData.append("mobile_no", getLocalMobile());
+                formData.append("email_id", customerEmail);
+                formData.append("emirates", emirates?.value);
+                formData.append("booking_date", bookingDate);
+                formData.append("country_code", phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971');
+                formData.append("location_link", locationLink);
+                formData.append("address", customerAddress);
+                formData.append("price", price);
 
-                if (proofOfTransaction && typeof proofOfTransaction !== 'string') {
-                    formData.append("proof_of_transaction", proofOfTransaction);
+                formData.append("vehicle_make", vehicleMake?.value);
+                formData.append("vehicle_model", vehicleModel?.value);
+                formData.append("battery_level", batteryLevel?.value);
+                formData.append("jump_start_required", jumpStart?.value);
+
+                formData.append("booking_status", bookingStatus?.value);
+
+                if (bookingStatus?.value === 'C') {
+                    formData.append("cancellation_remarks", cancellationRemarks);
+                } else {
+                    formData.append("mode_of_payment", modeOfPayment?.value);
+                    formData.append("payment_status", 'Paid');
+                    formData.append("booking_completed_by", bookingCompletedBy?.value);
+                    formData.append("driver_name", bookingCompletedBy?.value);
+                    formData.append("rsa_id", bookingCompletedBy?.rsa_id);
+
+                    if (bookingStatus?.value === 'PU' && bookingCompletedDate) {
+                        formData.append("booking_completed_date", bookingCompletedDate);
+                    }
+
+                    if (proofOfTransaction && typeof proofOfTransaction !== 'string') {
+                        formData.append("proof_of_transaction", proofOfTransaction);
+                    }
                 }
             }
 
@@ -885,9 +951,14 @@ const EditOfflineLead = () => {
                                 placeholder="Enter Cancellation Remarks"
                                 className={styles.textAreaField}
                                 value={cancellationRemarks}
-                                onChange={(e) => setCancellationRemarks(e.target.value)}
+                                onChange={(e) => {
+                                    setCancellationRemarks(e.target.value);
+                                    if (e.target.value.trim()) {
+                                        setErrors((prev) => ({ ...prev, cancellationRemarks: '' }));
+                                    }
+                                }}
                             />
-                            {errors.cancellationRemarks && !cancellationRemarks && (
+                            {errors.cancellationRemarks && !cancellationRemarks.trim() && (
                                 <p className={styles.error}>{errors.cancellationRemarks}</p>
                             )}
                         </div>

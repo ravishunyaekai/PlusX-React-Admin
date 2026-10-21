@@ -85,6 +85,7 @@ const OfflineLeadsBookingDetails = () => {
         podName         : bookingDetails?.pod_name,
         customerName    : bookingDetails?.name || bookingDetails?.customer_name,
         customerContact : `${bookingDetails?.country_code || ''} ${bookingDetails?.contact_no || bookingDetails?.mobile_no || ''}`.trim(),
+        customerEmail   : bookingDetails?.email || bookingDetails?.email_id || '',
         imageUrl        : bookingDetails?.imageUrl,
         cancelled_by    : bookingDetails?.cancelled_by,
     };
