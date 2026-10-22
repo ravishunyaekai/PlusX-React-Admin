@@ -442,7 +442,9 @@ const EditResidents = () => {
                                 onChange={handlePhoneChange}
                                 enableSearch={true}
                                 countryCodeEditable={false}
-                                containerClass={styles.phoneInputContainer}
+                                disabled
+                                disableDropdown
+                                containerClass={`${styles.phoneInputContainer} ${styles.phoneInputLocked}`}
                                 inputClass={styles.phoneInputField}
                                 buttonClass={styles.phoneInputButton}
                                 dropdownClass={styles.phoneInputDropdown}
@@ -460,10 +462,8 @@ const EditResidents = () => {
                                 autoComplete='off'
                                 placeholder="Email ID"
                                 value={email}
-                                onChange={(e) => {
-                                    setEmail(e.target.value.slice(0, 50));
-                                    setErrors((prev) => ({ ...prev, email: '' }));
-                                }}
+                                disabled
+                                readOnly
                             />
                             {errors.email && <p className="error" style={{ color: 'red' }}>{errors.email}</p>}
                         </div>

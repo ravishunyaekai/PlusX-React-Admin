@@ -135,6 +135,7 @@ const EditOfflineLead = () => {
     const [cancellationRemarks, setCancellationRemarks]       = useState('');
     const [driverMatch, setDriverMatch]                       = useState({ rsa_id: null, name: null });
     const [isBookingNotCompleted, setIsBookingNotCompleted]   = useState(false);
+    const [lockedContact, setLockedContact]                   = useState({ mobile: false, email: false });
 
     const formValuesRef              = useRef({});
     const lastLookupKeyRef           = useRef('');
@@ -218,8 +219,11 @@ const EditOfflineLead = () => {
                 setIsBookingNotCompleted(
                     String(data.is_booking_completed || 'Yes').trim().toLowerCase() === 'no'
                 );
+                const savedEmail = String(data.email || data.email_id || '').trim();
+                const savedMobile = String(data.mobile_no || data.contact_no || '').trim();
                 setCustomerName(data.customer_name || data.name || '');
-                setCustomerEmail(data.email || data.email_id || '');
+                setCustomerEmail(savedEmail);
+                setLockedContact({ mobile: Boolean(savedMobile), email: Boolean(savedEmail) });
                 setEmirates(
                     emiratesOption.find((option) => option.value === (data.emirates || data.emirate)) || null
                 );
@@ -229,8 +233,8 @@ const EditOfflineLead = () => {
                 setPrice(data.price != null ? String(data.price) : '');
 
                 const dialCode = String(data.country_code || '+971').replace('+', '');
-                const mobileNo = data.mobile_no || data.contact_no || '';
-                setPhoneValue(`${dialCode}${mobileNo}`);
+                const mobileNo = savedMobile;
+                setPhoneValue(mobileNo ? `${dialCode}${mobileNo}` : '');
                 setPhoneCountry({ dialCode, countryCode: 'ae' });
 
                 setBatteryLevel(
@@ -406,10 +410,8 @@ const EditOfflineLead = () => {
     const handleEmailChange = (e) => {
         const value = e.target.value;
         setCustomerEmail(value);
-        if (value.trim() || (isBookingNotCompleted && getLocalMobile())) {
+        if (value.trim() || getLocalMobile()) {
             setErrors((prev) => ({ ...prev, customerEmail: '', customerMobile: '' }));
-        } else if (value.trim()) {
-            setErrors((prev) => ({ ...prev, customerEmail: '' }));
         }
         if (isBookingNotCompleted && isValidEmailFormat(value)) {
             scheduleRiderLookup({ mobile: getLocalMobile(), email: value.trim() });
@@ -419,9 +421,9 @@ const EditOfflineLead = () => {
     };
 
     const handleEmailBlur = () => {
-        const email = customerEmail.trim();
-        if (isValidEmailFormat(email)) {
-            lookupRider({ mobile: getLocalMobile(), email });
+        const emailId = customerEmail.trim();
+        if (isValidEmailFormat(emailId)) {
+            lookupRider({ mobile: getLocalMobile(), email: emailId });
         }
     };
 
@@ -677,7 +679,9 @@ const EditOfflineLead = () => {
                                 onBlur={handlePhoneBlur}
                                 enableSearch={true}
                                 countryCodeEditable={false}
-                                containerClass={styles.phoneInputContainer}
+                                disabled={lockedContact.mobile}
+                                disableDropdown={lockedContact.mobile}
+                                containerClass={`${styles.phoneInputContainer} ${lockedContact.mobile ? styles.phoneInputLocked : ''}`}
                                 inputClass={styles.phoneInputField}
                                 buttonClass={styles.phoneInputButton}
                                 dropdownClass={styles.phoneInputDropdown}
@@ -699,6 +703,8 @@ const EditOfflineLead = () => {
                                 value={customerEmail}
                                 onChange={handleEmailChange}
                                 onBlur={handleEmailBlur}
+                                disabled={lockedContact.email}
+                                readOnly={lockedContact.email}
                             />
                             {errors.customerEmail && <p className={styles.error}>{errors.customerEmail}</p>}
                         </div>

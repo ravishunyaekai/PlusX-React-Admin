@@ -35,6 +35,11 @@ const emiratesOptions = [
     { value: 'Umm Al Quwain',  label: 'Umm Al Quwain' },
 ];
 
+const MIN_MOBILE_DIGITS = 9;
+const EMAIL_REGEX = /\S+@\S+\.\S+/;
+
+const isValidEmailFormat = (value) => EMAIL_REGEX.test(String(value || '').trim());
+
 const selectMenuStyles = {
     menuPortal: (base) => ({ ...base, zIndex: 9999 }),
     menu: (base) => ({
@@ -94,6 +99,10 @@ const AddResidents = () => {
     const [extraCharge, setExtraCharge]             = useState('');
 
     const serviceDropdownRef                      = useRef(null);
+    const formValuesRef                           = useRef({});
+    const lastLookupKeyRef                        = useRef('');
+    const lookupTimerRef                          = useRef(null);
+    const lookupSeqRef                            = useRef(0);
     // SINGLE-SELECT COMMUNITY (old):
     // const [communityOptions, setCommunityOptions] = useState('');
     // MULTI-SELECT COMMUNITY (new): dropdown options from all-community-list API
@@ -118,17 +127,127 @@ const AddResidents = () => {
         }
     };
 
-    const getLocalMobile = () => {
-        if (!phoneValue || !phoneCountry?.dialCode) return '';
-        return phoneValue.startsWith(phoneCountry.dialCode)
-            ? phoneValue.slice(phoneCountry.dialCode.length)
-            : phoneValue;
+    useEffect(() => {
+        formValuesRef.current = { residentName, email, emirates, phoneValue, phoneCountry };
+    }, [residentName, email, emirates, phoneValue, phoneCountry]);
+
+    useEffect(() => () => {
+        if (lookupTimerRef.current) clearTimeout(lookupTimerRef.current);
+    }, []);
+
+    const getLocalMobile = (phone = phoneValue, country = phoneCountry) => {
+        if (!phone || !country?.dialCode) return '';
+        return phone.startsWith(country.dialCode)
+            ? phone.slice(country.dialCode.length)
+            : phone;
+    };
+
+    const applyRiderLookupData = (rider) => {
+        if (!rider) return;
+        const current = formValuesRef.current;
+        const cleared = {};
+
+        const name = rider.resident_name || '';
+        if (!String(current.residentName || '').trim() && name) {
+            setResidentName(name);
+            cleared.residentName = '';
+        }
+
+        const emailValue = rider.resident_email || '';
+        if (!String(current.email || '').trim() && emailValue) {
+            setEmail(emailValue);
+            cleared.email = '';
+        }
+
+        const emirateValue = String(rider.emirates || '').trim();
+        if (!current.emirates && emirateValue) {
+            const match = emiratesOptions.find((option) => (
+                option.value.toLowerCase() === emirateValue.toLowerCase()
+                || option.label.toLowerCase() === emirateValue.toLowerCase()
+            ));
+            if (match) {
+                setEmirates(match);
+                cleared.emirates = '';
+            }
+        }
+
+        const localMobile = getLocalMobile(current.phoneValue, current.phoneCountry);
+        if (!localMobile && rider.mobile_number) {
+            const riderDial = String(rider.country_code || '+971').replace(/\D/g, '') || '971';
+            setPhoneValue(`${riderDial}${rider.mobile_number}`);
+            setPhoneCountry((prev) => ({ ...prev, dialCode: riderDial }));
+            cleared.mobileNo = '';
+        }
+
+        if (Object.keys(cleared).length > 0) {
+            setErrors((prev) => ({ ...prev, ...cleared }));
+        }
+    };
+
+    const lookupResident = ({ mobile, residentEmail }) => {
+        const mobileNo = String(mobile || '').trim();
+        const emailId  = String(residentEmail || '').trim();
+        const hasMobile = mobileNo.length >= MIN_MOBILE_DIGITS;
+        const hasEmail  = isValidEmailFormat(emailId);
+        if (!hasMobile && !hasEmail) return;
+
+        const key = `${hasMobile ? mobileNo : ''}|${hasEmail ? emailId.toLowerCase() : ''}`;
+        if (key === lastLookupKeyRef.current) return;
+        lastLookupKeyRef.current = key;
+
+        const seq = ++lookupSeqRef.current;
+        const payload = {
+            userId : userDetails?.user_id,
+            email  : userDetails?.email,
+        };
+        if (hasMobile) payload.mobile_number = mobileNo;
+        if (hasEmail) payload.resident_email = emailId;
+
+        postRequestWithToken('resident-rider-lookup', payload, (response) => {
+            if (seq !== lookupSeqRef.current) return;
+            if (response.code === 200 && Number(response.found) === 1 && response.data) {
+                applyRiderLookupData(response.data);
+            }
+        });
+    };
+
+    const scheduleResidentLookup = (payload) => {
+        if (lookupTimerRef.current) clearTimeout(lookupTimerRef.current);
+        lookupTimerRef.current = setTimeout(() => lookupResident(payload), 400);
     };
 
     const handlePhoneChange = (phone, country) => {
         setPhoneValue(phone);
         setPhoneCountry(country);
         setErrors((prev) => ({ ...prev, mobileNo: '' }));
+
+        const localMobile = getLocalMobile(phone, country);
+        if (localMobile.length >= MIN_MOBILE_DIGITS || isValidEmailFormat(email)) {
+            scheduleResidentLookup({ mobile: localMobile, residentEmail: email });
+        } else {
+            lastLookupKeyRef.current = '';
+            lookupSeqRef.current += 1;
+        }
+    };
+
+    const handlePhoneBlur = () => {
+        lookupResident({ mobile: getLocalMobile(), residentEmail: email });
+    };
+
+    const handleEmailChange = (e) => {
+        const value = e.target.value.slice(0, 50);
+        setEmail(value);
+        setErrors((prev) => ({ ...prev, email: '' }));
+
+        if (isValidEmailFormat(value) || getLocalMobile().length >= MIN_MOBILE_DIGITS) {
+            scheduleResidentLookup({ mobile: getLocalMobile(), residentEmail: value });
+        } else {
+            lastLookupKeyRef.current = '';
+        }
+    };
+
+    const handleEmailBlur = () => {
+        lookupResident({ mobile: getLocalMobile(), residentEmail: email });
     };
 
     const handleDecimalInput = (value, setter) => {
@@ -363,6 +482,7 @@ const AddResidents = () => {
                                 country="ae"
                                 value={phoneValue}
                                 onChange={handlePhoneChange}
+                                onBlur={handlePhoneBlur}
                                 enableSearch={true}
                                 countryCodeEditable={false}
                                 containerClass={styles.phoneInputContainer}
@@ -383,10 +503,8 @@ const AddResidents = () => {
                                 autoComplete='off'
                                 placeholder="Email ID"
                                 value={email}
-                                onChange={(e) => {
-                                    setEmail(e.target.value.slice(0, 50));
-                                    setErrors((prev) => ({ ...prev, email: '' }));
-                                }}
+                                onChange={handleEmailChange}
+                                onBlur={handleEmailBlur}
                             />
                             {errors.email && <p className="error" style={{ color: 'red' }}>{errors.email}</p>}
                         </div>
