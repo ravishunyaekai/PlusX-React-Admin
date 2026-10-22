@@ -67,6 +67,22 @@
   font-size: 16px;
   width: 100%;
 }
+.passwordContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.passwordContainer .inputField {
+  padding-right: 44px;
+}
+.eyeIcon {
+  position: absolute;
+  right: 12px;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
 .editButton {
   width: 100%;
   display: flex;

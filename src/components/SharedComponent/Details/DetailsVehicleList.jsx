@@ -21,7 +21,7 @@ const DetailsVehicleList = ({ vehicleList }) => {
     return (
         <div className={styles.addressListContainer}>
             <span className={styles.sectionTitle}>Vehicle List</span>
-            <table className={`table ${styles.customTable}`}>
+            <table className={`table ${styles.customTable} ${styles.vehicleListTable}`}>
                 <thead>
                     <tr>
                         <th>Vehicle Type</th>
@@ -35,20 +35,20 @@ const DetailsVehicleList = ({ vehicleList }) => {
                 </thead>
                 <tbody>
                 {currentItems && currentItems.length > 0 ? (
-                    currentItems?.map((vehicle, index) => (
+                    currentItems.map((vehicle, index) => (
                         <tr key={index}>
-                            <td>{vehicle.vehicle_type}</td>
-                            <td>{vehicle.vehicle_code}</td>
-                            <td>{vehicle.vehicle_number}</td>
-                            <td>{vehicle.vehicle_make}</td>
-                            <td>{vehicle.vehicle_model}</td>                           
-                            <td>{vehicle.vehicle_specification}</td>
-                            <td>{vehicle.emirates}</td>
+                            <td>{vehicle.vehicle_type || '-'}</td>
+                            <td>{vehicle.vehicle_code || '-'}</td>
+                            <td>{vehicle.vehicle_number || '-'}</td>
+                            <td>{vehicle.vehicle_make || '-'}</td>
+                            <td>{vehicle.vehicle_model || '-'}</td>
+                            <td>{vehicle.vehicle_specification || '-'}</td>
+                            <td>{vehicle.emirates || vehicle.vehicle_emirates || '-'}</td>
                         </tr>
                      ))
                     ) : (
                         <tr>
-                            <td colSpan="12" className={styles.noData}>No Data Available</td>
+                            <td colSpan="7" className={styles.noData}>No Data Available</td>
                         </tr>
                     )}
                 </tbody>

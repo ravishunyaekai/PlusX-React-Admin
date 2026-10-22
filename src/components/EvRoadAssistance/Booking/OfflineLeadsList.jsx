@@ -9,6 +9,7 @@ import Edit from '../../../assets/images/Pen.svg';
 import { useNavigate } from 'react-router-dom';
 import Loader from "../../SharedComponent/Loader/Loader";
 import EmptyList from "../../SharedComponent/EmptyList/EmptyList";
+import modalStyles from '../../SharedComponent/CustomModal/custommodal.module.css';
 
     const statusMapping = {
         'CNF' : 'Booking Confirmed',
@@ -55,6 +56,7 @@ const OfflineLeadsList = () => {
     const [loading, setLoading]                     = useState(false);
     const [rowOptions, setRowOptions]    = useState([10, 25, 50, 100]);
     const [rowSelected, setARowSelected] = useState(10);
+    const [showCompletedPopup, setShowCompletedPopup] = useState(false);
 
     const handleOfflineLeadDetails = (id) => navigate(`/ev-road-assistance/offline-leads-details/${id}`)
     const handleEditOfflineLead = (id) => navigate(`/ev-road-assistance/edit-offline-lead/${id}`)
@@ -110,7 +112,11 @@ const OfflineLeadsList = () => {
     };
     const addButtonProps = {
         heading : "Add New Booking",
-        link    : "/ev-road-assistance/add-offline-lead"
+        onClick : () => setShowCompletedPopup(true),
+    };
+    const handleBookingCompletedChoice = (isCompleted) => {
+        setShowCompletedPopup(false);
+        navigate(`/ev-road-assistance/add-offline-lead?completed=${isCompleted ? 'yes' : 'no'}`);
     };
     return (
         <div className='main-container'>
@@ -128,6 +134,22 @@ const OfflineLeadsList = () => {
                 handleRowperPagePage = {handleRowperPagePage}
                 count                = {totalCount}
             />
+
+            {showCompletedPopup && (
+                <div className={modalStyles.modalBackdrop} onClick={() => setShowCompletedPopup(false)}>
+                    <div className={modalStyles.modal} onClick={(e) => e.stopPropagation()}>
+                        <div className={modalStyles.modalHead}>Is booking completed?</div>
+                        <div className={modalStyles.modalActions}>
+                            <button className={modalStyles.closeBtn} onClick={() => handleBookingCompletedChoice(false)}>
+                                No
+                            </button>
+                            <button className={modalStyles.assignBtn} onClick={() => handleBookingCompletedChoice(true)}>
+                                Yes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {loading ? <Loader /> :          
                 offlineLeadsList.length === 0 ? (

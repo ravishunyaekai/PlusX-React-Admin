@@ -64,6 +64,11 @@
   font-size: 16px;
   width: 100%;
 }
+.inputField:disabled {
+  cursor: not-allowed;
+  -webkit-text-fill-color: #ffffff;
+  opacity: 0.8;
+}
 .featureDivision {
   position: relative;
 }
@@ -549,6 +554,17 @@
   width: 100%;
 }
 
+.phoneInputLocked :global(input:disabled) {
+  cursor: not-allowed !important;
+  -webkit-text-fill-color: #ffffff;
+  opacity: 1;
+}
+
+.phoneInputLocked :global(.flag-dropdown) {
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
 .phoneInputContainer :global(.react-tel-input) {
   width: 100%;
 }
@@ -602,5 +618,154 @@
   color: #ffffff !important;
   border: 1px solid #00ffc3 !important;
 }
- 
+
+.addShopSelect {
+  width: 100%;
+}
+
+.addShopSelect :global([class*="-control"]) {
+  background-color: #242424 !important;
+  border: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  min-height: 54px !important;
+  height: 54px !important;
+  padding: 10px !important;
+  box-sizing: border-box !important;
+}
+
+.addShopSelect :global([class*="-control"]:hover) {
+  background-color: #242424 !important;
+  border-color: transparent !important;
+}
+
+.addShopSelect :global([class*="-ValueContainer"]) {
+  padding: 0px !important;
+  height: 100% !important;
+}
+
+.addShopSelect :global([class*="-IndicatorsContainer"]) {
+  height: 100% !important;
+}
+
+.addShopSelect :global([class*="-indicatorSeparator"]) {
+  background-color: hsl(0, 0%, 80%) !important;
+}
+
+.addShopSelect :global([class*="-placeholder"]) {
+  color: #9a9a9a !important;
+}
+
+.addShopSelect :global([class*="-singleValue"]) {
+  color: #ffffff !important;
+}
+
+.addShopSelect :global([class*="-indicatorContainer"]) {
+  color: #ffffff !important;
+  padding: 0 8px !important;
+}
+
+.addShopSelect :global([class*="-Input"]) input {
+  color: #ffffff !important;
+}
+
+.addShopSelect :global([class*="-menu"]) {
+  background-color: #242424 !important;
+  border: 1px solid #3a3a3a !important;
+  z-index: 20 !important;
+}
+
+.addShopSelect :global([class*="-MenuList"]) {
+  background-color: #242424 !important;
+  padding: 0 !important;
+}
+
+.addShopSelect :global([class*="-option"]) {
+  background-color: #242424 !important;
+  color: #ffffff !important;
+}
+
+.addShopSelect :global([class*="-option"]:hover),
+.addShopSelect :global([class*="-option"][class*="-option--is-focused"]) {
+  background-color: #333333 !important;
+}
+
+.addShopSelect :global([class*="-option"][class*="-option--is-selected"]) {
+  background-color: #00ffc3 !important;
+  color: #000000 !important;
+}
+
+.vehicleSpecField {
+  display: flex;
+  width: 100%;
+  background-color: #242424;
+  border-radius: 6px;
+  overflow: visible;
+  min-height: 54px;
+}
+
+.vehicleSpecEmirates {
+  flex: 0 0 110px;
+  width: 110px;
+  min-width: 110px;
+  max-width: 110px;
+  border-right: 1px solid #3a3a3a;
+  position: relative;
+  z-index: 1;
+}
+
+.vehicleSpecEmirates :global([class*="-control"]) {
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  min-height: 54px !important;
+  height: 54px !important;
+  padding: 4px 2px !important;
+}
+
+.vehicleSpecEmirates :global([class*="-ValueContainer"]) {
+  padding: 0 2px !important;
+}
+
+.vehicleSpecEmirates :global([class*="-IndicatorsContainer"]) {
+  padding: 0 !important;
+}
+
+.vehicleSpecEmirates :global([class*="-indicatorContainer"]) {
+  padding: 0 2px !important;
+}
+
+.vehicleSpecEmirates :global([class*="-indicatorSeparator"]) {
+  display: none !important;
+}
+
+.vehicleSpecPlate {
+  flex: 1;
+  display: flex;
+  min-width: 0;
+}
+
+.vehicleSpecInput {
+  flex: 1;
+  outline: none;
+  background-color: transparent;
+  border: none;
+  border-right: 1px solid #3a3a3a;
+  padding: 16px 10px;
+  color: #ffffff;
+  font-size: 16px;
+  width: 100%;
+  min-width: 0;
+}
+
+.vehicleSpecInput:last-child {
+  border-right: none;
+}
+
+.vehicleSpecInput::placeholder {
+  color: #9a9a9a;
+}
+
  

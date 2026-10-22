@@ -43,7 +43,7 @@ const BookingDetailsHeader = ({ content, titles, sectionContent1, type, deviceBa
                                 <span className={styles.infoHeading}>{titles.customerDetailsTitle}</span>
                                 <span className={styles.infoHeadText}>{content.customerName}</span>
                                 <span className={styles.infoText}>{content.customerContact}</span>
-                                {type === 'inquiryTracking' && content.customerEmail && (
+                                {content.customerEmail && (
                                     <span className={styles.infoText}>{content.customerEmail}</span>
                                 )}
                                 { type === 'portableChargerBooking' && 

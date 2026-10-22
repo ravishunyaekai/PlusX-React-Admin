@@ -173,6 +173,17 @@
   width: 100%;
 }
 
+.phoneInputLocked :global(input:disabled) {
+  cursor: not-allowed !important;
+  -webkit-text-fill-color: #ffffff;
+  opacity: 1;
+}
+
+.phoneInputLocked :global(.flag-dropdown) {
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
 .phoneInputContainer :global(.react-tel-input) {
   width: 100%;
 }

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import styles from './addemergency.module.css';
 import Select from "react-select";
 import { AiOutlineClose, AiOutlineDown, AiOutlineUp } from 'react-icons/ai';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import UploadIcon from '../../assets/images/uploadicon.svg';
 import { postRequestWithToken, postRequestWithTokenAndFile } from '../../api/Requests';
 import { toast, ToastContainer } from "react-toastify";
@@ -26,6 +27,8 @@ const EditEmergencyTeam = () => {
     const [serviceType, setServiceType]         = useState(null);
     const [password, setPassword]               = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [showPassword, setShowPassword]       = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [errors, setErrors]                   = useState({});
     const [loading, setLoading]                 = useState(false);
 
@@ -293,28 +296,46 @@ const EditEmergencyTeam = () => {
                     <div className={styles.row}>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Password</label>
-                            <input
-                                className={styles.inputField}
-                                type="password"
-                                autoComplete='off'
-                                placeholder="Password"
-                                value={password}
-                                maxlength="12"
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
+                            <div className={styles.passwordContainer}>
+                                <input
+                                    className={styles.inputField}
+                                    type={showPassword ? "text" : "password"}
+                                    autoComplete='off'
+                                    placeholder="Password"
+                                    value={password}
+                                    maxlength="12"
+                                    onChange={(e) => setPassword(e.target.value)}
+                                />
+                                <div
+                                    className={styles.eyeIcon}
+                                    onClick={() => setShowPassword((prev) => !prev)}
+                                    style={{ color: showPassword ? '#00ffc3' : '#fff' }}
+                                >
+                                    {showPassword ? <FaEye /> : <FaEyeSlash />}
+                                </div>
+                            </div>
                             {errors.password && password.length < 6 && <p className="error">{errors.password}</p>}
                         </div>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Confirm Password</label>
-                            <input
-                                className={styles.inputField}
-                                type="password"
-                                autoComplete='off'
-                                placeholder="Confirm Password"
-                                value={confirmPassword}
-                                maxlength="12"
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                            />
+                            <div className={styles.passwordContainer}>
+                                <input
+                                    className={styles.inputField}
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    autoComplete='off'
+                                    placeholder="Confirm Password"
+                                    value={confirmPassword}
+                                    maxlength="12"
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                />
+                                <div
+                                    className={styles.eyeIcon}
+                                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                                    style={{ color: showConfirmPassword ? '#00ffc3' : '#fff' }}
+                                >
+                                    {showConfirmPassword ? <FaEye /> : <FaEyeSlash />}
+                                </div>
+                            </div>
                             {errors.confirmPassword &&  confirmPassword != password && <p className="error">{errors.confirmPassword}</p>}
                         </div>
                     </div>
