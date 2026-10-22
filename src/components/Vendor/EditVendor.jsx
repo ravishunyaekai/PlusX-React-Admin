@@ -218,7 +218,7 @@ const EditCommunity = () => {
                                     type="text"
                                     autoComplete="off"
                                     id="packagePrice"
-                                    placeholder="Package Price"
+                                    placeholder="Package Price In AED"
                                     className={styles.inputField}
                                     value={packagePrice}
                                     onChange={(e) => {
@@ -234,7 +234,7 @@ const EditCommunity = () => {
                     </div>
                     <div className={styles.formSectionBlock}>
                         <div className={styles.formSectionHeading}>
-                            Service Package ( Include For This Vendor )
+                            Service Package
                         </div>
                         <div className={styles.row}>
                             <div className={styles.addShopInputContainer}>

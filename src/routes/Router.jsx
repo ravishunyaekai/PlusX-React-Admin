@@ -1059,10 +1059,10 @@ const router = createBrowserRouter([
                         path: "add-customer",
                         element: <AddCustomer />,
                     }, {
-                        path: "customer-details/:vendorId",
+                        path: "customer-details/:customerId",
                         element: <CustomerDetails />,
                     }, {
-                        path: "customer-edit/:vendorId",
+                        path: "customer-edit/:customerId",
                         element: <EditCustomer />,
                     }, 
                 ],

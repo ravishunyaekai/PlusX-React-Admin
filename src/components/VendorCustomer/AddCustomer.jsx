@@ -22,11 +22,12 @@ const AddCustomer = () => {
     const [phoneValue, setPhoneValue]     = useState('');
     const [phoneCountry, setPhoneCountry] = useState({ dialCode: '971', countryCode: 'ae' });
     const [email, setEmail]               = useState("");
-    const [emirate,   setEmirate]         = useState("");
+    const [emirate,   setEmirate]         = useState('');
     
     const [eVMake, setEVMake]             = useState('');
     const [eVModel, setEVModel]           = useState('');
     const [purchaseDate, setPurchaseDate] = useState('');
+    const [packageId, setPackageId]       = useState('');
 
     const [podChargingSessionNumber, setPodChargingSessionNumber]     = useState('');
     const [podChargingSessionValidity, setPodChargingSessionValidity] = useState('');
@@ -46,6 +47,7 @@ const AddCustomer = () => {
     ];
     const [vendorOptions, setVendorOptions]     = useState([]);
     const [showroomOptions, setShowroomOptions] = useState([]);
+    const [packageOptions, setPackageOptions]   = useState([]);
 
     const getLocalMobile = () => {
         if (!phoneValue || !phoneCountry?.dialCode) return '';
@@ -59,34 +61,48 @@ const AddCustomer = () => {
     };
     
     const handleCancel = () => {
-        navigate('/community/resident-list')
+        navigate('/vendors/customer-list')
     }
+    
     const validateForm = () => {
         const mobileNo = getLocalMobile();
+
         const fields = [
-            { name: "vendorName",   value: vendorName, errorMessage: "vendor Name is required." },
+            { name: "vendorName", value: vendorName, errorMessage: "Vendor Name is required." },
             { name: "showroomName", value: showroomName, errorMessage: "Showroom Name is required." },
             { name: "customerName", value: customerName, errorMessage: "Customer Name is required." },
 
-            { name: "mobileNo", value: mobileNo, errorMessage: "Please enter a valid Mobile No.", isMobile: 1 },
-            { name: "email",    value: email,    errorMessage: "Please enter a valid Email ID.",  isEmail: 1 },
+            { name: "mobileNo", value: mobileNo, errorMessage: "Please enter a valid Mobile No.", isMobile: true },
+            { name: "email", value: email, errorMessage: "Please enter a valid Email ID.", isEmail: true },
 
-            { name: "emirate",      value: emirate,      errorMessage: "Emirate is required" },
-            { name: "eVMake",       value: eVMake,       errorMessage: "EV Make is required" },
-            { name: "eVModel",      value: eVModel,      errorMessage: "EmirEV Model is required" },
-            { name: "purchaseDate", value: purchaseDate, errorMessage: "Purchase Date is required" },
-
+            { name: "emirate", value: emirate, errorMessage: "Emirate is required." },
+            { name: "eVMake", value: eVMake, errorMessage: "EV Make is required." },
+            { name: "eVModel", value: eVModel, errorMessage: "EV Model is required." },
+            { name: "purchaseDate", value: purchaseDate, errorMessage: "Purchase Date is required." },
+            // { name: "packageId", value: purchaseDate, errorMessage: "Package ID is required." },
+            // { name: "podChargingSessionNumber", value: podChargingSessionNumber, errorMessage: "POD Charging Session No. is required." },
+            // { name: "podChargingSessionValidity", value: podChargingSessionValidity, errorMessage: "Session Expiry Date is required." },
         ];
-        const newErrors = fields.reduce((errors, { name, value, errorMessage, isEmail, isMobile, isArray }) => {
-            if ((isArray && (!value || value.length === 0)) || (!isArray && !value)) {
-                errors[name] = errorMessage;
-            } else if (isEmail && !/\S+@\S+\.\S+/.test(value)) {
-                errors[name] = errorMessage;
-            } else if (isMobile && (isNaN(value) || value.length < 9)) {
-                errors[name] = errorMessage;
-            }
-            return errors;
-        }, {});
+
+        const isEmpty = (value) => value == null || value === undefined ||
+            (typeof value === "string" && value.trim() === "") || (Array.isArray(value) && value.length === 0);
+
+        const newErrors = fields.reduce(
+            (errors, { name, value, errorMessage, isEmail, isMobile, isArray }) => {
+                console.log(name, value,)
+                if (isEmpty(value) || (isArray && !Array.isArray(value))) {
+                    errors[name] = errorMessage;
+                } else if (isEmail && !/\S+@\S+\.\S+/.test(value)) {
+                    errors[name] = errorMessage;
+                } else if ( isMobile &&
+                    (!/^\d+$/.test(String(value).trim()) || String(value).trim().length < 9)
+                ) {
+                    errors[name] = errorMessage;
+                }
+                return errors;
+            },
+            {}
+        );
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -110,6 +126,7 @@ const AddCustomer = () => {
                 ev_make        : eVMake,
                 ev_model       : eVModel,
                 purchase_date  : purchaseDate,
+                package_id     : packageId?.value || "",
 
                 pod_charging_session_number   : podChargingSessionNumber,
                 pod_charging_session_validity : podChargingSessionValidity,    
@@ -149,6 +166,7 @@ const AddCustomer = () => {
         postRequestWithToken('all-vendor-list', obj, (response) => {
             if (response.code === 200) { 
                 setVendorOptions(response.data || []);
+                setPackageOptions(response.packageList || [])
             }
         });
     };
@@ -172,16 +190,33 @@ const AddCustomer = () => {
         fetchVendors();
     }, []);
 
-    const handleVendors = (selectedOption) => {
-        setVendorName(selectedOption);
-        fetchShowrooms(selectedOption.label) 
-    }
-    const handleEmirates = (selectedOption) => {
-        setEmirate(selectedOption);
-    }
-    const handleShowroom = (selectedOption) => {
-        setShowroomName(selectedOption);
-    }
+    const handleSelectChange = (field, selectedOption) => {
+        switch (field) {
+            case "vendor":
+                setVendorName(selectedOption);
+                setShowroomName(null);
+                setShowroomOptions([]);
+                if (selectedOption) {
+                    fetchShowrooms(selectedOption.label);
+                }
+                break;
+
+            case "showroom":
+                setShowroomName(selectedOption);
+                break;
+
+            case "emirate":
+                setEmirate(selectedOption);
+                break;
+
+            case "package":
+                setPackageId(selectedOption);
+                break;
+
+            default:
+                break;
+        }
+    };
     return (
         <div className={styles.addShopContainer}>
             <div className={styles.addHeading}>Add Customer</div>
@@ -197,7 +232,7 @@ const AddCustomer = () => {
                                     className={styles.addShopSelect}
                                     options={vendorOptions}
                                     value={vendorName}
-                                    onChange={handleVendors}
+                                    onChange={(option) => handleSelectChange("vendor", option)}
                                     placeholder="Select Vendor"
                                     isClearable={true}
                                 />
@@ -211,7 +246,7 @@ const AddCustomer = () => {
                                     className={styles.addShopSelect}
                                     options={showroomOptions}
                                     value={showroomName}
-                                    onChange={handleShowroom}
+                                    onChange={(option) => handleSelectChange("showroom", option)}
                                     placeholder="Select Showroom"
                                     isClearable={true}
                                 />
@@ -275,7 +310,7 @@ const AddCustomer = () => {
                                     className={styles.addShopSelect}
                                     options={emiratesOptions}
                                     value={emirate}
-                                    onChange={handleEmirates}
+                                    onChange={(option) => handleSelectChange("emirate", option)}
                                     placeholder="Select Emirate"
                                     isClearable={true}
                                 />
@@ -315,6 +350,20 @@ const AddCustomer = () => {
                     
                     <div className={styles.row}>
                         <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel}>Mobile & Portable Charging Package</label>
+                            <div ref={serviceDropdownRef}>
+                                <Select
+                                    className={styles.addShopSelect}
+                                    options={packageOptions}
+                                    value={packageId}
+                                    onChange={(option) => handleSelectChange("package", option)}
+                                    placeholder="Select Package"
+                                    isClearable={true}
+                                />
+                            </div>
+                            {errors.packageId && packageId == "" && <p className="error">{errors.packageId}</p>}
+                        </div>
+                        <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel} htmlFor="purchaseDate">Package Purchase Date</label>
                             <InputMask
                                 mask="99-99-9999"
@@ -343,7 +392,7 @@ const AddCustomer = () => {
                             />
                             {errors.purchaseDate && purchaseDate === "" &&   <p className="error" style={{ color: 'red' }}>{errors.purchaseDate}</p>}
                         </div>
-                        <div className={styles.addShopInputContainer}></div>
+                        
                     </div>
 
                     <div className={styles.formSectionHeading}> 3. Service Packages</div>

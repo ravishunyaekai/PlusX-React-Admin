@@ -1,0 +1,33 @@
+.service-packages {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 4px 0;
+    white-space: nowrap;
+}
+
+.service-package-row {
+    width: 100%;
+    display: grid;
+    gap: 16px;
+    grid-template-columns: 2fr 0.5fr 1fr;
+    align-items: center;
+    padding: 12px 10px;
+    background: #242424;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    box-sizing: border-box;
+    border: 1px solid #00ffcc;
+}
+
+.service-package-name {
+    text-align: left;
+    font-weight: 500;
+}
+
+.service-package-count,
+.service-package-validity {
+    text-align: right;
+    white-space: nowrap;
+}

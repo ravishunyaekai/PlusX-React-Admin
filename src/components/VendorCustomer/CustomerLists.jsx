@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import Loader from "../SharedComponent/Loader/Loader";
 import EmptyList from '../SharedComponent/EmptyList/EmptyList';
 import moment from 'moment';
+import styles from './packageList.css'
 
 const ResidentsList = () => {
     const userDetails                     = JSON.parse(sessionStorage.getItem('userDetails')); 
@@ -22,50 +23,16 @@ const ResidentsList = () => {
         search_text  : '',
     });
     const [loading, setLoading] = useState(false);
-    const [communityFilterOptions, setCommunityFilterOptions] = useState([
-        { value: '', label: 'All Communities' },
-    ]);
 
     const searchTerm = [{
         label : 'Search', 
         name  : 'search_text', 
         type  : 'text'
     }];
-    // const dynamicFilters = useMemo(() => ([
-    //     {
-    //         label   : 'Showroom',
-    //         name    : 'customer_id',
-    //         type    : 'select',
-    //         options : communityFilterOptions,
-    //     },
-    // ]), [communityFilterOptions]);
-
     const addButtonProps = {
         heading : "Add Customer",
         link    : "/vendors/add-customer"
     };
-
-    const fetchCommunityFilterOptions = () => {
-        const obj = {
-            userId : userDetails?.user_id,
-            email  : userDetails?.email,
-        };
-
-        postRequestWithToken('all-community-list', obj, (response) => {
-            if (response.code === 200) {
-                setCommunityFilterOptions([
-                    { value: '', label: 'All Communities' },
-                    ...(response.data || []).map((option) => ({
-                        value : option.value,
-                        label : option.label,
-                    })),
-                ]);
-            } else {
-                console.log('error in all-community-list API', response);
-            }
-        });
-    };
-
     const fetchList = (page, appliedFilters = {}) => {
         if (page === 1 && Object.keys(appliedFilters).length === 0) {
             setLoading(false);
@@ -89,13 +56,11 @@ const ResidentsList = () => {
             setLoading(false);
         })
     }
-
     useEffect(() => {
         if (!userDetails || !userDetails.access_token) {
             navigate('/login'); 
             return; 
         }
-        // fetchCommunityFilterOptions();
     }, []);
 
     useEffect(() => {
@@ -110,7 +75,6 @@ const ResidentsList = () => {
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
     };
-
     return (
         <div className='main-container'>
             <SubHeader heading    = "Customer List"
@@ -140,9 +104,54 @@ const ResidentsList = () => {
                             { key: 'emirate',       label: 'Emirate' },
                             { key: 'makeModel',     label: 'EV Make & Model' },
                             { key: 'purchase_date', label: 'Purchase Date', format : (date) => moment(date).format('DD MMM YYYY') },
-                            { key: '',              label: 'Service Package' },                  
+                            {
+                                key         : 'action',
+                                label       : 'Action',
+                                relatedKeys : ['customer_id'], 
+                                format      : (data ) => {
+                                    
+                                    const packages = []
+                                    if(data?.pod_charging_session_number ?? 0) {
+                                        packages.push({
+                                            name: 'Mobile & Portable Charging',
+                                            used: data?.pod_used_session_number ?? 0,
+                                            total: data?.pod_charging_session_number ?? 0,
+                                            validity: data?.pod_charging_session_validity
+                                        });
+                                    }
+                                    if(data?.rsa_charging_session_number ?? 0) {
+                                        packages.push({
+                                            name: 'Roadside Assistance',
+                                            used: data?.rsa_used_session_number ?? 0,
+                                            total: data?.rsa_charging_session_number ?? 0,
+                                            validity: data?.rsa_charging_session_validity
+                                        });
+                                    }
+                                    return (
+                                        <div className="service-packages">
+                                            {packages.map((pkg) => (
+                                                <div
+                                                    className="service-package-row"
+                                                    key={pkg.name}
+                                                >
+                                                    <span className="service-package-name">
+                                                        {pkg.name}
+                                                    </span>
+                                                    <span className="service-package-count">
+                                                        {pkg.used} / {pkg.total}
+                                                    </span>
+                                                    <span className="service-package-validity">
+                                                        {pkg.validity
+                                                            ? moment(pkg.validity).format('DD MMM YYYY')
+                                                            : '-'}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    );
+                                }
+                            }             
                         ]}
-                        // 
                     />
                     <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
                 </>

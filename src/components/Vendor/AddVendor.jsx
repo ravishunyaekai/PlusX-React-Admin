@@ -135,7 +135,7 @@ const AddCommunity = () => {
                         </div>
                         <div className={styles.row}>
                             <div className={styles.addShopInputContainer}>
-                                <label className={styles.addShopLabel} htmlFor="areaName">Area name</label>
+                                <label className={styles.addShopLabel} htmlFor="areaName">Area Name</label>
                                 <input
                                     type="text"
                                     autoComplete="off"
@@ -148,7 +148,7 @@ const AddCommunity = () => {
                                 {errors.areaName && areaName === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.areaName}</p>}
                             </div>
                             <div className={styles.addShopInputContainer}>
-                                <label className={styles.addShopLabel} htmlFor="showroomName">Showroom name</label>
+                                <label className={styles.addShopLabel} htmlFor="showroomName">Showroom Name</label>
                                 <input
                                     type="text"
                                     autoComplete="off"
@@ -182,7 +182,7 @@ const AddCommunity = () => {
                                     type="text"
                                     autoComplete="off"
                                     id="packagePrice"
-                                    placeholder="Package Price"
+                                    placeholder="Package Price In AED"
                                     className={styles.inputField}
                                     value={packagePrice}
                                     // onChange={(e) => setPackagePrice(e.target.value)}
@@ -199,7 +199,7 @@ const AddCommunity = () => {
                     </div>
                     <div className={styles.formSectionBlock}>
                         <div className={styles.formSectionHeading}>
-                            Service Package ( Include For This Vendor )
+                            Service Package
                         </div>
                         <div className={styles.row}>
                             <div className={styles.addShopInputContainer}>

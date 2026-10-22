@@ -54,7 +54,7 @@ const BookingDetailsHeader = ({ content, titles, sectionContent1, type, deviceBa
                     </div>
                 )}
 
-                {type === 'portableChargerBooking' && packageData && (
+                { packageData && (
                     <div className="col-xl-3 col-lg-6 col-12">
                         <div className={styles.detailsHeaderSection}>
                             <div className={styles.detailsImageSection}></div>
