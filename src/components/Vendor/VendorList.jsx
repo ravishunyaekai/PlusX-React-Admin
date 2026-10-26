@@ -99,10 +99,14 @@ const VendorList = () => {
                             {
                                 key   : 'package_price',
                                 label : 'Package Price',
-                                format: (value) => Number(value).toLocaleString('en-US', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                })
+                                format: (value) => {
+                                    const amount = Number(value);
+                                    const hideDecimals = Math.round(amount * 100) % 100 === 0;
+                                    return amount.toLocaleString('en-US', {
+                                        minimumFractionDigits: hideDecimals ? 0 : 2,
+                                        maximumFractionDigits: hideDecimals ? 0 : 2,
+                                    });
+                                }
                             },
                             // { key: 'rsa_session',    label: 'No. of Chargers' },
                             // { key: 'pod_session',    label: 'No. of Chargers' },
