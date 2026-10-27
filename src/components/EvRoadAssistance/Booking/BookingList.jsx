@@ -27,7 +27,7 @@ import EmptyList from "../../SharedComponent/EmptyList/EmptyList";
         'CC'  : 'Charging Completed',
         'PU'  : 'Completed',
         'C'   : 'Cancelled',
-        'RO'  : 'Mobile Charging Van Reached at Office',
+        'RO'  : 'Charging Van Reached at Office',
         'PNR' : 'Payment Not Received',
     };
     const dynamicFilters = [
@@ -44,7 +44,7 @@ import EmptyList from "../../SharedComponent/EmptyList/EmptyList";
                 { value : 'CS',  label : 'Charging Started' },
                 { value : 'CC',  label : 'Charging Completed' },
                 { value : 'PU',  label : 'Completed' },
-                { value : 'RO',  label : 'Mobile Charging Van Reached at Office' },
+                { value : 'RO',  label : 'Charging Van Reached at Office' },
                 { value : 'C',   label : 'Cancelled' },
             ]
         },

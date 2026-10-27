@@ -23,7 +23,7 @@ const statusMapping = {
     'WC' : 'Work Completed',
     'DO' : 'Drop Off',
     'C'  : 'Cancel',
-    'RO' : 'Mobile Charging Van Reached at Office',
+    'RO' : 'Charging Van Reached at Office',
 };
 
 const RoadAssistanceBookingDetails = () => {
@@ -117,7 +117,7 @@ const RoadAssistanceBookingDetails = () => {
                     rsa={content}
                     statusOverrides={{
                         RL: 'Mobile Charging Van Reached at Location',
-                        RO: 'Mobile Charging Van Reached at Office',
+                        RO: 'Charging Van Reached at Office',
                     }}
                     imageStatuses={['CS', 'CC', 'PU', 'WC']}
                 />
