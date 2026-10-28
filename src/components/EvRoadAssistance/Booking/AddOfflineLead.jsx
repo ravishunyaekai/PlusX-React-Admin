@@ -90,6 +90,7 @@ const AddOfflineLead = () => {
 
     const [modeOfPayment, setModeOfPayment]             = useState(null);
     const [proofOfTransaction, setProofOfTransaction] = useState(null);
+    const [serviceTermsCondition, setServiceTermsCondition] = useState(null);
 
     const [rsaDriverOption, setRsaDriverOption]               = useState([]);
     const [bookingStatus, setBookingStatus]                   = useState(null);
@@ -296,6 +297,23 @@ const AddOfflineLead = () => {
         setProofOfTransaction(null);
     };
 
+    const handleServiceTermsChange = (event) => {
+        const selectedFile = event.target.files[0];
+        if (!selectedFile) return;
+
+        if (!ALLOWED_PROOF_TYPES.includes(selectedFile.type)) {
+            toast.error('Please upload a PDF, JPG, or PNG file.');
+            event.target.value = '';
+            return;
+        }
+        setServiceTermsCondition(selectedFile);
+        setErrors((prev) => ({ ...prev, serviceTermsCondition: '' }));
+    };
+
+    const handleRemoveServiceTerms = () => {
+        setServiceTermsCondition(null);
+    };
+
     const validateForm = () => {
         const localMobile = getLocalMobile();
 
@@ -360,6 +378,14 @@ const AddOfflineLead = () => {
                 name         : "proofOfTransaction",
                 value        : proofOfTransaction,
                 errorMessage : "Payment Proof is required for Online payment.",
+            });
+        }
+
+        if (bookingStatus?.value !== 'C') {
+            fields.push({
+                name         : "serviceTermsCondition",
+                value        : serviceTermsCondition,
+                errorMessage : "Service Terms & Condition is required.",
             });
         }
 
@@ -428,6 +454,10 @@ const AddOfflineLead = () => {
                 if (proofOfTransaction) {
                     formData.append("proof_of_transaction", proofOfTransaction);
                 }
+            }
+
+            if (isBookingCompleted && serviceTermsCondition) {
+                formData.append("service_terms_condition", serviceTermsCondition);
             }
 
             postRequestWithTokenAndFile('ev-road-assistance-add-offline-booking', formData, async (response) => {
@@ -706,6 +736,49 @@ const AddOfflineLead = () => {
                             ) : null}
                         </div>
                     </div>
+                    {isBookingCompleted && (
+                    <div className={styles.row} style={{ alignItems: 'flex-start' }}>
+                        <div className={styles.addShopInputContainer}>
+                            <div className={styles.fileUploadColumn}>
+                                <label className={styles.fileLabel}>Service Terms & Condition</label>
+                                <div className={styles.fileDropZone}>
+                                    <input
+                                        type="file"
+                                        id="serviceTermsCondition"
+                                        accept=".pdf,.jpg,.jpeg,.png"
+                                        onChange={handleServiceTermsChange}
+                                        style={{ display: 'none' }}
+                                    />
+                                    {!serviceTermsCondition ? (
+                                        <label htmlFor="serviceTermsCondition" className={styles.fileUploadLabel}>
+                                            <img src={UploadIcon} alt="Upload Icon" className={styles.uploadIcon} />
+                                            <p>Select File to Upload <br /> or Drag & Drop, Copy & Paste Files</p>
+                                        </label>
+                                    ) : (
+                                        <div className={styles.imageContainer}>
+                                            {serviceTermsCondition.type === 'application/pdf' ? (
+                                                <img src={PdfIcon} alt="PDF Preview" className={styles.previewImage} style={{ height: '80px' }} />
+                                            ) : (
+                                                <img
+                                                    src={URL.createObjectURL(serviceTermsCondition)}
+                                                    alt="Preview"
+                                                    className={styles.previewImage}
+                                                />
+                                            )}
+                                            <button type="button" className={styles.removeButton} onClick={handleRemoveServiceTerms}>
+                                                <AiOutlineClose size={20} />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                                {errors.serviceTermsCondition && !serviceTermsCondition && (
+                                    <p className={styles.error}>{errors.serviceTermsCondition}</p>
+                                )}
+                            </div>
+                        </div>
+                        <div className={styles.addShopInputContainer}></div>
+                    </div>
+                    )}
                     </>
                     )}
 
@@ -730,11 +803,13 @@ const AddOfflineLead = () => {
                                         setBookingCompletedBy(null);
                                         setModeOfPayment(null);
                                         setProofOfTransaction(null);
+                                        setServiceTermsCondition(null);
                                         setErrors((prev) => ({
                                             ...prev,
                                             bookingCompletedBy: '',
                                             modeOfPayment: '',
                                             proofOfTransaction: '',
+                                            serviceTermsCondition: '',
                                             bookingCompletedDate: '',
                                         }));
                                     } else {

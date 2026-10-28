@@ -29,6 +29,7 @@ const statusMapping = {
 };
 
 const PROOF_BASE_URL = `${process.env.REACT_APP_DIR_UPLOADS}rsa-offline-proof`;
+const TERMS_BASE_URL = `${process.env.REACT_APP_DIR_UPLOADS}rsa-offline-terms`;
 
 const OfflineLeadsBookingDetails = () => {
     const userDetails                         = JSON.parse(sessionStorage.getItem('userDetails'));
@@ -232,6 +233,30 @@ const OfflineLeadsBookingDetails = () => {
         baseUrl        : '',
     };
 
+    const termsFilename = bookingDetails?.service_terms_condition;
+    const termsFullUrl = bookingDetails?.service_terms_condition_url
+        || (termsFilename ? `${TERMS_BASE_URL}/${termsFilename}` : null);
+
+    const isPdfTerms = termsFilename && (
+        termsFilename.toLowerCase().endsWith('.pdf')
+        || termsFullUrl?.toLowerCase().endsWith('.pdf')
+    );
+
+    const termsImageTitles = {
+        coverImage : "Service Terms and Conditions",
+    };
+    const termsImageContent = {
+        coverImage : termsFullUrl,
+        baseUrl    : '',
+    };
+    const termsPdfTitles = {
+        evChargerFiles : "Service Terms and Conditions",
+    };
+    const termsPdfContent = {
+        evChargerFiles : termsFullUrl,
+        baseUrl        : '',
+    };
+
     return (
         <div className='main-container'>
             <BookingDetailsHeader content={content} titles={headerTitles} sectionContent={sectionContent1}
@@ -251,6 +276,20 @@ const OfflineLeadsBookingDetails = () => {
                     <BookingMultipleImages
                         titles={proofPdfTitles}
                         content={proofPdfContent}
+                        type='evRoadAssitanceBooking'
+                    />
+                )}
+                {termsFullUrl && !isPdfTerms && (
+                    <BookingImageSection
+                        titles={termsImageTitles}
+                        content={termsImageContent}
+                        type='evRoadAssitanceBooking'
+                    />
+                )}
+                {termsFullUrl && isPdfTerms && (
+                    <BookingMultipleImages
+                        titles={termsPdfTitles}
+                        content={termsPdfContent}
                         type='evRoadAssitanceBooking'
                     />
                 )}

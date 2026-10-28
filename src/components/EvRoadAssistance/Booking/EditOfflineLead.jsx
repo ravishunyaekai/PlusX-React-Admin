@@ -41,6 +41,7 @@ const emiratesOption = [
 ];
 const ALLOWED_PROOF_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
 const PROOF_BASE_URL = `${process.env.REACT_APP_DIR_UPLOADS}rsa-offline-proof`;
+const TERMS_BASE_URL = `${process.env.REACT_APP_DIR_UPLOADS}rsa-offline-terms`;
 const MIN_MOBILE_DIGITS = 8;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -72,21 +73,21 @@ const isValidLocationUrl = (value) => {
     }
 };
 
-const isPdfProof = (proof) => {
-    if (typeof proof === 'string') {
-        return proof.toLowerCase().endsWith('.pdf');
+const isPdfFile = (file) => {
+    if (typeof file === 'string') {
+        return file.toLowerCase().endsWith('.pdf');
     }
-    return proof?.type === 'application/pdf';
+    return file?.type === 'application/pdf';
 };
 
-const getProofPreviewSrc = (proof, existingProofUrl) => {
-    if (!proof || isPdfProof(proof)) {
+const getFilePreviewSrc = (file, existingUrl, baseUrl) => {
+    if (!file || isPdfFile(file)) {
         return null;
     }
-    if (typeof proof !== 'string') {
-        return URL.createObjectURL(proof);
+    if (typeof file !== 'string') {
+        return URL.createObjectURL(file);
     }
-    return existingProofUrl || `${PROOF_BASE_URL}/${proof}`;
+    return existingUrl || `${baseUrl}/${file}`;
 };
 
 const EditOfflineLead = () => {
@@ -127,6 +128,8 @@ const EditOfflineLead = () => {
     const [modeOfPayment, setModeOfPayment]             = useState(null);
     const [proofOfTransaction, setProofOfTransaction] = useState(null);
     const [existingProofUrl, setExistingProofUrl]     = useState('');
+    const [serviceTermsCondition, setServiceTermsCondition] = useState(null);
+    const [existingTermsUrl, setExistingTermsUrl]           = useState('');
 
     const [rsaDriverOption, setRsaDriverOption]               = useState([]);
     const [bookingStatus, setBookingStatus]                   = useState(null);
@@ -261,6 +264,16 @@ const EditOfflineLead = () => {
                 } else {
                     setProofOfTransaction(null);
                     setExistingProofUrl('');
+                }
+
+                if (data.service_terms_condition) {
+                    setServiceTermsCondition(data.service_terms_condition);
+                    setExistingTermsUrl(
+                        data.service_terms_condition_url || `${TERMS_BASE_URL}/${data.service_terms_condition}`
+                    );
+                } else {
+                    setServiceTermsCondition(null);
+                    setExistingTermsUrl('');
                 }
 
                 setBookingStatus(
@@ -446,6 +459,25 @@ const EditOfflineLead = () => {
         setExistingProofUrl('');
     };
 
+    const handleServiceTermsChange = (event) => {
+        const selectedFile = event.target.files[0];
+        if (!selectedFile) return;
+
+        if (!ALLOWED_PROOF_TYPES.includes(selectedFile.type)) {
+            toast.error('Please upload a PDF, JPG, or PNG file.');
+            event.target.value = '';
+            return;
+        }
+        setServiceTermsCondition(selectedFile);
+        setExistingTermsUrl('');
+        setErrors((prev) => ({ ...prev, serviceTermsCondition: '' }));
+    };
+
+    const handleRemoveServiceTerms = () => {
+        setServiceTermsCondition(null);
+        setExistingTermsUrl('');
+    };
+
     const shouldSaveAsCompleted = () => !isBookingNotCompleted || bookingStatus?.value === 'PU';
 
     const validateForm = () => {
@@ -512,6 +544,14 @@ const EditOfflineLead = () => {
                 name         : "proofOfTransaction",
                 value        : proofOfTransaction,
                 errorMessage : "Payment Proof is required for Online payment.",
+            });
+        }
+
+        if (!isBookingNotCompleted && bookingStatus?.value !== 'C') {
+            fields.push({
+                name         : "serviceTermsCondition",
+                value        : serviceTermsCondition,
+                errorMessage : "Service Terms & Condition is required.",
             });
         }
 
@@ -582,6 +622,7 @@ const EditOfflineLead = () => {
                         formData.append("proof_of_transaction", proofOfTransaction);
                     }
                 }
+
             } else {
                 formData.append("customer_name", customerName);
                 formData.append("mobile_no", getLocalMobile());
@@ -616,6 +657,10 @@ const EditOfflineLead = () => {
                     if (proofOfTransaction && typeof proofOfTransaction !== 'string') {
                         formData.append("proof_of_transaction", proofOfTransaction);
                     }
+
+                    if (!isBookingNotCompleted && serviceTermsCondition && typeof serviceTermsCondition !== 'string') {
+                        formData.append("service_terms_condition", serviceTermsCondition);
+                    }
                 }
             }
 
@@ -647,7 +692,8 @@ const EditOfflineLead = () => {
         }
     };
 
-    const proofPreviewSrc = getProofPreviewSrc(proofOfTransaction, existingProofUrl);
+    const proofPreviewSrc = getFilePreviewSrc(proofOfTransaction, existingProofUrl, PROOF_BASE_URL);
+    const termsPreviewSrc = getFilePreviewSrc(serviceTermsCondition, existingTermsUrl, TERMS_BASE_URL);
 
     return (
         <div className={styles.addShopContainer}>
@@ -880,7 +926,7 @@ const EditOfflineLead = () => {
                                             </label>
                                         ) : (
                                             <div className={styles.imageContainer}>
-                                                {isPdfProof(proofOfTransaction) ? (
+                                                {isPdfFile(proofOfTransaction) ? (
                                                     existingProofUrl ? (
                                                         <a href={existingProofUrl} target="_blank" rel="noopener noreferrer">
                                                             <img src={PdfIcon} alt="PDF Preview" className={styles.previewImage} style={{ height: '80px' }} />
@@ -909,6 +955,56 @@ const EditOfflineLead = () => {
                             ) : null}
                         </div>
                     </div>
+                    {!isBookingNotCompleted && (
+                    <div className={styles.row} style={{ alignItems: 'flex-start' }}>
+                        <div className={styles.addShopInputContainer}>
+                            <div className={styles.fileUploadColumn}>
+                                <label className={styles.fileLabel}>Service Terms & Condition</label>
+                                <div className={styles.fileDropZone}>
+                                    <input
+                                        type="file"
+                                        id="serviceTermsCondition"
+                                        accept=".pdf,.jpg,.jpeg,.png"
+                                        onChange={handleServiceTermsChange}
+                                        style={{ display: 'none' }}
+                                    />
+                                    {!serviceTermsCondition ? (
+                                        <label htmlFor="serviceTermsCondition" className={styles.fileUploadLabel}>
+                                            <img src={UploadIcon} alt="Upload Icon" className={styles.uploadIcon} />
+                                            <p>Select File to Upload <br /> or Drag & Drop, Copy & Paste Files</p>
+                                        </label>
+                                    ) : (
+                                        <div className={styles.imageContainer}>
+                                            {isPdfFile(serviceTermsCondition) ? (
+                                                existingTermsUrl ? (
+                                                    <a href={existingTermsUrl} target="_blank" rel="noopener noreferrer">
+                                                        <img src={PdfIcon} alt="PDF Preview" className={styles.previewImage} style={{ height: '80px' }} />
+                                                    </a>
+                                                ) : (
+                                                    <img src={PdfIcon} alt="PDF Preview" className={styles.previewImage} style={{ height: '80px' }} />
+                                                )
+                                            ) : (
+                                                <img
+                                                    src={termsPreviewSrc}
+                                                    alt="Preview"
+                                                    className={styles.previewImage}
+                                                    onError={onUploadImageError}
+                                                />
+                                            )}
+                                            <button type="button" className={styles.removeButton} onClick={handleRemoveServiceTerms}>
+                                                <AiOutlineClose size={20} />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                                {errors.serviceTermsCondition && !serviceTermsCondition && (
+                                    <p className={styles.error}>{errors.serviceTermsCondition}</p>
+                                )}
+                            </div>
+                        </div>
+                        <div className={styles.addShopInputContainer}></div>
+                    </div>
+                    )}
                     </>
                     )}
 
@@ -932,11 +1028,14 @@ const EditOfflineLead = () => {
                                         setModeOfPayment(null);
                                         setProofOfTransaction(null);
                                         setExistingProofUrl('');
+                                        setServiceTermsCondition(null);
+                                        setExistingTermsUrl('');
                                         setErrors((prev) => ({
                                             ...prev,
                                             bookingCompletedBy: '',
                                             modeOfPayment: '',
                                             proofOfTransaction: '',
+                                            serviceTermsCondition: '',
                                             bookingCompletedDate: '',
                                         }));
                                     } else {
