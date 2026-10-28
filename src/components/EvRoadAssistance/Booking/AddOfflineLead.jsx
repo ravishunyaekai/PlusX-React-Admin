@@ -381,7 +381,7 @@ const AddOfflineLead = () => {
             });
         }
 
-        if (bookingStatus?.value !== 'C') {
+        if (bookingStatus?.value !== 'C' && (isBookingCompleted || bookingStatus?.value === 'PU')) {
             fields.push({
                 name         : "serviceTermsCondition",
                 value        : serviceTermsCondition,
@@ -456,7 +456,7 @@ const AddOfflineLead = () => {
                 }
             }
 
-            if (isBookingCompleted && serviceTermsCondition) {
+            if ((isBookingCompleted || bookingStatus?.value === 'PU') && serviceTermsCondition) {
                 formData.append("service_terms_condition", serviceTermsCondition);
             }
 
@@ -736,11 +736,16 @@ const AddOfflineLead = () => {
                             ) : null}
                         </div>
                     </div>
-                    {isBookingCompleted && (
+                    </>
+                    )}
+
+                    {(isBookingCompleted || bookingStatus?.value === 'PU') && bookingStatus?.value !== 'C' && (
+                    <>
+                    <div className={styles.addHeading} style={{ marginBottom: "0px", marginTop: "10px" }}>Service Terms and Conditions</div>
                     <div className={styles.row} style={{ alignItems: 'flex-start' }}>
                         <div className={styles.addShopInputContainer}>
                             <div className={styles.fileUploadColumn}>
-                                <label className={styles.fileLabel}>Service Terms & Condition</label>
+                                {/* <label className={styles.fileLabel}>Service Terms & Condition</label> */}
                                 <div className={styles.fileDropZone}>
                                     <input
                                         type="file"
@@ -778,7 +783,6 @@ const AddOfflineLead = () => {
                         </div>
                         <div className={styles.addShopInputContainer}></div>
                     </div>
-                    )}
                     </>
                     )}
 

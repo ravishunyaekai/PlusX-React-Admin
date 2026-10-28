@@ -547,7 +547,7 @@ const EditOfflineLead = () => {
             });
         }
 
-        if (!isBookingNotCompleted && bookingStatus?.value !== 'C') {
+        if (bookingStatus?.value !== 'C' && (!isBookingNotCompleted || bookingStatus?.value === 'PU')) {
             fields.push({
                 name         : "serviceTermsCondition",
                 value        : serviceTermsCondition,
@@ -658,7 +658,9 @@ const EditOfflineLead = () => {
                         formData.append("proof_of_transaction", proofOfTransaction);
                     }
 
-                    if (!isBookingNotCompleted && serviceTermsCondition && typeof serviceTermsCondition !== 'string') {
+                    if ((!isBookingNotCompleted || bookingStatus?.value === 'PU')
+                        && serviceTermsCondition
+                        && typeof serviceTermsCondition !== 'string') {
                         formData.append("service_terms_condition", serviceTermsCondition);
                     }
                 }
@@ -955,11 +957,16 @@ const EditOfflineLead = () => {
                             ) : null}
                         </div>
                     </div>
-                    {!isBookingNotCompleted && (
+                    </>
+                    )}
+
+                    {(!isBookingNotCompleted || bookingStatus?.value === 'PU') && bookingStatus?.value !== 'C' && (
+                    <>
+                    <div className={styles.addHeading} style={{ marginBottom: "0px", marginTop: "10px" }}>Service Terms and Conditions</div>
                     <div className={styles.row} style={{ alignItems: 'flex-start' }}>
                         <div className={styles.addShopInputContainer}>
                             <div className={styles.fileUploadColumn}>
-                                <label className={styles.fileLabel}>Service Terms & Condition</label>
+                                {/* <label className={styles.fileLabel}>Service Terms & Condition</label> */}
                                 <div className={styles.fileDropZone}>
                                     <input
                                         type="file"
@@ -1004,7 +1011,6 @@ const EditOfflineLead = () => {
                         </div>
                         <div className={styles.addShopInputContainer}></div>
                     </div>
-                    )}
                     </>
                     )}
 
