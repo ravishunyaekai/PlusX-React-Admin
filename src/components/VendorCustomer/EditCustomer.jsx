@@ -34,7 +34,7 @@ const EditResidents = () => {
 
     const [podChargingSessionNumber, setPodChargingSessionNumber]     = useState('');
     const [podChargingSessionValidity, setPodChargingSessionValidity] = useState('');
-        
+
     const [rsaChargingSessionNumber, setRSAChargingSessionNumber]     = useState('');
     const [rsaChargingSessionValidity, setRSAChargingSessionValidity] = useState('');
 
@@ -92,7 +92,7 @@ const EditResidents = () => {
 
         const newErrors = fields.reduce(
             (errors, { name, value, errorMessage, isEmail, isMobile, isArray }) => {
-                console.log(name, value,)
+                
                 if (isEmpty(value) || (isArray && !Array.isArray(value))) {
                     errors[name] = errorMessage;
                 } else if (isEmail && !/\S+@\S+\.\S+/.test(value)) {
@@ -137,6 +137,8 @@ const EditResidents = () => {
                 rsa_charging_session_number   : rsaChargingSessionNumber,
                 rsa_charging_session_validity : rsaChargingSessionValidity,
             }
+            // console.log(obj);
+            // return false ;
             postRequestWithToken('vendor-customer-edit', obj, async (response) => {
                 if (response.status === 1) {
                     toast(response.message , {type:'success'})
@@ -195,15 +197,15 @@ const EditResidents = () => {
                 
                 setEVMake(customerData?.ev_make);
                 setEVModel(customerData?.ev_model);
-                setPurchaseDate(moment(customerData?.purchase_date, 'YYYY-MM-DD').format('DD-MM-YYYY'));
+                setPurchaseDate(moment(customerData?.purchase_date, 'YYYY-MM-DD').format('YYYY-MM-DD'));
                 setPackageId({ value : customerData.package_id, label : customerData.package_name + ' - '+ parseInt(customerData.charging_capacity) + 'kW' });
 
                 setPodChargingSessionNumber(customerData?.pod_charging_session_number);
-                setPodChargingSessionValidity(moment(customerData?.pod_charging_session_validity, 'YYYY-MM-DD').format('DD-MM-YYYY'));
+                setPodChargingSessionValidity(moment(customerData?.pod_charging_session_validity, 'YYYY-MM-DD').format('YYYY-MM-DD'));
                     
                 setRSAChargingSessionNumber(customerData?.rsa_charging_session_number);
-                setRSAChargingSessionValidity(moment(customerData?.rsa_charging_session_validity, 'YYYY-MM-DD').format('DD-MM-YYYY'));
-                // ,
+                setRSAChargingSessionValidity(moment(customerData?.rsa_charging_session_validity, 'YYYY-MM-DD').format('YYYY-MM-DD'));
+                
             } else {
                 
                 console.log('error in resident-details API', response);
@@ -405,30 +407,14 @@ const EditResidents = () => {
                         </div>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel} htmlFor="purchaseDate">Package Purchase Date</label>
-                            <InputMask
-                                mask="99-99-9999"
+                            <input
+                                type="date"
+                                className={styles.inputField}
                                 value={purchaseDate}
                                 onChange={(e) => {
                                     setPurchaseDate(e.target.value);
-                                    if (errors.purchaseDate && e.target.value.length === 10) {
-                                        setErrors((prevErrors) => ({ ...prevErrors, purchaseDate: "" }));
-                                    }
+                                    setErrors((prev) => ({ ...prev, purchaseDate: '' }));
                                 }}
-                                onBlur={() => {
-                                    if (purchaseDate.length === 10) {
-                                        const [day, month, year] = purchaseDate.split('-');
-                                        const isValidDate = !isNaN(Date.parse(`${year}-${month}-${day}`)) &&
-                                            day <= 31 && month <= 12;
-                                        if (!isValidDate) {
-                                            setErrors((prevErrors) => ({
-                                                ...prevErrors,
-                                                purchaseDate: "Invalid date in DD-MM-YYYY format",
-                                            }));
-                                        }
-                                    }
-                                }}
-                                placeholder="DD-MM-YYYY"
-                                className={styles.inputField}
                             />
                             {errors.purchaseDate && purchaseDate === "" &&   <p className="error" style={{ color: 'red' }}>{errors.purchaseDate}</p>}
                         </div>
@@ -461,31 +447,15 @@ const EditResidents = () => {
                             { errors.podChargingSessionNumber && podChargingSessionNumber == "" && <p className="error">{ errors.podChargingSessionNumber } </p> }
                         </div>
                         <div className={styles.addShopInputContainer}>
-                            <label className={styles.addShopLabel} htmlFor="podChargingSessionValidity"> Session Validity</label>
-                            <InputMask
-                                mask="99-99-9999"
+                            <label className={styles.addShopLabel} htmlFor="podChargingSessionValidity"> Session Validity {podChargingSessionValidity} </label>
+                            <input
+                                type="date"
+                                className={styles.inputField}
                                 value={podChargingSessionValidity}
                                 onChange={(e) => {
                                     setPodChargingSessionValidity(e.target.value);
-                                    if (errors.podChargingSessionValidity && e.target.value.length === 10) {
-                                        setErrors((prevErrors) => ({ ...prevErrors, podChargingSessionValidity: "" }));
-                                    }
+                                    setErrors((prev) => ({ ...prev, podChargingSessionValidity: '' }));
                                 }}
-                                onBlur={() => {
-                                    if (podChargingSessionValidity.length === 10) {
-                                        const [day, month, year] = podChargingSessionValidity.split('-');
-                                        const isValidDate = !isNaN(Date.parse(`${year}-${month}-${day}`)) &&
-                                            day <= 31 && month <= 12;
-                                        if (!isValidDate) {
-                                            setErrors((prevErrors) => ({
-                                                ...prevErrors,
-                                                podChargingSessionValidity: "Invalid date in DD-MM-YYYY format",
-                                            }));
-                                        }
-                                    }
-                                }}
-                                placeholder="DD-MM-YYYY"
-                                className={styles.inputField}
                             />
                             {errors.podChargingSessionValidity && podChargingSessionValidity === "" &&   <p className="error" style={{ color: 'red' }}>{errors.podChargingSessionValidity}</p>}
                         </div>
@@ -517,30 +487,15 @@ const EditResidents = () => {
                         </div>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel} htmlFor="rsaChargingSessionValidity">Session Validity</label>
-                            <InputMask
-                                mask="99-99-9999"
+                            <input
+                                type="date"
+                                className={styles.inputField}
                                 value={rsaChargingSessionValidity}
+                                min={moment().add(1, 'day').format('DD-MM-YYYY')}
                                 onChange={(e) => {
                                     setRSAChargingSessionValidity(e.target.value);
-                                    if (errors.rsaChargingSessionValidity && e.target.value.length === 10) {
-                                        setErrors((prevErrors) => ({ ...prevErrors, rsaChargingSessionValidity: "" }));
-                                    }
+                                    setErrors((prev) => ({ ...prev, rsaChargingSessionValidity: '' }));
                                 }}
-                                onBlur={() => {
-                                    if (rsaChargingSessionValidity.length === 10) {
-                                        const [day, month, year] = rsaChargingSessionValidity.split('-');
-                                        const isValidDate = !isNaN(Date.parse(`${year}-${month}-${day}`)) &&
-                                            day <= 31 && month <= 12;
-                                        if (!isValidDate) {
-                                            setErrors((prevErrors) => ({
-                                                ...prevErrors,
-                                                rsaChargingSessionValidity: "Invalid date in DD-MM-YYYY format",
-                                            }));
-                                        }
-                                    }
-                                }}
-                                placeholder="DD-MM-YYYY"
-                                className={styles.inputField}
                             />
                             {errors.rsaChargingSessionValidity && rsaChargingSessionValidity === "" &&   <p className="error" style={{ color: 'red' }}>{errors.rsaChargingSessionValidity}</p>}
                         </div>

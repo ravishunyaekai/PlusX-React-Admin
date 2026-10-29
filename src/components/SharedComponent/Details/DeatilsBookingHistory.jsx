@@ -2,20 +2,20 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './details.module.css';
 import Eye from '../../../assets/images/ViewEye.svg';
-import Pagination from '../Pagination/Pagination';
+// import Pagination from '../Pagination/Pagination';
 
 const DeatilsBookingHistory = ({ title, headers, bookingData, bookingType, count }) => {
     const navigate = useNavigate();
 
+    const detailsObject = {
+        'portableCharger'       : { detail_url : '/portable-charger/charger-booking-details' },
+        'pickAndDrop'           : { detail_url : '/pick-and-drop/booking-details' },
+        'Roadside Assistance'   : { detail_url : '/ev-road-assistance/booking-details' },
+        'Customer Package List' : { detail_url : '/vendors/customer-details' }
+    }
     const handleViewClick = (id) => {
-        if (bookingType === 'portableCharger') {
-            navigate(`/portable-charger/charger-booking-details/${id}`);
-        } else if (bookingType === 'pickAndDrop') {
-            navigate(`/pick-and-drop/booking-details/${id}`);
-        }
-        else if (bookingType === 'Roadside Assistance') {
-            navigate(`/ev-road-assistance/booking-details/${id}`);
-        }
+
+        navigate(`${ detailsObject[bookingType].detail_url }/${id}`);
     };
     return (
         <div className={styles.addressListContainer}>
@@ -38,12 +38,19 @@ const DeatilsBookingHistory = ({ title, headers, bookingData, bookingType, count
                     {bookingData.length > 0 ? (
                         bookingData.map((booking, index) => (
                             <tr key={index}>
-                                <td>{booking.datetime}</td>
-                                <td>{booking.id}</td>                            
-                                <td>{booking.price}</td>
-                                <td>{booking.status}</td>
-                                <td>{booking?.rsa_name}</td>
-                                {/* <td>{booking?.slot_date_time}</td> */}
+                                {bookingType == 'Customer Package List' ? (<>
+                                    <td>{booking.vendor_name}</td>
+                                    <td>{booking.emirate}</td>                            
+                                    <td>{booking.makeModel}</td>
+                                    <td>{booking.purchase_date}</td>
+                                    <td>{booking?.service_package}</td>
+                                </>) : (<>
+                                    <td>{booking.datetime}</td>
+                                    <td>{booking.id}</td>                            
+                                    <td>{booking.price}</td>
+                                    <td>{booking.status}</td>
+                                    <td>{booking?.rsa_name}</td>
+                                </>)}
                                 <td>
                                     <div className={styles.editContent}>
                                         <img

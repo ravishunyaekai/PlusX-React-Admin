@@ -39,14 +39,15 @@ const rsaStatusMapping = {
 
 const AppSignupDetails = () => {
     const userDetails  = JSON.parse(sessionStorage.getItem('userDetails'));
-    const navigate                                              = useNavigate()
-    const {riderId}                                             = useParams()
-    const [riderDetails, setRiderDetails]                       = useState()
-    const [riderAddressList, setRiderAddressList]               = useState([])
-    const [vehicleList, setVehicleList]                         = useState([])
-    const [portableChargerBookings, setPortableChargerBookings] = useState([])
-    const [pickAndDropBookings, setPickAndDropBookings]         = useState([])
-    const [rsaBookings, setRsaBookings]                         = useState([])
+    const navigate                                              = useNavigate();
+    const {riderId}                                             = useParams();
+    const [riderDetails, setRiderDetails]                       = useState();
+    const [riderAddressList, setRiderAddressList]               = useState([]);
+    const [vehicleList, setVehicleList]                         = useState([]);
+    const [portableChargerBookings, setPortableChargerBookings] = useState([]);
+    const [pickAndDropBookings, setPickAndDropBookings]         = useState([]);
+    const [rsaBookings, setRsaBookings]                         = useState([]);
+    const [pkgBookings, setPkgBookings]                         = useState([]);
 
     const portableChargerHeaders = [ 
         'Schedule Date','Booking ID', 'Price', 'Status', 'Assigned Driver', 'Action' 
@@ -55,6 +56,11 @@ const AppSignupDetails = () => {
         'Date','Booking ID', 'Price', 'Status', 'Assigned Driver', 'Action' 
     ]; 
     const pickAndDropHeaders = [ 'Schedule Date','Booking ID', 'Price', 'Status', 'Assigned Driver', 'Action' ];
+
+    const pkgHeaders = [ 
+        "Vendor", "Emirate", "EV Make & Model", "Purchase Date", "Service Package", "Action"
+    ]; 
+
     const obj = {
         userId  : userDetails?.user_id,
         email   : userDetails?.email,
@@ -93,7 +99,11 @@ const AppSignupDetails = () => {
     const [rSATotalPages, setRSATotalPages]   = useState(1);
     // Total RSA bookings count for section heading
     const [rsaTotalCount, setRsaTotalCount]   = useState(0);
-    
+
+    const [pkgCurrentPage, setPkgCurrentPage] = useState(1);
+    const [pkgTotalPages, setPkgTotalPages]   = useState(1);
+    const [pkgTotalCount, setPkgTotalCount]   = useState(0);
+
     const handlePortablePageChange = (pageNumber) => {
         setportableCurrentPage(pageNumber);
     };
@@ -103,7 +113,6 @@ const AppSignupDetails = () => {
     const handleRSAPageChange = (pageNumber) => {
         setRSACurrentPage(pageNumber);
     };
-
     const podBooking = () => {
         obj.service_type = 'POD';
         obj.page_no      = portableCurrentPage;
@@ -144,9 +153,28 @@ const AppSignupDetails = () => {
             }  
         });
     };
+
+    const pkgBooking = () => {
+
+        if(!riderDetails?.rider_mobile) return false;
+
+        obj.service_type  = 'PKG';
+        obj.page_no       = pkgCurrentPage;
+        obj.mobile_number = riderDetails.rider_mobile;
+
+        getRequestWithToken('vendor-customer-list', obj, (response) => {
+            if (response.code === 200) {
+
+                setPkgBookings(response?.data);
+                setPkgTotalPages(response?.total_page || 1); 
+                setPkgTotalCount(response?.total || 0);
+            }  
+        });
+    };
     useEffect(() => { podBooking(); }, [portableCurrentPage]);
     useEffect(() => { valetBooking(); }, [valetCurrentPage]);
     useEffect(() => { rsaBooking(); }, [rSACurrentPage]);
+    useEffect(() => { pkgBooking(); }, [riderDetails, pkgCurrentPage]);
 
     return (
         <div className='main-container'>
@@ -159,11 +187,13 @@ const AppSignupDetails = () => {
                 { vehicleList.length && 
                     <DetailsVehicleList vehicleList = {vehicleList} />
                 }
-                {( portableChargerBookings?.length > 0 || pickAndDropBookings?.length > 0 || rsaBookings?.length > 0
+                {( portableChargerBookings?.length > 0 || pickAndDropBookings?.length > 0 || rsaBookings?.length > 0 || pkgBookings?.length > 0 
                 ) && (
                     <>
-                    <div className={styles.DetailsMainHeading}>Booking History</div>
-                    {portableChargerBookings?.length > 0 && (<>
+                    {( portableChargerBookings?.length > 0 || pickAndDropBookings?.length > 0 || rsaBookings?.length > 0 ) && (
+                        <div className={styles.DetailsMainHeading}>Booking History</div>
+                    )}
+                    { portableChargerBookings?.length > 0 && (<>
                         <DetailsBookingHistory
                             // title="Portable Charger"
                             title="Mobile & Portable EV Charging Service"
@@ -191,7 +221,7 @@ const AppSignupDetails = () => {
                         />
                                              
                     </>)}
-                    {pickAndDropBookings?.length > 0 && (<>
+                    { pickAndDropBookings?.length > 0 && (<>
                         <DetailsBookingHistory
                             title="Pick and Drop"
                             // Pass total bookings count to show beside heading
@@ -216,7 +246,7 @@ const AppSignupDetails = () => {
                             onPageChange={handleValetPageChange}
                         />
                     </>)}
-                    {rsaBookings?.length > 0 && (<>
+                    { rsaBookings?.length > 0 && (<>
                         <DetailsBookingHistory
                             title       = "Roadside Assistance"
                             // Pass total bookings count to show beside heading
@@ -237,6 +267,70 @@ const AppSignupDetails = () => {
                         <Pagination
                             currentPage={rSACurrentPage}
                             totalPages={rSATotalPages}
+                            onPageChange={handleRSAPageChange}
+                        />
+                    </>)}
+                    { pkgBookings?.length > 0 && (<>
+                        <DetailsBookingHistory
+                            title       = "Customer Package List"
+                            count       = {pkgTotalPages}
+                            headers     = { pkgHeaders }
+                            bookingData = { pkgBookings.map((booking) => {
+
+                                const packages = []
+                                if(booking?.pod_charging_session_number ?? 0) {
+                                    packages.push({
+                                        name: 'Mobile & Portable Charging',
+                                        used: booking?.pod_used_session_number ?? 0,
+                                        total: booking?.pod_charging_session_number ?? 0,
+                                        validity: booking?.pod_charging_session_validity
+                                    });
+                                }
+                                if(booking?.rsa_charging_session_number ?? 0) {
+                                    packages.push({
+                                        name: 'Roadside Assistance',
+                                        used: booking?.rsa_used_session_number ?? 0,
+                                        total: booking?.rsa_charging_session_number ?? 0,
+                                        validity: booking?.rsa_charging_session_validity
+                                    });
+                                }
+                                // "Vendor", "Emirate", "EV Make & Model", "Purchase Date", "Service Package",
+                                return {
+                                    id              : booking.customer_id,
+                                    vendor_name     : booking.vendor_name,
+                                    emirate         : booking.emirate,
+                                    makeModel       : booking.makeModel,
+                                    purchase_date   : moment(booking.purchase_date).format('DD MMM YYYY'),
+                                    service_package : (
+                                        <div className="service-packages">
+                                            {packages.map((pkg) => (
+                                                <div
+                                                    className="service-package-row"
+                                                    key={pkg.name}
+                                                >
+                                                    <span className="service-package-name">
+                                                        {pkg.name}
+                                                    </span>
+                                                    <span className="service-package-count">
+                                                        {pkg.used} / {pkg.total}
+                                                    </span>
+                                                    <span className="service-package-validity">
+                                                        {pkg.validity
+                                                            ? moment(pkg.validity).format('DD MMM YYYY')
+                                                            : '-'}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ),
+                                };
+                            })}
+                            bookingType="Customer Package List"
+                            // "Vendor", "Emirate", "EV Make & Model", "Purchase Date", "Service Package", "Action"
+                        />
+                        <Pagination
+                            currentPage={pkgCurrentPage}
+                            totalPages={pkgTotalPages}
                             onPageChange={handleRSAPageChange}
                         />
                     </>)}

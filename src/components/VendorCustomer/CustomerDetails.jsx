@@ -83,12 +83,14 @@ const ResidentsDetails = () => {
         sectionContent1.pod_charging_session_validity = moment(customerDetails?.pod_charging_session_validity).format('DD MMM YYYY ');
     }
     if( customerDetails?.rsa_charging_session_number ) {
+        const pensing_session  = parseInt(customerDetails?.rsa_charging_session_number) - parseInt(customerDetails?.rsa_used_session_number);
+
         sectionTitles1.rsa_charging_session_number   = "Roadside Service Session";
-        sectionTitles1.rsa_pending_session_number       = "Pending Roadside Service Session";
+        sectionTitles1.rsa_pending_session_number    = "Pending Roadside Service Session";
         sectionTitles1.rsa_charging_session_validity = "Roadside Service Validity";
 
         sectionContent1.rsa_charging_session_number   = customerDetails?.rsa_charging_session_number;
-        sectionContent1.rsa_pending_session_number       = customerDetails?.rsa_used_session_number;
+        sectionContent1.rsa_pending_session_number    = pensing_session;
         sectionContent1.rsa_charging_session_validity = moment(customerDetails?.rsa_charging_session_validity).format('DD MMM YYYY ');
     }
     const packageData =  {

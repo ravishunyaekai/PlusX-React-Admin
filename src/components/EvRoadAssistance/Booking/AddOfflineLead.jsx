@@ -78,29 +78,29 @@ const AddOfflineLead = () => {
             el.style.height = `${el.scrollHeight}px`;
         }
     }, [customerAddress]);
-    const [locationLink, setLocationLink]       = useState('');
-    const [price, setPrice]                     = useState('');
+    const [locationLink, setLocationLink] = useState('');
+    const [price, setPrice]               = useState('');
 
     const [vehicleMakeOption, setVehicleMakeOption]   = useState([]);
     const [vehicleModelOption, setVehicleModelOption] = useState([]);
-    const [vehicleMake, setVehicleMake]   = useState(null);
-    const [vehicleModel, setVehicleModel] = useState(null);
-    const [batteryLevel, setBatteryLevel] = useState(null);
-    const [jumpStart, setJumpStart]       = useState(null);
+    const [vehicleMake, setVehicleMake]               = useState(null);
+    const [vehicleModel, setVehicleModel]             = useState(null);
+    const [batteryLevel, setBatteryLevel]             = useState(null);
+    const [jumpStart, setJumpStart]                   = useState(null);
 
-    const [modeOfPayment, setModeOfPayment]             = useState(null);
+    const [modeOfPayment, setModeOfPayment]           = useState(null);
     const [proofOfTransaction, setProofOfTransaction] = useState(null);
     const [serviceTermsCondition, setServiceTermsCondition] = useState(null);
 
-    const [rsaDriverOption, setRsaDriverOption]               = useState([]);
-    const [bookingStatus, setBookingStatus]                   = useState(null);
-    const [bookingCompletedDate, setBookingCompletedDate]     = useState('');
-    const [bookingCompletedBy, setBookingCompletedBy]         = useState(null);
-    const [cancellationRemarks, setCancellationRemarks]       = useState('');
+    const [rsaDriverOption, setRsaDriverOption]           = useState([]);
+    const [bookingStatus, setBookingStatus]               = useState(null);
+    const [bookingCompletedDate, setBookingCompletedDate] = useState('');
+    const [bookingCompletedBy, setBookingCompletedBy]     = useState(null);
+    const [cancellationRemarks, setCancellationRemarks]   = useState('');
 
-    const formValuesRef     = useRef({});
-    const lastLookupKeyRef  = useRef('');
-    const lookupTimerRef    = useRef(null);
+    const formValuesRef    = useRef({});
+    const lastLookupKeyRef = useRef('');
+    const lookupTimerRef   = useRef(null);
 
     useEffect(() => {
         formValuesRef.current = {

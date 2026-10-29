@@ -9,6 +9,8 @@ import InputMask from 'react-input-mask';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { applyBackendFieldErrors, getBackendErrorMessage } from '../../utils/mapBackendErrorsToFields';
+import moment from 'moment';
+
 
 const AddCustomer = () => {
     const userDetails           = JSON.parse(sessionStorage.getItem('userDetails'));
@@ -36,6 +38,20 @@ const AddCustomer = () => {
     const [rsaChargingSessionValidity, setRSAChargingSessionValidity] = useState('');
 
     const serviceDropdownRef = useRef(null);
+    const formValuesRef      = useRef({});
+    const lastLookupKeyRef   = useRef('');
+    const lookupTimerRef     = useRef(null);
+
+    useEffect(() => {
+        formValuesRef.current = {
+            customerName,
+            email,
+            emirate,
+            phoneValue,
+            phoneCountry,
+        };
+    }, [customerName, email, emirate, phoneValue, phoneCountry]);
+
     const emiratesOptions = [
         { label : 'Abu Dhabi',      value : 'Abu Dhabi'},
         { label : 'Ajman',          value : 'Ajman'},
@@ -54,12 +70,11 @@ const AddCustomer = () => {
         return phoneValue.startsWith(phoneCountry.dialCode)
             ? phoneValue.slice(phoneCountry.dialCode.length) : phoneValue;
     };
-    const handlePhoneChange = (phone, country) => {
-        setPhoneValue(phone);
-        setPhoneCountry(country);
-        setErrors((prev) => ({ ...prev, mobileNo: '' }));
-    };
+    const MIN_MOBILE_DIGITS = 8;
+    const EMAIL_REGEX       = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     
+    const isValidEmailFormat = (value) => EMAIL_REGEX.test(String(value || '').trim());
+
     const handleCancel = () => {
         navigate('/vendors/customer-list')
     }
@@ -79,9 +94,6 @@ const AddCustomer = () => {
             { name: "eVMake", value: eVMake, errorMessage: "EV Make is required." },
             { name: "eVModel", value: eVModel, errorMessage: "EV Model is required." },
             { name: "purchaseDate", value: purchaseDate, errorMessage: "Purchase Date is required." },
-            // { name: "packageId", value: purchaseDate, errorMessage: "Package ID is required." },
-            // { name: "podChargingSessionNumber", value: podChargingSessionNumber, errorMessage: "POD Charging Session No. is required." },
-            // { name: "podChargingSessionValidity", value: podChargingSessionValidity, errorMessage: "Session Expiry Date is required." },
         ];
 
         const isEmpty = (value) => value == null || value === undefined ||
@@ -89,7 +101,7 @@ const AddCustomer = () => {
 
         const newErrors = fields.reduce(
             (errors, { name, value, errorMessage, isEmail, isMobile, isArray }) => {
-                console.log(name, value,)
+                
                 if (isEmpty(value) || (isArray && !Array.isArray(value))) {
                     errors[name] = errorMessage;
                 } else if (isEmail && !/\S+@\S+\.\S+/.test(value)) {
@@ -133,6 +145,7 @@ const AddCustomer = () => {
                 rsa_charging_session_number   : rsaChargingSessionNumber,
                 rsa_charging_session_validity : rsaChargingSessionValidity,
             }
+            
             postRequestWithToken('vendor-customer-add', obj, async (response) => {
                 if (response.status === 1) {
                     toast(response.message , {type:'success'})
@@ -217,6 +230,114 @@ const AddCustomer = () => {
                 break;
         }
     };
+
+    // Get Data From Mob no
+    const applyRiderLookupData = (rider) => {
+        if (!rider) return;
+        const current = formValuesRef.current;
+
+        if (!String(current.customerName || '').trim() && rider.customer_name) {
+            setCustomerName(rider.customer_name);
+        }
+        if (!current.emirates && rider.emirates) {
+            const match = emiratesOptions.find((option) => option.value === rider.emirates);
+            if (match) setEmirate(match);
+        }
+        if (!String(current.email || '').trim() && rider.email_id) {
+            setEmail(rider.email_id);
+        }
+        const localMobile = getLocalMobile(current.phoneValue, current.phoneCountry);
+        if (!localMobile && rider.mobile_no) {
+            const riderDial = String(rider.country_code || '+971').replace('+', '');
+            setPhoneValue(`${riderDial}${rider.mobile_no}`);
+            setPhoneCountry((prev) => ({ ...prev, dialCode: riderDial }));
+        }
+        setErrors((prev) => ({
+            ...prev,
+            customerName : '',
+            phoneValue   : '',
+            email        : '',
+            emirates     : '',
+        }));
+    };
+
+    const lookupRider = ({ mobile, email }) => {
+        const mobileNo = String(mobile || '').trim();
+        const emailId  = String(email || '').trim();
+        if (!mobileNo && !emailId) return;
+        if (emailId && !isValidEmailFormat(emailId) && !mobileNo) return;
+
+        const key = `${mobileNo}|${emailId.toLowerCase()}`;
+        if (key === lastLookupKeyRef.current) return;
+        lastLookupKeyRef.current = key;
+
+        const obj = {
+            userId       : userDetails?.user_id,
+            email        : userDetails?.email,
+            country_code : phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971',
+        };
+        if (mobileNo) obj.mobile_no = mobileNo;
+        if (emailId && isValidEmailFormat(emailId)) obj.email_id = emailId;
+
+        postRequestWithToken('ev-road-assistance-offline-rider-lookup', obj, (response) => {
+            if (response.code === 200 && Number(response.found) === 1 && response.data) {
+                applyRiderLookupData(response.data);
+            }
+        });
+    };
+
+    const scheduleRiderLookup = (payload) => {
+        if (lookupTimerRef.current) clearTimeout(lookupTimerRef.current);
+        lookupTimerRef.current = setTimeout(() => lookupRider(payload), 400);
+    };
+
+    const handlePhoneChangenew = (phone, country) => {
+        setPhoneValue(phone);
+        setPhoneCountry(country);
+        setErrors((prev) => ({ ...prev, mobileNo: '' }));
+    };
+    const handlePhoneChange = (phone, country) => {
+        setPhoneValue(phone);
+        setPhoneCountry(country);
+        const localMobile = phone.startsWith(country.dialCode)
+            ? phone.slice(country.dialCode.length)
+            : phone;
+        if (localMobile || email?.trim()) {
+            setErrors((prev) => ({ ...prev, phoneValue: '', email: '' }));
+        }
+        if (localMobile.length >= MIN_MOBILE_DIGITS) {
+            scheduleRiderLookup({ mobile: localMobile, email: email });
+        } else {
+            lastLookupKeyRef.current = '';
+        }
+    };
+    const handlePhoneBlur = () => {
+        const localMobile = getLocalMobile();
+        if (localMobile.length >= MIN_MOBILE_DIGITS) {
+            lookupRider({ mobile: localMobile, email: email });
+        }
+    };
+    const handleEmailChange = (e) => {
+        const value = e.target.value;
+        setEmail(value);
+        if (value.trim() || getLocalMobile()) {
+            setErrors((prev) => ({ ...prev, email: '', phoneValue: '' }));
+        }
+        if (isValidEmailFormat(value)) {
+            scheduleRiderLookup({ mobile: getLocalMobile(), email: value.trim() });
+        } else {
+            lastLookupKeyRef.current = '';
+        }
+    };
+
+    const handleEmailBlur = () => {
+        const emailId = email.trim();
+        if (isValidEmailFormat(emailId)) {
+            lookupRider({ mobile: getLocalMobile(), email : emailId });
+        }
+    };
+
+
     return (
         <div className={styles.addShopContainer}>
             <div className={styles.addHeading}>Add Customer</div>
@@ -276,6 +397,7 @@ const AddCustomer = () => {
                                 country="ae"
                                 value={phoneValue}
                                 onChange={handlePhoneChange}
+                                onBlur={handlePhoneBlur}
                                 enableSearch={true}
                                 countryCodeEditable={false}
                                 containerClass={styles.phoneInputContainer}
@@ -296,10 +418,12 @@ const AddCustomer = () => {
                                 autoComplete='off'
                                 placeholder="Email ID"
                                 value={email}
-                                onChange={(e) => {
-                                    setEmail(e.target.value.slice(0, 50));
-                                    setErrors((prev) => ({ ...prev, email: '' }));
-                                }}
+                                // onChange={(e) => {
+                                //     setEmail(e.target.value.slice(0, 50));
+                                //     setErrors((prev) => ({ ...prev, email: '' }));
+                                // }}
+                                onChange={handleEmailChange}
+                                onBlur={handleEmailBlur}
                             />
                             {errors.email && <p className="error" style={{ color: 'red' }}>{errors.email}</p>}
                         </div>
@@ -365,31 +489,16 @@ const AddCustomer = () => {
                         </div>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel} htmlFor="purchaseDate">Package Purchase Date</label>
-                            <InputMask
-                                mask="99-99-9999"
+                            <input
+                                type="date"
+                                className={styles.inputField}
                                 value={purchaseDate}
                                 onChange={(e) => {
                                     setPurchaseDate(e.target.value);
-                                    if (errors.purchaseDate && e.target.value.length === 10) {
-                                        setErrors((prevErrors) => ({ ...prevErrors, purchaseDate: "" }));
-                                    }
+                                    setErrors((prev) => ({ ...prev, purchaseDate: '' }));
                                 }}
-                                onBlur={() => {
-                                    if (purchaseDate.length === 10) {
-                                        const [day, month, year] = purchaseDate.split('-');
-                                        const isValidDate = !isNaN(Date.parse(`${year}-${month}-${day}`)) &&
-                                            day <= 31 && month <= 12;
-                                        if (!isValidDate) {
-                                            setErrors((prevErrors) => ({
-                                                ...prevErrors,
-                                                purchaseDate: "Invalid date in DD-MM-YYYY format",
-                                            }));
-                                        }
-                                    }
-                                }}
-                                placeholder="DD-MM-YYYY"
-                                className={styles.inputField}
                             />
+                            
                             {errors.purchaseDate && purchaseDate === "" &&   <p className="error" style={{ color: 'red' }}>{errors.purchaseDate}</p>}
                         </div>
                         
@@ -422,30 +531,14 @@ const AddCustomer = () => {
                         </div>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel} htmlFor="podChargingSessionValidity"> Session Validity</label>
-                            <InputMask
-                                mask="99-99-9999"
+                            <input
+                                type="date"
+                                className={styles.inputField}
                                 value={podChargingSessionValidity}
                                 onChange={(e) => {
                                     setPodChargingSessionValidity(e.target.value);
-                                    if (errors.podChargingSessionValidity && e.target.value.length === 10) {
-                                        setErrors((prevErrors) => ({ ...prevErrors, podChargingSessionValidity: "" }));
-                                    }
+                                    setErrors((prev) => ({ ...prev, podChargingSessionValidity: '' }));
                                 }}
-                                onBlur={() => {
-                                    if (podChargingSessionValidity.length === 10) {
-                                        const [day, month, year] = podChargingSessionValidity.split('-');
-                                        const isValidDate = !isNaN(Date.parse(`${year}-${month}-${day}`)) &&
-                                            day <= 31 && month <= 12;
-                                        if (!isValidDate) {
-                                            setErrors((prevErrors) => ({
-                                                ...prevErrors,
-                                                podChargingSessionValidity: "Invalid date in DD-MM-YYYY format",
-                                            }));
-                                        }
-                                    }
-                                }}
-                                placeholder="DD-MM-YYYY"
-                                className={styles.inputField}
                             />
                             {errors.podChargingSessionValidity && podChargingSessionValidity === "" &&   <p className="error" style={{ color: 'red' }}>{errors.podChargingSessionValidity}</p>}
                         </div>
@@ -477,30 +570,14 @@ const AddCustomer = () => {
                         </div>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel} htmlFor="rsaChargingSessionValidity">Session Validity</label>
-                            <InputMask
-                                mask="99-99-9999"
+                            <input
+                                type="date"
+                                className={styles.inputField}
                                 value={rsaChargingSessionValidity}
                                 onChange={(e) => {
                                     setRSAChargingSessionValidity(e.target.value);
-                                    if (errors.rsaChargingSessionValidity && e.target.value.length === 10) {
-                                        setErrors((prevErrors) => ({ ...prevErrors, rsaChargingSessionValidity: "" }));
-                                    }
+                                    setErrors((prev) => ({ ...prev, rsaChargingSessionValidity: '' }));
                                 }}
-                                onBlur={() => {
-                                    if (rsaChargingSessionValidity.length === 10) {
-                                        const [day, month, year] = rsaChargingSessionValidity.split('-');
-                                        const isValidDate = !isNaN(Date.parse(`${year}-${month}-${day}`)) &&
-                                            day <= 31 && month <= 12;
-                                        if (!isValidDate) {
-                                            setErrors((prevErrors) => ({
-                                                ...prevErrors,
-                                                rsaChargingSessionValidity: "Invalid date in DD-MM-YYYY format",
-                                            }));
-                                        }
-                                    }
-                                }}
-                                placeholder="DD-MM-YYYY"
-                                className={styles.inputField}
                             />
                             {errors.rsaChargingSessionValidity && rsaChargingSessionValidity === "" &&   <p className="error" style={{ color: 'red' }}>{errors.rsaChargingSessionValidity}</p>}
                         </div>
