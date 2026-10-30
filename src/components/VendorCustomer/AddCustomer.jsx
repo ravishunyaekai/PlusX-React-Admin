@@ -5,12 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import { postRequestWithToken } from '../../api/Requests';
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import InputMask from 'react-input-mask';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { applyBackendFieldErrors, getBackendErrorMessage } from '../../utils/mapBackendErrorsToFields';
-import moment from 'moment';
-
 
 const AddCustomer = () => {
     const userDetails           = JSON.parse(sessionStorage.getItem('userDetails'));
@@ -18,16 +15,16 @@ const AddCustomer = () => {
     const [errors, setErrors]   = useState({});
     const [loading, setLoading] = useState(false);
 
-    const [vendorName, setVendorName]     = useState('')
-    const [showroomName, setShowroomName] = useState('')
-    const [customerName, setCustomerName] = useState('')
+    const [vendorName, setVendorName]     = useState('');
+    const [showroomName, setShowroomName] = useState('');
+    const [customerName, setCustomerName] = useState('');
     const [phoneValue, setPhoneValue]     = useState('');
     const [phoneCountry, setPhoneCountry] = useState({ dialCode: '971', countryCode: 'ae' });
     const [email, setEmail]               = useState("");
     const [emirate,   setEmirate]         = useState('');
     
-    const [eVMake, setEVMake]             = useState('');
-    const [eVModel, setEVModel]           = useState('');
+    const [eVMake, setEVMake]             = useState(null);
+    const [eVModel, setEVModel]           = useState(null);
     const [purchaseDate, setPurchaseDate] = useState('');
     const [packageId, setPackageId]       = useState('');
 
@@ -41,6 +38,9 @@ const AddCustomer = () => {
     const formValuesRef      = useRef({});
     const lastLookupKeyRef   = useRef('');
     const lookupTimerRef     = useRef(null);
+
+    const [vehicleMakeOption, setVehicleMakeOption]   = useState([]);
+    const [vehicleModelOption, setVehicleModelOption] = useState([]);
 
     useEffect(() => {
         formValuesRef.current = {
@@ -135,8 +135,8 @@ const AddCustomer = () => {
                 country_code   : phoneCountry.dialCode, //{ dialCode: '971', countryCode: 'ae' });
                 customer_email : email,
                 emirate        : emirate?.value || "",
-                ev_make        : eVMake,
-                ev_model       : eVModel,
+                ev_make        : eVMake?.label || "",
+                ev_model       : eVModel?.label || "",
                 purchase_date  : purchaseDate,
                 package_id     : packageId?.value || "",
 
@@ -195,12 +195,26 @@ const AddCustomer = () => {
             }
         });
     };
+    const fetchVehicleList = () => {
+        const obj = {
+            userId : userDetails?.user_id,
+            email  : userDetails?.email,
+        };
+        postRequestWithToken('vehicle-brand-list', obj, (response) => {
+            if (response.code === 200) {
+                setVehicleMakeOption(response?.data || []);
+            } else {
+                console.log('error in vehicle-brand-list', response);
+            }
+        });
+    };
     useEffect(() => {
         if (!userDetails || !userDetails.access_token) {
             navigate('/login');
             return;
         }
         fetchVendors();
+        fetchVehicleList();
     }, []);
 
     const handleSelectChange = (field, selectedOption) => {
@@ -291,11 +305,6 @@ const AddCustomer = () => {
         lookupTimerRef.current = setTimeout(() => lookupRider(payload), 400);
     };
 
-    const handlePhoneChangenew = (phone, country) => {
-        setPhoneValue(phone);
-        setPhoneCountry(country);
-        setErrors((prev) => ({ ...prev, mobileNo: '' }));
-    };
     const handlePhoneChange = (phone, country) => {
         setPhoneValue(phone);
         setPhoneCountry(country);
@@ -337,7 +346,11 @@ const AddCustomer = () => {
         }
     };
 
-
+    const handleVehicleMakeChange = (selectedOption) => {
+        setEVMake(selectedOption);
+        setEVModel(null);
+        setVehicleModelOption(selectedOption?.models || []);
+    };
     return (
         <div className={styles.addShopContainer}>
             <div className={styles.addHeading}>Add Customer</div>
@@ -418,10 +431,6 @@ const AddCustomer = () => {
                                 autoComplete='off'
                                 placeholder="Email ID"
                                 value={email}
-                                // onChange={(e) => {
-                                //     setEmail(e.target.value.slice(0, 50));
-                                //     setErrors((prev) => ({ ...prev, email: '' }));
-                                // }}
                                 onChange={handleEmailChange}
                                 onBlur={handleEmailBlur}
                             />
@@ -446,28 +455,31 @@ const AddCustomer = () => {
                     <div className={styles.row}>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel} htmlFor="eVMake">EV Make</label>
-                            <input
-                                className={styles.inputField}
-                                type="text"
-                                autoComplete='off'
-                                placeholder="Enter EV Make"
-                                value={eVMake}
-                                onChange={(e) => setEVMake(e.target.value)}
-                            />
+                            <div ref={serviceDropdownRef}>
+                                <Select
+                                    className={styles.addShopSelect}
+                                    options={vehicleMakeOption}
+                                    value={eVMake}
+                                    onChange={handleVehicleMakeChange}
+                                    placeholder="Select EV Make"
+                                    isClearable={true}
+                                />
+                            </div>
                             {errors.eVMake && eVMake === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.eVMake}</p>}
                         </div>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel} htmlFor="eVModel">EV Model</label>
-                            <input
-                                type="text"
-                                autoComplete="off"
-                                id="eVModel"
-                                placeholder="Enter EV Model"
-                                className={styles.inputField}
-                                value={eVModel}
-                                // onChange={(e) => handleDecimalInput(e.target.value, seteVModel)}
-                                onChange={(e) => setEVModel(e.target.value)}
-                            />
+                            <div ref={serviceDropdownRef}>
+                                <Select
+                                    className={styles.addShopSelect}
+                                    options={vehicleModelOption}
+                                    value={eVModel}
+                                    onChange={(selectedOption) => setEVModel(selectedOption)}
+                                    placeholder="Select EV Model"
+                                    isClearable={true}
+                                    // isDisabled={!eVMake}
+                                />
+                            </div>
                             {errors.eVModel && eVModel === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.eVModel}</p>}
                         </div>
                     </div>
