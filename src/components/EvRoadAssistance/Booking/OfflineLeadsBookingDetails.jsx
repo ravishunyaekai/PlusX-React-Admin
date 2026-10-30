@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 const statusMapping = {
     'PNR' : 'Payment Not Received',
     'CNF': 'Booking Confirmed',
+    'NC' : 'Not Converted',
     'A'  : 'Assigned',
     'ER' : 'Enroute',
     'RL' : 'POD Reached at Location',

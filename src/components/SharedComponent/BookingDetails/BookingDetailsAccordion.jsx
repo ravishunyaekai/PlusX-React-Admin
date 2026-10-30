@@ -11,6 +11,7 @@ const BookingDetailsAccordion = ({history, rsa, imageUrl, fieldMapping, title, s
     const statusTitles = {
         P   : 'Open',
         CNF : 'Booking Confirmed',
+        NC  : 'Not Converted',
         A   : 'Assigned',
         ER  : 'Enroute',
         RL  : 'Reached Location',

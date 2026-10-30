@@ -22,9 +22,13 @@ const jumpStartOption = [
 ];
 const bookingStatusOption = [
     { value : 'CNF', label : 'Confirmed' },
+    { value : 'NC',  label : 'Not Converted' },
     { value : 'PU',  label : 'Completed' },
     { value : 'C',   label : 'Cancelled' },
 ];
+const incompleteBookingStatusValues = ['NC'];
+const defaultIncompleteBookingStatus =
+    bookingStatusOption.find((option) => option.value === 'NC') || null;
 const modeOfPaymentOption = [
     { value : 'Cash',   label : 'Cash' },
     { value : 'Online', label : 'Online' },
@@ -93,7 +97,9 @@ const AddOfflineLead = () => {
     const [serviceTermsCondition, setServiceTermsCondition] = useState(null);
 
     const [rsaDriverOption, setRsaDriverOption]           = useState([]);
-    const [bookingStatus, setBookingStatus]               = useState(null);
+    const [bookingStatus, setBookingStatus]               = useState(
+        isBookingCompleted ? null : defaultIncompleteBookingStatus
+    );
     const [bookingCompletedDate, setBookingCompletedDate] = useState('');
     const [bookingCompletedBy, setBookingCompletedBy]     = useState(null);
     const [cancellationRemarks, setCancellationRemarks]   = useState('');
@@ -324,6 +330,9 @@ const AddOfflineLead = () => {
             if (!hasMobile && !hasEmail) {
                 newErrors.customerMobile = "Please enter Phone Number or Email ID.";
                 newErrors.customerEmail  = "Please enter Phone Number or Email ID.";
+            }
+            if (!bookingStatus) {
+                newErrors.bookingStatus = "Booking Status is required.";
             }
             if (locationLink.trim() && !isValidLocationUrl(locationLink)) {
                 newErrors.locationLink = 'Please enter a valid URL.';
@@ -794,7 +803,7 @@ const AddOfflineLead = () => {
                                 className={styles.addShopSelect}
                                 options={isBookingCompleted
                                     ? bookingStatusOption
-                                    : bookingStatusOption.filter((option) => option.value === 'CNF')}
+                                    : bookingStatusOption.filter((option) => incompleteBookingStatusValues.includes(option.value))}
                                 value={bookingStatus}
                                 onChange={(selectedOption) => {
                                     setBookingStatus(selectedOption);

@@ -12,7 +12,8 @@ import EmptyList from "../../SharedComponent/EmptyList/EmptyList";
 import modalStyles from '../../SharedComponent/CustomModal/custommodal.module.css';
 
     const statusMapping = {
-        'CNF' : 'Booking Confirmed',
+        'CNF' : 'Confirmed',
+        'NC'  : 'Not Converted',
         'A'   : 'Assigned',
         'ER'  : 'Enroute',
         'RL'  : 'POD Reached at Location',
@@ -30,8 +31,9 @@ import modalStyles from '../../SharedComponent/CustomModal/custommodal.module.cs
             type  : 'select', 
             options : [
                 { value : '',    label : 'Select Status' },
-                { value : 'CNF', label : 'Booking Confirmed' },
-                { value : 'PU',  label : 'Booking Completed' },
+                { value : 'CNF', label : 'Confirmed' },
+                { value : 'NC',  label : 'Not Converted' },
+                { value : 'PU',  label : 'Completed' },
                 { value : 'C',   label : 'Cancelled' },
             ]
         },

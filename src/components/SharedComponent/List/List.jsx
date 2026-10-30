@@ -121,7 +121,7 @@ const List = ({ list, tableHeaders, listData, keyMapping, pageHeading, onDeleteS
             edit_url : '/charger-installation/accessories-edit', detail_url : '/charger-installation/accessories-details', detail_id : 'charger_id'
         },
         'EV Products & Installation' : {
-            edit_url : '/charger-installation/purchase-edit', detail_url : '/charger-installation/purchase-detail', detail_id : 'charger_id'
+            edit_url : '/charger-installation/purchase-edit', detail_url : '/charger-installation/purchase-detail', detail_id : 'purchase_id'
         },
         'Charger Share List' : {
             edit_url : '/charger-share/request-edit', detail_url : '/charger-share/request-detail', detail_id : 'charger_id'

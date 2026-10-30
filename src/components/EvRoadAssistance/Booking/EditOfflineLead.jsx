@@ -23,6 +23,7 @@ const jumpStartOption = [
 ];
 const bookingStatusOption = [
     { value : 'CNF', label : 'Confirmed' },
+    { value : 'NC',  label : 'Not Converted' },
     { value : 'PU',  label : 'Completed' },
     { value : 'C',   label : 'Cancelled' },
 ];
