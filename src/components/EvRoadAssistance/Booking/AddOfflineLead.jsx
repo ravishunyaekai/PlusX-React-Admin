@@ -12,6 +12,7 @@ import UploadIcon from '../../../assets/images/uploadicon.svg';
 import PdfIcon from '../../../assets/images/PdfIcon.svg';
 import { applyBackendFieldErrors, getBackendErrorMessage, OFFLINE_RSA_ERROR_FIELDS } from '../../../utils/mapBackendErrorsToFields';
 import { reasonForNonConversionOptions } from './offlineLeadConstants';
+import { sortSelectOptionsOtherLast, sortVehicleBrandList } from '../../../utils/sortVehicleBrandOptions';
 
 const batteryLevelOption = [
     { value : '0',  label : '0%' },
@@ -132,7 +133,7 @@ const AddOfflineLead = () => {
         };
         postRequestWithToken('vehicle-brand-list', obj, (response) => {
             if (response.code === 200) {
-                setVehicleMakeOption(response?.data || []);
+                setVehicleMakeOption(sortVehicleBrandList(response?.data || []));
             } else {
                 console.log('error in vehicle-brand-list', response);
             }
@@ -171,7 +172,7 @@ const AddOfflineLead = () => {
     const handleVehicleMakeChange = (selectedOption) => {
         setVehicleMake(selectedOption);
         setVehicleModel(null);
-        setVehicleModelOption(selectedOption?.models || []);
+        setVehicleModelOption(sortSelectOptionsOtherLast(selectedOption?.models || []));
     };
 
     const handleCancel = () => {

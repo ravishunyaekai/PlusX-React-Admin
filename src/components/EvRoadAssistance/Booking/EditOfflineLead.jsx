@@ -13,6 +13,7 @@ import PdfIcon from '../../../assets/images/PdfIcon.svg';
 import { onUploadImageError } from '../../../utils/uploadUrl';
 import { applyBackendFieldErrors, getBackendErrorMessage, OFFLINE_RSA_ERROR_FIELDS } from '../../../utils/mapBackendErrorsToFields';
 import { findReasonForNonConversionOption, reasonForNonConversionOptions } from './offlineLeadConstants';
+import { sortSelectOptionsOtherLast, sortVehicleBrandList } from '../../../utils/sortVehicleBrandOptions';
 
 const batteryLevelOption = [
     { value : '0',  label : '0%' },
@@ -174,14 +175,14 @@ const EditOfflineLead = () => {
         };
         postRequestWithToken('vehicle-brand-list', obj, (response) => {
             if (response.code === 200) {
-                const options = response?.data || [];
+                const options = sortVehicleBrandList(response?.data || []);
                 setVehicleMakeOption(options);
 
                 if (selectedMake) {
                     const makeOption = options.find((option) => option.value === selectedMake);
                     if (makeOption) {
                         setVehicleMake(makeOption);
-                        setVehicleModelOption(makeOption.models || []);
+                        setVehicleModelOption(sortSelectOptionsOtherLast(makeOption.models || []));
                         setVehicleModel(
                             (makeOption.models || []).find((option) => option.value === selectedModel) || null
                         );
@@ -332,7 +333,7 @@ const EditOfflineLead = () => {
     const handleVehicleMakeChange = (selectedOption) => {
         setVehicleMake(selectedOption);
         setVehicleModel(null);
-        setVehicleModelOption(selectedOption?.models || []);
+        setVehicleModelOption(sortSelectOptionsOtherLast(selectedOption?.models || []));
     };
 
     const handleCancel = () => {

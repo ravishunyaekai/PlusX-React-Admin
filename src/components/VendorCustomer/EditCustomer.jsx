@@ -10,6 +10,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { applyBackendFieldErrors, getBackendErrorMessage } from '../../utils/mapBackendErrorsToFields';
+import { sortSelectOptionsOtherLast, sortVehicleBrandList } from '../../utils/sortVehicleBrandOptions';
 import moment from 'moment';
 
 const EditResidents = () => {
@@ -235,7 +236,7 @@ const EditResidents = () => {
         };
         postRequestWithToken('vehicle-brand-list', obj, (response) => {
             if (response.code === 200) {
-                setVehicleMakeOption(response?.data || []);
+                setVehicleMakeOption(sortVehicleBrandList(response?.data || []));
             } else {
                 console.log('error in vehicle-brand-list', response);
             }
@@ -280,7 +281,7 @@ const EditResidents = () => {
     const handleVehicleMakeChange = (selectedOption) => {
         setEVMake(selectedOption);
         setEVModel(null);
-        setVehicleModelOption(selectedOption?.models || []);
+        setVehicleModelOption(sortSelectOptionsOtherLast(selectedOption?.models || []));
     };
     return (
         <div className={styles.addShopContainer}>

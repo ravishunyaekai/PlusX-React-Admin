@@ -12,6 +12,7 @@ import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { applyBackendFieldErrors, getBackendErrorMessage } from '../../utils/mapBackendErrorsToFields';
 import { mapCommunitiesFromApiResponse } from '../../utils/residentCommunityHelpers';
+import { sortSelectOptionsOtherLast, sortVehicleBrandList } from '../../utils/sortVehicleBrandOptions';
 
 const vehicleTypeOptions = [
     { value: 'Car',  label: 'Car' },
@@ -217,7 +218,7 @@ const EditResidents = () => {
         updateVehicleAt(index, {
             vehicleMake        : selectedOption,
             vehicleModel       : null,
-            vehicleModelOption : selectedOption?.models || [],
+            vehicleModelOption : sortSelectOptionsOtherLast(selectedOption?.models || []),
         });
         clearVehicleFieldErrors(index, ['vehicleMake', 'vehicleModel']);
     };
@@ -425,9 +426,9 @@ const EditResidents = () => {
         };
         postRequestWithToken(apiEndpoint, obj, (response) => {
             if (response.code === 200) {
-                const options = response?.data || [];
+                const options = sortVehicleBrandList(response?.data || []);
                 const makeOption = selectedMake ? matchSelectOption(options, selectedMake) : null;
-                const modelOptions = makeOption?.models || [];
+                const modelOptions = sortSelectOptionsOtherLast(makeOption?.models || []);
                 updateVehicleAt(index, {
                     vehicleMakeOption  : options,
                     vehicleMake        : makeOption,

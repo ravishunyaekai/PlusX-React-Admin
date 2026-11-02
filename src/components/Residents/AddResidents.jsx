@@ -14,6 +14,7 @@ import Add from '../../assets/images/Add.svg';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { applyBackendFieldErrors, getBackendErrorMessage } from '../../utils/mapBackendErrorsToFields';
+import { sortSelectOptionsOtherLast, sortVehicleBrandList } from '../../utils/sortVehicleBrandOptions';
 
 const vehicleTypeOptions = [
     { value: 'Car',  label: 'Car' },
@@ -155,7 +156,7 @@ const AddResidents = () => {
         updateVehicleAt(index, {
             vehicleMake        : selectedOption,
             vehicleModel       : null,
-            vehicleModelOption : selectedOption?.models || [],
+            vehicleModelOption : sortSelectOptionsOtherLast(selectedOption?.models || []),
         });
         clearVehicleFieldErrors(index, ['vehicleMake', 'vehicleModel']);
     };
@@ -500,7 +501,7 @@ const AddResidents = () => {
         };
         postRequestWithToken(apiEndpoint, obj, (response) => {
             if (response.code === 200) {
-                updateVehicleAt(index, { vehicleMakeOption: response?.data || [] });
+                updateVehicleAt(index, { vehicleMakeOption: sortVehicleBrandList(response?.data || []) });
             } else {
                 console.log(`error in ${apiEndpoint}`, response);
             }
