@@ -10,6 +10,7 @@ import { useParams } from 'react-router-dom';
 import moment from 'moment';
 
 import { useNavigate } from 'react-router-dom';
+import { getReasonForNonConversionLabel } from './offlineLeadConstants';
 
 const statusMapping = {
     'PNR' : 'Payment Not Received',
@@ -104,9 +105,31 @@ const OfflineLeadsBookingDetails = () => {
         sectionContent1[key] = value;
     };
 
+    const sectionLeadTitles = {};
+    const sectionLeadContent = {};
+
+    const addLeadField = (key, title, value) => {
+        if (!hasValue(value) && value !== 0 && typeof value !== 'object') return;
+        if (value === '-') return;
+        sectionLeadTitles[key] = title;
+        sectionLeadContent[key] = value;
+    };
+
     const statusCode = bookingDetails?.order_status || bookingDetails?.booking_status;
     const statusLabel = statusMapping[statusCode]
         || (statusCode === 'Cancel' ? 'Cancelled' : statusCode);
+
+    const reasonForNonConversion = bookingDetails?.reason_for_non_conversion;
+    const leadRemarks = bookingDetails?.lead_remarks || bookingDetails?.remarks;
+
+    addLeadField('leadStatus', 'Lead Status', statusCode === 'NC' ? statusLabel : '');
+    addLeadField(
+        'reasonForNonConversion',
+        'Reason for Non-Conversion',
+        getReasonForNonConversionLabel(reasonForNonConversion)
+    );
+    addLeadField('leadRemarks', 'Remarks / Notes', leadRemarks);
+
     addField('bookingStatus', 'Booking Status', statusLabel);
 
     if (bookingDetails?.booking_date) {
@@ -264,6 +287,13 @@ const OfflineLeadsBookingDetails = () => {
                 type='evRoadAssitanceBooking' feedBack={feedBack}
             />
             <div className={styles.bookingDetailsSection}>
+                {Object.keys(sectionLeadContent).length > 0 && (
+                    <BookingLeftDetails
+                        titles={sectionLeadTitles}
+                        content={sectionLeadContent}
+                        type='evRoadAssitanceBooking'
+                    />
+                )}
                 <BookingLeftDetails titles={sectionTitles1} content={sectionContent1}
                     type='evRoadAssitanceBooking' />
                 {proofFullUrl && !isPdfProof && (

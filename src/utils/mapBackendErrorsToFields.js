@@ -139,4 +139,6 @@ export const OFFLINE_RSA_ERROR_FIELDS = [
     { match: 'address',                key: 'customerAddress',      label: 'Address' },
     { match: 'price',                  key: 'price',                label: 'Price' },
     { match: 'service_terms_condition', key: 'serviceTermsCondition', label: 'Service Terms & Condition' },
+    { match: 'reason_for_non_conversion', key: 'reasonForNonConversion', label: 'Reason for Non-Conversion' },
+    { match: 'lead_remarks',              key: 'leadRemarks',              label: 'Remarks / Notes' },
 ];

@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import Loader from "../../SharedComponent/Loader/Loader";
 import EmptyList from "../../SharedComponent/EmptyList/EmptyList";
 import modalStyles from '../../SharedComponent/CustomModal/custommodal.module.css';
+import { reasonForNonConversionFilterOptions } from './offlineLeadConstants';
 
     const statusMapping = {
         'CNF' : 'Confirmed',
@@ -36,6 +37,12 @@ import modalStyles from '../../SharedComponent/CustomModal/custommodal.module.cs
                 { value : 'PU',  label : 'Completed' },
                 { value : 'C',   label : 'Cancelled' },
             ]
+        },
+        {
+            label   : 'Reason for non conversion',
+            name    : 'reason_for_non_conversion',
+            type    : 'select',
+            options : reasonForNonConversionFilterOptions,
         },
     ];
     const searchTerm = [

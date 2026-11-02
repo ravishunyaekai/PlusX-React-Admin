@@ -11,6 +11,7 @@ import { AiOutlineClose } from 'react-icons/ai';
 import UploadIcon from '../../../assets/images/uploadicon.svg';
 import PdfIcon from '../../../assets/images/PdfIcon.svg';
 import { applyBackendFieldErrors, getBackendErrorMessage, OFFLINE_RSA_ERROR_FIELDS } from '../../../utils/mapBackendErrorsToFields';
+import { reasonForNonConversionOptions } from './offlineLeadConstants';
 
 const batteryLevelOption = [
     { value : '0',  label : '0%' },
@@ -103,6 +104,8 @@ const AddOfflineLead = () => {
     const [bookingCompletedDate, setBookingCompletedDate] = useState('');
     const [bookingCompletedBy, setBookingCompletedBy]     = useState(null);
     const [cancellationRemarks, setCancellationRemarks]   = useState('');
+    const [reasonForNonConversion, setReasonForNonConversion] = useState(null);
+    const [leadRemarks, setLeadRemarks]                     = useState('');
 
     const formValuesRef    = useRef({});
     const lastLookupKeyRef = useRef('');
@@ -173,6 +176,36 @@ const AddOfflineLead = () => {
 
     const handleCancel = () => {
         navigate('/ev-road-assistance/offline-leads');
+    };
+
+    const handleBookingStatusChange = (selectedOption) => {
+        setBookingStatus(selectedOption);
+        setErrors((prev) => ({ ...prev, bookingStatus: '' }));
+        if (selectedOption?.value !== 'PU') {
+            setBookingCompletedDate('');
+            setErrors((prev) => ({ ...prev, bookingCompletedDate: '' }));
+        }
+        if (selectedOption?.value !== 'NC') {
+            setReasonForNonConversion(null);
+            setErrors((prev) => ({ ...prev, reasonForNonConversion: '' }));
+        }
+        if (selectedOption?.value === 'C') {
+            setBookingCompletedBy(null);
+            setModeOfPayment(null);
+            setProofOfTransaction(null);
+            setServiceTermsCondition(null);
+            setErrors((prev) => ({
+                ...prev,
+                bookingCompletedBy: '',
+                modeOfPayment: '',
+                proofOfTransaction: '',
+                serviceTermsCondition: '',
+                bookingCompletedDate: '',
+            }));
+        } else {
+            setCancellationRemarks('');
+            setErrors((prev) => ({ ...prev, cancellationRemarks: '' }));
+        }
     };
 
     const getLocalMobile = (phone = phoneValue, country = phoneCountry) => {
@@ -332,7 +365,10 @@ const AddOfflineLead = () => {
                 newErrors.customerEmail  = "Please enter Phone Number or Email ID.";
             }
             if (!bookingStatus) {
-                newErrors.bookingStatus = "Booking Status is required.";
+                newErrors.bookingStatus = "Lead Status is required.";
+            }
+            if (bookingStatus?.value === 'NC' && !reasonForNonConversion) {
+                newErrors.reasonForNonConversion = "Reason for Non-Conversion is required.";
             }
             if (locationLink.trim() && !isValidLocationUrl(locationLink)) {
                 newErrors.locationLink = 'Please enter a valid URL.';
@@ -445,6 +481,11 @@ const AddOfflineLead = () => {
 
             appendIfSet("booking_status", bookingStatus?.value);
 
+            if (!isBookingCompleted) {
+                appendIfSet("reason_for_non_conversion", reasonForNonConversion?.value);
+                appendIfSet("lead_remarks", leadRemarks.trim());
+            }
+
             if (bookingStatus?.value === 'C') {
                 formData.append("cancellation_remarks", cancellationRemarks);
             } else {
@@ -504,7 +545,58 @@ const AddOfflineLead = () => {
                 <ToastContainer />
                 <form className={styles.formSection} onSubmit={handleSubmit}>
 
-                    <div className={styles.addHeading} style={{ marginBottom: "0px" }}>Customer Details</div>
+                    {!isBookingCompleted && (
+                    <>
+                    <div className={styles.addHeading} style={{ marginBottom: "0px" }}>Lead Details</div>
+                    <div className={styles.row}>
+                        <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel}>Lead Status *</label>
+                            <Select
+                                className={styles.addShopSelect}
+                                options={bookingStatusOption.filter((option) => incompleteBookingStatusValues.includes(option.value))}
+                                value={bookingStatus}
+                                onChange={handleBookingStatusChange}
+                                placeholder="Select Lead Status"
+                                isClearable={true}
+                            />
+                            {errors.bookingStatus && <p className={styles.error}>{errors.bookingStatus}</p>}
+                        </div>
+                        <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel}>Reason for Non-Conversion *</label>
+                            <Select
+                                className={styles.addShopSelect}
+                                options={reasonForNonConversionOptions}
+                                value={reasonForNonConversion}
+                                onChange={(selectedOption) => {
+                                    setReasonForNonConversion(selectedOption);
+                                    setErrors((prev) => ({ ...prev, reasonForNonConversion: '' }));
+                                }}
+                                placeholder="Select Reason"
+                                isClearable={true}
+                                isDisabled={bookingStatus?.value !== 'NC'}
+                            />
+                            {errors.reasonForNonConversion && (
+                                <p className={styles.error}>{errors.reasonForNonConversion}</p>
+                            )}
+                        </div>
+                    </div>
+                    <div className={styles.row}>
+                        <div className={styles.addShopInputContainer}>
+                            <label className={styles.addShopLabel}>Remarks / Notes</label>
+                            <textarea
+                                rows="2"
+                                placeholder="Enter additional details about the lead..."
+                                className={styles.textAreaField}
+                                value={leadRemarks}
+                                onChange={(e) => setLeadRemarks(e.target.value)}
+                            />
+                        </div>
+                        <div className={styles.addShopInputContainer}></div>
+                    </div>
+                    </>
+                    )}
+
+                    <div className={styles.addHeading} style={{ marginBottom: "0px", marginTop: !isBookingCompleted ? "10px" : undefined }}>Customer Details</div>
                     <div className={styles.row}>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Customer Name</label>
@@ -805,31 +897,7 @@ const AddOfflineLead = () => {
                                     ? bookingStatusOption
                                     : bookingStatusOption.filter((option) => incompleteBookingStatusValues.includes(option.value))}
                                 value={bookingStatus}
-                                onChange={(selectedOption) => {
-                                    setBookingStatus(selectedOption);
-                                    setErrors((prev) => ({ ...prev, bookingStatus: '' }));
-                                    if (selectedOption?.value !== 'PU') {
-                                        setBookingCompletedDate('');
-                                        setErrors((prev) => ({ ...prev, bookingCompletedDate: '' }));
-                                    }
-                                    if (selectedOption?.value === 'C') {
-                                        setBookingCompletedBy(null);
-                                        setModeOfPayment(null);
-                                        setProofOfTransaction(null);
-                                        setServiceTermsCondition(null);
-                                        setErrors((prev) => ({
-                                            ...prev,
-                                            bookingCompletedBy: '',
-                                            modeOfPayment: '',
-                                            proofOfTransaction: '',
-                                            serviceTermsCondition: '',
-                                            bookingCompletedDate: '',
-                                        }));
-                                    } else {
-                                        setCancellationRemarks('');
-                                        setErrors((prev) => ({ ...prev, cancellationRemarks: '' }));
-                                    }
-                                }}
+                                onChange={handleBookingStatusChange}
                                 placeholder="Select Booking Status"
                                 isClearable={true}
                             />
