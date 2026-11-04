@@ -224,6 +224,12 @@ import CustomerLists from "../components/VendorCustomer/CustomerLists.jsx";
 import AddCustomer from "../components/VendorCustomer/AddCustomer.jsx";
 import EditCustomer from "../components/VendorCustomer/EditCustomer.jsx";
 import CustomerDetails from "../components/VendorCustomer/CustomerDetails.jsx";
+
+// RSA Val List
+import RsaVanList from "../components/RsaVan/RsaVanList.jsx";
+import AddRsaVan from "../components/RsaVan/AddRsaVan.jsx";
+import EditRsaVan from "../components/RsaVan/EditRsaVan.jsx";
+import RsaVanDetails  from "../components/RsaVan/RsaVanDetails.jsx";
  
 const router = createBrowserRouter([ 
     {
@@ -522,6 +528,20 @@ const router = createBrowserRouter([
                     {
                         path: "edit-time-slot/:slotDate",
                         element: <RoadAssistanceTimeSlotEdit />,
+                    },
+                    // RSA Van Route
+                    {
+                        path: "van-list",
+                        element: <RsaVanList />,
+                    }, {
+                        path: "add-van",
+                        element: <AddRsaVan />,  
+                    }, {
+                        path: "edit-van/:podId",
+                        element: <EditRsaVan />,  
+                    }, {
+                        path: "van-details/:podId",
+                        element: <RsaVanDetails />,  
                     },
                 ],
             },

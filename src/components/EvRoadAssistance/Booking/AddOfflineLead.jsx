@@ -112,6 +112,9 @@ const AddOfflineLead = () => {
     const lastLookupKeyRef = useRef('');
     const lookupTimerRef   = useRef(null);
 
+    const [rsaVanOption, setRsaVanOption] = useState([]);
+    const [vanId, setVanId]               = useState(null);
+
     useEffect(() => {
         formValuesRef.current = {
             customerName,
@@ -160,6 +163,21 @@ const AddOfflineLead = () => {
         });
     };
 
+    const fetchRsaVanList = () => {
+        const obj = {
+            userId : userDetails?.user_id,
+            email  : userDetails?.email,
+        };
+        postRequestWithToken('all-rsa-van-list', obj, (response) => {
+            if (response.code === 200) {
+                
+                setRsaVanOption(response?.data);
+            } else {
+                console.log('error in all-rsa-list api', response);
+            }
+        });
+    };
+
     useEffect(() => {
         if (!userDetails || !userDetails.access_token) {
             navigate('/login');
@@ -167,6 +185,7 @@ const AddOfflineLead = () => {
         }
         fetchVehicleList();
         fetchRsaDriverList();
+        fetchRsaVanList();
     }, []);
 
     const handleVehicleMakeChange = (selectedOption) => {
@@ -509,8 +528,10 @@ const AddOfflineLead = () => {
 
             if ((isBookingCompleted || bookingStatus?.value === 'PU') && serviceTermsCondition) {
                 formData.append("service_terms_condition", serviceTermsCondition);
-            }
-
+            } 
+            if ((isBookingCompleted || bookingStatus?.value === 'PU') && serviceTermsCondition) {
+                formData.append("podId", vanId);
+            }   
             postRequestWithTokenAndFile('ev-road-assistance-add-offline-booking', formData, async (response) => {
                 if (response.code === 200 || response.status === 1) {
                     toast(response.message, { type : 'success' });
@@ -841,6 +862,7 @@ const AddOfflineLead = () => {
                     </>
                     )}
 
+
                     {(isBookingCompleted || bookingStatus?.value === 'PU') && bookingStatus?.value !== 'C' && (
                     <>
                     <div className={styles.addHeading} style={{ marginBottom: "0px", marginTop: "10px" }}>Service Terms and Conditions</div>
@@ -954,9 +976,26 @@ const AddOfflineLead = () => {
                             />
                             {errors.bookingCompletedBy && <p className={styles.error}>{errors.bookingCompletedBy}</p>}
                         </div>
-                        <div className={styles.addShopInputContainer}></div>
+                        {(isBookingCompleted || bookingStatus?.value === 'PU') && bookingStatus?.value !== 'C' && (<>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel}>Select Van</label>
+                                <Select
+                                    className={styles.addShopSelect}
+                                    options={rsaVanOption}
+                                    value={vanId}
+                                    onChange={(selectedOption) => {
+                                        setVanId(selectedOption);
+                                        setErrors((prev) => ({ ...prev, vanId: '' }));
+                                    }}
+                                    placeholder="Select RSA Van"
+                                    isClearable={true}
+                                />
+                                {errors.vanId && <p className={styles.error}>{errors.vanId}</p>}
+                            </div>
+                        </>)}
                     </div>
                     )}
+                    
 
                     <div className={styles.editButton}>
                         <button type="button" className={styles.editCancelBtn} onClick={handleCancel}>Cancel</button>

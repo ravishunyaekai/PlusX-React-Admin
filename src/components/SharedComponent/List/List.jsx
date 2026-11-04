@@ -138,6 +138,9 @@ const List = ({ list, tableHeaders, listData, keyMapping, pageHeading, onDeleteS
         'Customer List' : {
             edit_url : '/vendors/customer-edit', detail_url : '/vendors/customer-details', detail_id : 'customer_id'
         },
+        'RSA Van List' : {
+            edit_url : '/ev-road-assistance/edit-van', detail_url : '/ev-road-assistance/van-details', detail_id : 'pod_id'
+        },
     }
     const pageConfig = detailsObject[pageHeading] || { edit_url : '', detail_url : '', detail_id : '' };
     return (

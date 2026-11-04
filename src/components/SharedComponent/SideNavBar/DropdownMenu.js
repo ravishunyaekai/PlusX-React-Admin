@@ -29,6 +29,7 @@ export const menuItems = {
         { id: "offlineLeads",      label: "RSA Offline Leads", path: "/ev-road-assistance/offline-leads" },
         { id: "invoiceList",       label: "Invoice List", path: "/ev-road-assistance/invoice-list" },
         { id: "failedBookingList", label: "Failed Booking", path: "/ev-road-assistance/failed-booking-list" },
+        { id: "vanList",           label: "RSA Charging Van", path: "/ev-road-assistance/van-list" },
     ],
     eVSwipeStation: [
         { id: "bikeList",    label: "Bike List", path: "/ev-battery-swipe/bike-list" },

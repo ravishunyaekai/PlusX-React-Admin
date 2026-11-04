@@ -233,6 +233,10 @@ const OfflineLeadsBookingDetails = () => {
         return list;
     })();
 
+    if (statusCode !== 'C' && hasValue(bookingDetails?.pod_name)) {
+        addField('RSA Van Name', 'Payment Status', bookingDetails.pod_name);
+    }
+
     const proofFilename = bookingDetails?.proof_of_transaction;
     const proofFullUrl = bookingDetails?.proof_of_transaction_url
         || (proofFilename ? `${PROOF_BASE_URL}/${proofFilename}` : null);
