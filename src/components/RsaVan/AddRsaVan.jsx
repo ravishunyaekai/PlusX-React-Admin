@@ -35,7 +35,7 @@ const AddPodDevice = () => {
             { 
                 name         : "podId", 
                 value        : podId, 
-                errorMessage : "RSA Van ID is required.", 
+                errorMessage : "RSA Van Number is required.", 
                 isValid      : val => val.trim() !== "" 
             },
             { 
@@ -176,8 +176,8 @@ const AddPodDevice = () => {
                     <ToastContainer />
                     <div className={styles.row}>
                         <div className={styles.inputGroup}>
-                            <label className={styles.label}>RSA Van ID</label>
-                            <input className={styles.inputCharger} type="text" placeholder="RSA Van ID"
+                            <label className={styles.label}>RSA Van Number</label>
+                            <input className={styles.inputCharger} type="text" placeholder="RSA Van Number"
                                 value={podId}
                                 onChange={(e) => setPodId(e.target.value) }
                             />

@@ -93,16 +93,16 @@ const PodDeviceList = () => {
             {loading ? <Loader /> :
                 chargerBookingList.length === 0 ? (
                     <EmptyList
-                        tableHeaders={["Van ID", "Van Name", "Model Name", "Battery","Charger", "Regs Date & Time","Status", "Action"]}
+                        tableHeaders={["Van Number", "Van Name", "Model Name", "Battery","Charger", "Regs Date & Time","Status", "Action"]}
                         message="No data available"
                     />
                 ) : (
                     <>
                         <List
-                            tableHeaders={[ "Van ID", "Van Name", "Model Name", "Battery","Charger", "Regs Date & Time","Status", "Action"]}
+                            tableHeaders={[ "Van Number", "Van Name", "Model Name", "Battery","Charger", "Regs Date & Time","Status", "Action"]}
                             listData={chargerBookingList}
                             keyMapping={[
-                                { key : 'pod_id', label: 'Van ID' },
+                                { key : 'pod_id', label: 'Van Number' },
                                 { key : 'pod_name', label: 'Van Name' },
                                 { key : 'design_model', label: 'Model Name' },
                                 { key : 'avgBattery', label: 'Battery', format : (data) => setdecimal(data) },

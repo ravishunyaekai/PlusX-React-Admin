@@ -98,7 +98,7 @@ const DeviceDetails = () => {
     }
     
     const sectionTitles1 = {
-        bookingStatus : "Van ID",
+        bookingStatus : "Van Number",
         price         : "Van Name",
         serviceName   : "Device ID",
         // design_model  : "Modal",
