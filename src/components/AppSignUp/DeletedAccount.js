@@ -10,6 +10,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 import Loader from "../SharedComponent/Loader/Loader";
 import EmptyList from '../SharedComponent/EmptyList/EmptyList';
+import { ADMIN_MODULE_KEYS } from '../../constants/adminModules';
+import { hasModuleAccess } from '../../utils/adminAccess';
+import { getAdminDownloadHeaders } from '../../utils/downloadAuthHeaders';
 
 const SignupList = () => {
     const userDetails                     = JSON.parse(sessionStorage.getItem('userDetails')); 
@@ -122,6 +125,10 @@ const SignupList = () => {
     ]
 
     const handleDownloadClick = async() => {
+        if (!hasModuleAccess(userDetails, ADMIN_MODULE_KEYS.APP_SIGNUP)) {
+            toast('No access to this module.', { type: 'error' });
+            return;
+        }
         const { start_date, end_date, emirates, addedFrom } = filters;
         
         let url = process.env.REACT_APP_SERVER_URL+'admin/user-signup-list-download';
@@ -139,7 +146,10 @@ const SignupList = () => {
         }
 
         try {
-            const response = await axios.get(url, { responseType: 'blob' });
+            const response = await axios.get(url, {
+                responseType: 'blob',
+                headers: getAdminDownloadHeaders(userDetails),
+            });
 
             const blob = new Blob([response.data], {
                 type : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -150,6 +160,7 @@ const SignupList = () => {
             link.click(); 
         } catch (error) {
             console.error('Error downloading file:', error);
+            toast('Download failed.', { type: 'error' });
         }      
     }
 
@@ -163,7 +174,7 @@ const SignupList = () => {
                 filterValues        = {filters}
                 searchTerm          = {searchTerm}
                 count               = {totalCount}
-                // handleDownloadClick = {handleDownloadClick}
+                handleDownloadClick = {handleDownloadClick}
             />
 
             {loading ? <Loader /> :

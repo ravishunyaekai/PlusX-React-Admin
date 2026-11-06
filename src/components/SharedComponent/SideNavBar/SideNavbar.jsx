@@ -5,8 +5,14 @@ import CompanyLogo from "../CompanyLogo";
 import SideBarLinkItem from "./SideBarLinkItem";
 import SidebarDropdown from "./SidebarDropdown/SidebarDropdown";
 import { menuItems } from "./DropdownMenu";
+import { ADMIN_MODULE_KEYS } from "../../../constants/adminModules";
+import { ensureSessionUserDetails, getAdminModuleLabelMap, hasModuleAccess } from "../../../utils/adminAccess";
 
 const SideNavbar = () => {
+    const userDetails = ensureSessionUserDetails();
+    const labels = getAdminModuleLabelMap(userDetails);
+    const can = (key) => hasModuleAccess(userDetails, key);
+
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [openDropdown, setOpenDropdown]   = useState(null);
     const [checkedItems, setCheckedItems]   = useState({
@@ -140,10 +146,13 @@ const SideNavbar = () => {
                     </NavLink>
                 </div>
                 <ul className={styles.menuList}>
-                    <SideBarLinkItem label="Dashboard" path="/" isActive={isActive("/")} />
+                    {can(ADMIN_MODULE_KEYS.DASHBOARD) && (
+                    <SideBarLinkItem label={labels[ADMIN_MODULE_KEYS.DASHBOARD]} path="/" isActive={isActive("/")} />
+                    )}
 
+                    {can(ADMIN_MODULE_KEYS.APP_SIGNUP) && (
                     <SidebarDropdown
-                        menuName="App Sign Up List"
+                        menuName={labels[ADMIN_MODULE_KEYS.APP_SIGNUP]}
                         menuItems={menuItems.userList}
                         openDropdown={openDropdown}
                         handleItemClick={(id, e) =>
@@ -152,11 +161,15 @@ const SideNavbar = () => {
                         toggleDropdown={toggleDropdown}
                         checkedItems={checkedItems.userList}
                     />
+                    )}
                      
-                    <SideBarLinkItem label="Drivers" path="/drivers/driver-list" isActive={isActive("/drivers")} />
+                    {can(ADMIN_MODULE_KEYS.DRIVERS) && (
+                    <SideBarLinkItem label={labels[ADMIN_MODULE_KEYS.DRIVERS]} path="/drivers/driver-list" isActive={isActive("/drivers")} />
+                    )}
+                    {can(ADMIN_MODULE_KEYS.PORTABLE_CHARGER) && (
                     <SidebarDropdown
                          
-                        menuName="Mobile & Portable EV Charging"
+                        menuName={labels[ADMIN_MODULE_KEYS.PORTABLE_CHARGER]}
                         menuItems={menuItems.portableCharger}
                         openDropdown={openDropdown}
                         handleItemClick={(id, e) =>
@@ -165,16 +178,20 @@ const SideNavbar = () => {
                         toggleDropdown={toggleDropdown}
                         checkedItems={checkedItems.portableCharger}
                     />
+                    )}
+                    {can(ADMIN_MODULE_KEYS.PICK_DROP) && (
                     <SidebarDropdown
-                        menuName="Pick & Drop"
+                        menuName={labels[ADMIN_MODULE_KEYS.PICK_DROP]}
                         menuItems={menuItems.pickAndDrop}
                         openDropdown={openDropdown}
                         handleItemClick={(id, e) => handleItemClicked("pickAndDrop", id, e)}
                         toggleDropdown={toggleDropdown}
                         checkedItems={checkedItems.pickAndDrop}
                     />
+                    )}
+                    {can(ADMIN_MODULE_KEYS.EV_ROAD_ASSISTANCE) && (
                     <SidebarDropdown
-                        menuName="EV Road Assistance"
+                        menuName={labels[ADMIN_MODULE_KEYS.EV_ROAD_ASSISTANCE]}
                         menuItems={menuItems.evRoadAssistance}
                         openDropdown={openDropdown}
                         handleItemClick={(id, e) =>
@@ -183,12 +200,18 @@ const SideNavbar = () => {
                         toggleDropdown={toggleDropdown}
                         checkedItems={checkedItems.evRoadAssistance}
                     />
-                    <SideBarLinkItem label="EV Insurance" path="/ev-insurance/ev-insurance-list" isActive={isActive("/ev-insurance")} />
-                    <SideBarLinkItem label="Public Chargers Station" path="/public-charger-station/public-charger-station-list" isActive={isActive("/public-charger-station")} />
+                    )}
+                    {can(ADMIN_MODULE_KEYS.EV_INSURANCE) && (
+                    <SideBarLinkItem label={labels[ADMIN_MODULE_KEYS.EV_INSURANCE]} path="/ev-insurance/ev-insurance-list" isActive={isActive("/ev-insurance")} />
+                    )}
+                    {can(ADMIN_MODULE_KEYS.PUBLIC_CHARGERS) && (
+                    <SideBarLinkItem label={labels[ADMIN_MODULE_KEYS.PUBLIC_CHARGERS]} path="/public-charger-station/public-charger-station-list" isActive={isActive("/public-charger-station")} />
+                    )}
 
                     
+                    {can(ADMIN_MODULE_KEYS.CHARGER_INSTALLATION) && (
                     <SidebarDropdown
-                        menuName="Charger Installation"
+                        menuName={labels[ADMIN_MODULE_KEYS.CHARGER_INSTALLATION]}
                         menuItems={menuItems.chargerInstallation}
                         openDropdown={openDropdown}
                         handleItemClick={(id, e) =>
@@ -197,8 +220,10 @@ const SideNavbar = () => {
                         toggleDropdown={toggleDropdown}
                         checkedItems={checkedItems.chargerInstallation}
                     />
+                    )}
+                    {can(ADMIN_MODULE_KEYS.COMMUNITY_CHARGER) && (
                     <SidebarDropdown
-                        menuName="Community Charger"
+                        menuName={labels[ADMIN_MODULE_KEYS.COMMUNITY_CHARGER]}
                         menuItems={menuItems.community}
                         openDropdown={openDropdown}
                         handleItemClick={(id, e) =>
@@ -207,8 +232,10 @@ const SideNavbar = () => {
                         toggleDropdown={toggleDropdown}
                         checkedItems={checkedItems.community}
                     />
+                    )}
+                    {can(ADMIN_MODULE_KEYS.VENDOR_CHARGING) && (
                     <SidebarDropdown
-                        menuName="Vendor Charging Package"
+                        menuName={labels[ADMIN_MODULE_KEYS.VENDOR_CHARGING]}
                         menuItems={menuItems.vendorChargingPackage}
                         openDropdown={openDropdown}
                         handleItemClick={(id, e) =>
@@ -217,10 +244,17 @@ const SideNavbar = () => {
                         toggleDropdown={toggleDropdown}
                         checkedItems={checkedItems.vendorChargingPackage}
                     />
-                    <SideBarLinkItem label="Charge Share Listings"  path="/charger-share/request-list"  isActive={isActive("/charger-share")} />
+                    )}
+                    {can(ADMIN_MODULE_KEYS.CHARGE_SHARE) && (
+                    <SideBarLinkItem label={labels[ADMIN_MODULE_KEYS.CHARGE_SHARE]}  path="/charger-share/request-list"  isActive={isActive("/charger-share")} />
+                    )}
 
-                    <SideBarLinkItem label="Coupon" path="/coupon/coupon-list" isActive={isActive("/coupon")} />
-                    <SideBarLinkItem label="Offer" path="/offer/offer-list" isActive={isActive("/offer")} />
+                    {can(ADMIN_MODULE_KEYS.COUPON) && (
+                    <SideBarLinkItem label={labels[ADMIN_MODULE_KEYS.COUPON]} path="/coupon/coupon-list" isActive={isActive("/coupon")} />
+                    )}
+                    {can(ADMIN_MODULE_KEYS.OFFER) && (
+                    <SideBarLinkItem label={labels[ADMIN_MODULE_KEYS.OFFER]} path="/offer/offer-list" isActive={isActive("/offer")} />
+                    )}
                      
                 </ul>
             </div>

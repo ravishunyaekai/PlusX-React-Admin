@@ -9,12 +9,13 @@ import { CgProfile } from "react-icons/cg";
 import {postRequestWithToken } from '../../../api/Requests';
 import moment from 'moment';
 import { onUploadImageError } from '../../../utils/uploadUrl';
+import { ensureSessionUserDetails, isSuperAdminUser } from '../../../utils/adminAccess';
 
 import io from 'socket.io-client';
 
 const Header = () => {
     const navigate                                  = useNavigate();
-    const userDetails                               = JSON.parse(sessionStorage.getItem('userDetails'));
+    const userDetails                               = ensureSessionUserDetails() || JSON.parse(sessionStorage.getItem('userDetails') || 'null');
     const [isNotificationOpen, setNotificationOpen] = useState(false);
     const [isProfileOpen, setProfileOpen]           = useState(false);
     const [userImage, setUserImage]                 = useState(DefaultProfileIcon);
@@ -146,8 +147,11 @@ const Header = () => {
             navigate(`${hreflink.link}${extractedId}`);
         }
     };
+    const roleLabel = isSuperAdminUser(userDetails) ? 'Super Admin' : 'Limited';
+
     return (
         <div className={styles.headerContainer}>
+            <span style={{ marginRight: 12, fontSize: 12, opacity: 0.85, alignSelf: 'center' }}>{roleLabel}</span>
             <div 
                 className={styles.notificationContainer}
                 onClick={toggleNotification}

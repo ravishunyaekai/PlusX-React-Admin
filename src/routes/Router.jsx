@@ -9,6 +9,7 @@ import AppSignupList from "../components/AppSignUp/AppSignupList.js";
 import AppSignupDetails from "../components/AppSignUp/AppSignupDetails.jsx";
 import EmergencyTeam from "../components/Riders/EmergencyDetails/Details.jsx";
 import Layout from "../components/SharedComponent/Layout.jsx";
+import ModuleRouteGuard from "../components/SharedComponent/ModuleRouteGuard.jsx";
 import ChargerList from "../components/PortableCharger/ChargerList/ChargerList.jsx";
 import Login from "../components/Login/index.jsx";
 import ChargerBookingList from "../components/PortableCharger/ChargerBooking/ChargerBookingList.js";
@@ -238,8 +239,11 @@ const router = createBrowserRouter([
     },
     {
         path     : "/",
-        element  : <Layout />,
+        element  : <ModuleRouteGuard />,
         children : [
+            {
+                element: <Layout />,
+                children: [
             {
                 index   : true,
                 element : <Dashboard />,
@@ -1085,6 +1089,8 @@ const router = createBrowserRouter([
                         path: "customer-edit/:customerId",
                         element: <EditCustomer />,
                     }, 
+                ],
+            },
                 ],
             },
         ],

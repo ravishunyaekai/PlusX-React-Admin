@@ -85,7 +85,13 @@ const SubHeader = ({ heading, fetchFilteredData, dynamicFilters, filterValues, a
     const shouldShowAddButtonArr = ["App Signup List", "Mobile & Portable EV Charging Service Booking List", "Pick & Drop Booking List", "Mobile & Portable EV Charging Service Invoice List", "Notification List", "Pick & Drop Invoice List", "Charger Installation Booking List", "Ev Road Assitance Booking List","Road Assistance Invoice List", "Board List", "Insurance List", "Buy Sell List", "Interest List","Subscription List", "EV Pre-Sale Testing Booking List", "Ev Road Assistance Invoice List", "Ev Discussion Board List","Ev Insurance List", "Ev Buy & Sell List", "Register Interest List", "Customer POD Booking List", "Failed POD Booking List", "Failed Pick & Drop Booking List", "Deleted Account List", "Failed RSA Booking List", "EV Accessories Bookings", "Fixed Charger Bookings", "Charger Share List",'Top Rated Area', "Session History", "Invoice History"] ; 
         
     // "Portable Charger Booking List"
-    const shouldShowDownloadButtonArr = ["App Signup List", "Mobile & Portable EV Charging Service Booking List",];
+    const shouldShowDownloadButtonArr = [
+        "App Signup List",
+        "Deleted Account List",
+        "Mobile & Portable EV Charging Service Booking List",
+        "Customer POD Booking List",
+        "Failed POD Booking List",
+    ];
     const shouldShowDownloadButton = shouldShowDownloadButtonArr.includes(heading)
 
     const shouldShowAddButton = !shouldShowAddButtonArr.includes(heading);
@@ -149,6 +155,15 @@ const SubHeader = ({ heading, fetchFilteredData, dynamicFilters, filterValues, a
                                 <img src={Filter} alt='Filter' />
                             </div>
                             <div className={styles.addButtonText}>Filter</div>
+                        </div>
+                    )}
+
+                    {shouldShowDownloadButton && typeof handleDownloadClick === 'function' && (
+                        <div className={styles.addButtonSection} onClick={handleDownloadClick}>
+                            <div className={styles.addButtonImg}>
+                                <img src={Download} alt='Download' />
+                            </div>
+                            <div className={styles.addButtonText}>Download</div>
                         </div>
                     )}
                 </div>

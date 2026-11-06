@@ -17,6 +17,10 @@ import Loader from "../../SharedComponent/Loader/Loader";
 import EmptyList from '../../SharedComponent/EmptyList/EmptyList.jsx';
 import { utils, writeFile } from 'xlsx';
 import axios from 'axios';
+import { toast } from 'react-toastify';
+import { ADMIN_MODULE_KEYS } from '../../../constants/adminModules';
+import { hasModuleAccess } from '../../../utils/adminAccess';
+import { getAdminDownloadHeaders } from '../../../utils/downloadAuthHeaders';
 
     const statusMapping = {
         'CNF': 'Booking Confirmed',
@@ -120,6 +124,10 @@ const CustomerChargerBookingList = () => {
         setCurrentPage(1);
     };
     const handleDownloadClick = async() => {
+        if (!hasModuleAccess(userDetails, ADMIN_MODULE_KEYS.PORTABLE_CHARGER)) {
+            toast('No access to this module.', { type: 'error' });
+            return;
+        }
         const { start_date, end_date, status, search_text } = filters;
         
         // let url = `http://192.168.1.10:3000/admin/pod-booking-list-download`;
@@ -140,7 +148,10 @@ const CustomerChargerBookingList = () => {
         }
 
         try {
-            const response = await axios.get(url, { responseType: 'blob' });
+            const response = await axios.get(url, {
+                responseType: 'blob',
+                headers: getAdminDownloadHeaders(userDetails),
+            });
 
             const blob = new Blob([response.data], {
                 type : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -151,6 +162,7 @@ const CustomerChargerBookingList = () => {
             link.click(); 
         } catch (error) {
             console.error('Error downloading file:', error);
+            toast('Download failed.', { type: 'error' });
         }      
     }
     return (

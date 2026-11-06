@@ -19,6 +19,9 @@ import EmptyList from '../../SharedComponent/EmptyList/EmptyList.jsx';
 import { utils, writeFile } from 'xlsx';
 import axios from 'axios';
 import { Tooltip } from 'react-tooltip';
+import { ADMIN_MODULE_KEYS } from '../../../constants/adminModules';
+import { hasModuleAccess } from '../../../utils/adminAccess';
+import { getAdminDownloadHeaders } from '../../../utils/downloadAuthHeaders';
 // import 'react-tooltip/dist/react-tooltip.css';
 
     const statusMapping = {
@@ -253,6 +256,10 @@ const ChargerBookingList = () => {
         })
     }
     const handleDownloadClick = async() => {
+        if (!hasModuleAccess(userDetails, ADMIN_MODULE_KEYS.PORTABLE_CHARGER)) {
+            toast('No access to this module.', { type: 'error' });
+            return;
+        }
         const { start_date, end_date, status, search_text } = filters;
         
         let url = process.env.REACT_APP_SERVER_URL+'admin/pod-booking-list-download';
@@ -271,7 +278,10 @@ const ChargerBookingList = () => {
         }
         try {
             // const response = await axios.get(url, { responseType: 'blob' });
-            const response = await axios.get(url, { responseType: 'blob', headers : {"authorization" : process.env.REACT_APP_Authorization, } });
+            const response = await axios.get(url, {
+                responseType: 'blob',
+                headers: getAdminDownloadHeaders(userDetails),
+            });
 
             const blob = new Blob([response.data], {
                 type : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -282,6 +292,7 @@ const ChargerBookingList = () => {
             link.click(); 
         } catch (error) {
             console.error('Error downloading file:', error);
+            toast('Download failed.', { type: 'error' });
         }      
     }
     const handleArea = (valaa) =>{
@@ -302,7 +313,7 @@ const ChargerBookingList = () => {
                 searchTerm           = {searchTerm}
                 count                = {totalCount}
                 setDownloadClicked   = {setDownloadClicked}
-                // handleDownloadClick  = {handleDownloadClick}  
+                handleDownloadClick  = {handleDownloadClick}  
                 scheduleDateChange   = {scheduleFilteredData}
                 scheduleFilters      = {scheduleFilters}
                 areaOptions          = {areaOptions}

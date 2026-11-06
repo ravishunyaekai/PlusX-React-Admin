@@ -4,8 +4,9 @@ import PanelLogo from '../SharedComponent/CompanyLogo';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { postRequest } from '../../api/Requests';
 import { useNavigate } from 'react-router-dom';
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import { ensureSessionUserDetails, getDefaultLandingPath, mergeAdminAccessIntoUserDetails } from '../../utils/adminAccess';
 // import io from 'socket.io-client';
 
 // const socket = io(process.env.REACT_APP_SERVER_URL);
@@ -50,7 +51,7 @@ const Login = () => {
                 if (response.code === 200) {
                     
                     toast(response.message || response.message[0], { type : 'success' })
-                    const userDetails = {
+                    const baseUser = {
                         user_id      : response.userDetails.id,
                         name         : response.userDetails.name,
                         email        : response.userDetails.email,
@@ -60,10 +61,14 @@ const Login = () => {
                         base_url     : response.base_url,
                         departmentId : response.userDetails.department_id 
                     };
+                    const userDetails = mergeAdminAccessIntoUserDetails(
+                        baseUser,
+                        response.adminAccess
+                    );
                     sessionStorage.setItem('userDetails', JSON.stringify(userDetails));
                     
                     setTimeout(() => {
-                        navigate('/')
+                        navigate(getDefaultLandingPath(userDetails));
                     }, 1000);
 
                     // if (Notification.permission !== 'granted') {
@@ -86,18 +91,14 @@ const Login = () => {
     };
 
     useEffect(() => {
-        const userDetails = sessionStorage.getItem('userDetails');
-        if (userDetails) {
-            const { access_token } = JSON.parse(userDetails);
-            if (access_token) {
-                navigate(-1);
-            }
+        const parsed = ensureSessionUserDetails();
+        if (parsed?.access_token) {
+            navigate(getDefaultLandingPath(parsed), { replace: true });
         }
     }, [navigate]);
 
     return (
         <>
-        <ToastContainer />
         <div className="container">
             <div className={styles.formMainContainer}>
                 <div className={styles.formSection}>
