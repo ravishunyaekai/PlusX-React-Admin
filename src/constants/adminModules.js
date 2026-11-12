@@ -22,7 +22,7 @@ export const ADMIN_MODULE_KEYS = {
 /** Default English labels when API does not supply a label */
 export const ADMIN_MODULE_DEFAULT_LABELS = {
   [ADMIN_MODULE_KEYS.DASHBOARD]: 'Dashboard',
-  [ADMIN_MODULE_KEYS.APP_SIGNUP]: 'App Sign Up',
+  [ADMIN_MODULE_KEYS.APP_SIGNUP]: 'App Sign Up List',
   [ADMIN_MODULE_KEYS.DRIVERS]: 'Drivers',
   [ADMIN_MODULE_KEYS.PORTABLE_CHARGER]: 'Mobile & Portable EV Charging',
   [ADMIN_MODULE_KEYS.PICK_DROP]: 'Pick & Drop',

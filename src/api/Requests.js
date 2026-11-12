@@ -2,6 +2,7 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { getDefaultLandingPath } from '../utils/adminAccess';
+import { isPathAllowedForUser } from '../utils/moduleRouteAccess';
 
 axios.defaults.baseURL                       = process.env.REACT_APP_API_URL;
 axios.defaults.headers.post['Content-Type']  = 'application/json';
@@ -27,13 +28,19 @@ function getApiStatus(body) {
 let moduleDenyThrottleTs = 0;
 function handleModuleForbidden() {
     const u = readUserDetailsSafe();
+    const path = window.location.pathname;
+    // A side request (header notifications, lookups) can 403 while the open
+    // page is one this admin is allowed to use. Do not toast or bounce them.
+    if (u && isPathAllowedForUser(path, u)) {
+        return;
+    }
     const def = getDefaultLandingPath(u) || '/';
     const now = Date.now();
     if (now - moduleDenyThrottleTs > 2500) {
         moduleDenyThrottleTs = now;
         toast('No access to this module.', { type: 'error' });
     }
-    if (window.location.pathname !== def) {
+    if (path !== def) {
         window.location.replace(def);
     }
 }

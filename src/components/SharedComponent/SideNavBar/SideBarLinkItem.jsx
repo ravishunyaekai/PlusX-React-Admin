@@ -8,7 +8,7 @@ function SideBarLinkItem({ path, label, isActive }) {
       to={path}
       className={`${style.menuItem} ${isActive ? style.active : ""}`}
     >
-      <li>{label}</li>
+      {label}
     </NavLink>
   );
 }

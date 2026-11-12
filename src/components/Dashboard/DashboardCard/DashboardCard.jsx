@@ -3,6 +3,8 @@ import style from "./DashboardCard.module.css";
 import DashboardCardItem from "../../SharedComponent/DashboardCardItem/DashboardCardItem";
 import { useSelector, useDispatch } from "react-redux";
 import { setActiveCardIndex } from "../../../store/dashboardSlice";
+import { ADMIN_MODULE_KEYS } from "../../../constants/adminModules";
+import { ensureSessionUserDetails, hasModuleAccess } from "../../../utils/adminAccess";
 
 // Card Images
 import AppSignUpImage from "../../../assets/images/DashboardCardIcons/Total App Sign Up.svg";
@@ -27,6 +29,7 @@ import TotalRegisterYourInterestImage from "../../../assets/images/DashboardCard
 const DashboardCard = ({ details }) => {
   const dispatch = useDispatch();
   const activeCardIndex = useSelector((state) => state.dashboard.activeCardIndex);
+  const userDetails = ensureSessionUserDetails();
 
   const handleCardClick = (index) => {
     dispatch(setActiveCardIndex(index));
@@ -34,11 +37,13 @@ const DashboardCard = ({ details }) => {
 
   const cardData = [
     {
+        moduleKey : ADMIN_MODULE_KEYS.APP_SIGNUP,
         icon  : AppSignUpImage,
         count : details?.find((item) => item.module === "App Sign Up")?.count || 0,
         title : "App Sign Up",
         route : "/app-signup/app-signup-list",
     },  {
+        moduleKey : ADMIN_MODULE_KEYS.PORTABLE_CHARGER,
         icon  : PODBooking,
         // API module key stays "POD Bookings" — do not change
         count : details?.find((item) => item.module === "POD Bookings")?.count || 0,
@@ -46,60 +51,71 @@ const DashboardCard = ({ details }) => {
         title : "Mobile & Portable EV Charging Bookings", // new heading
         route : "/portable-charger/charger-booking-list",
     }, {
+        moduleKey : ADMIN_MODULE_KEYS.PICK_DROP,
         icon  : PickAndDropImage,
         count : details?.find((item) => item.module === "Pickup & Dropoff Bookings") ?.count || 0,
         title : "Pick & Drop off Bookings",
         route : "/pick-and-drop/booking-list",
     },  {
+        moduleKey : ADMIN_MODULE_KEYS.EV_ROAD_ASSISTANCE,
         icon  : EVRoadAssitanceImage,
         count : details?.find((item) => item.module === "EV Road Assistance")?.count || 0,
         title : "EV Roadside Assistance Bookings",
         route : "/ev-road-assistance/booking-list",
     },{
+        moduleKey : ADMIN_MODULE_KEYS.EV_INSURANCE,
         icon  : EVRoadAssitanceImage,
         count : details?.find((item) => item.module === "EV Insurance Leads")?.count || 0,
         title : "EV Insurance Leads",
         route : "/ev-insurance/ev-insurance-list",
     }, {
+        moduleKey : ADMIN_MODULE_KEYS.CHARGER_INSTALLATION,
         icon  : ChargerInstallationImage,
         count : details?.find((item) => item.module === "Charger Installation Bookings") ?.count || 0,
         title : "Charger Installation Bookings",
         route : "/charger-installation/charger-installation-list",
     }, {
+        moduleKey : ADMIN_MODULE_KEYS.PORTABLE_CHARGER,
         icon  : PODBooking,
         count : details?.find((item) => item.module === "Today POD Failed Bookings")?.count || 0,
         title : "Incomplete POD Bookings", 
         route : "/portable-charger/failed-booking-list",
     }, {
+        moduleKey : ADMIN_MODULE_KEYS.PICK_DROP,
         icon  : PickAndDropImage,
         count : details?.find((item) => item.module === "Today Pickup & Dropoff Failed Bookings") ?.count || 0,
         title : "Incomplete Pickup & Drop Off Bookings",
         route : "/pick-and-drop/failed-booking-list",
     },
     {
+        moduleKey : ADMIN_MODULE_KEYS.EV_ROAD_ASSISTANCE,
         icon  : PickAndDropImage,
         count : details?.find((item) => item.module === "Today Road Side Failed Bookings") ?.count || 0,
         title : "Incomplete Roadside Assistance Bookings",
         route : "/ev-road-assistance/failed-booking-list",
     }, {
+        moduleKey : ADMIN_MODULE_KEYS.DRIVERS,
         icon  : NoOfRegsDriverImage,
         count : details?.find((item) => item.module === "No. of Regs. Drivers") ?.count || 0,
         title : "Active Drivers",
         route : "/drivers/driver-list",
     }, 
     {
+        moduleKey : ADMIN_MODULE_KEYS.CHARGER_INSTALLATION,
         icon  : ChargerInstallationImage,
         count : details?.find((item) => item.module === "EV Chargers Booking") ?.count || 0,
         title : "EV Chargers Booking",
         route : "/charger-installation/ev-charger-booking-list",
     },
     {
+        moduleKey : ADMIN_MODULE_KEYS.CHARGER_INSTALLATION,
         icon  : ChargerInstallationImage,
         count : details?.find((item) => item.module === "EV Accessories Booking") ?.count || 0,
         title : "EV Accessories Booking",
         route : "/charger-installation/ev-accessories-booking-list",
     },
     {
+        moduleKey : ADMIN_MODULE_KEYS.CHARGE_SHARE,
         icon  : EVPreSalesImage,
         count : details?.find((item) => item.module === "Charger Share List") ?.count || 0,
         title : "Charge Share Listing Requests",
@@ -200,9 +216,11 @@ const DashboardCard = ({ details }) => {
     //   route: "/interest-list",
     // },
   ];
+  const visibleCards = cardData.filter((card) => hasModuleAccess(userDetails, card.moduleKey));
+
   return (
     <div className={style.dashboardCardItem}>
-      {cardData.map((data, index) => (
+      {visibleCards.map((data, index) => (
         <DashboardCardItem
           key={index}
           icon={data.icon}

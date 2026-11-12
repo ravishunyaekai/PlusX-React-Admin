@@ -4,8 +4,9 @@
   background-color: #000000;
   color: white;
   height: 100vh;
-  overflow: scroll;
-  padding: 20px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 20px 8px 20px 0;
   font-family: "Inter", sans-serif !important;
 }
 .sidebar::-webkit-scrollbar {
@@ -59,13 +60,24 @@
 /* Logo */
 .logo img {
   display: block;
+  width: 196px;
   max-width: 100%;
 }
 
 /* Menu list styles */
 .menuList {
   list-style-type: none;
-  padding: 0;
+  padding: 0 0 0 12px;
+  width: 100%;
+  margin: 0;
+}
+
+.menuList li {
+  list-style: none;
+}
+
+.menuList li::marker {
+  content: none;
 }
 
 .menuItem {
@@ -75,6 +87,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
   cursor: pointer;
   text-decoration: none;
   color: #ffffff;
@@ -99,7 +114,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
+  width: 100%;
   cursor: pointer;
+}
+.menuLabel {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
 }
 .menuItemDiv {
   display: flex;
@@ -118,6 +140,7 @@
   margin-right: 10px;
 }
 .arrow {
+  flex-shrink: 0;
   font-size: 12px;
   font-weight: 800;
 }

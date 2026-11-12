@@ -19,7 +19,7 @@ function SidebarDropdown({
         className={style.menuItemdropdown}
         onClick={() => toggleDropdown(menuName)}
       >
-        {menuName}
+        <span className={style.menuLabel}>{menuName}</span>
         <FontAwesomeIcon icon={faChevronRight} className={style.arrow} />
       </li>
 

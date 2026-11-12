@@ -15,10 +15,12 @@ import TopAreaList from '../SharedComponent/Details/TopAreaList';
 import { getRequestWithToken } from '../../api/Requests';
 import Pagination from '../SharedComponent/Pagination/Pagination';
 import SubHeader from '../SharedComponent/SubHeader/SubHeader';
+import { isSuperAdminUser } from '../../utils/adminAccess';
 // import Pagination from '../Pagination/Pagination';
 
 function Index() {
     const userDetails                = JSON.parse(sessionStorage.getItem("userDetails"));
+    const showTopRatedArea           = isSuperAdminUser(userDetails);
     const navigate                   = useNavigate();
     const dispatch                   = useDispatch();
     const { details, status, error } = useSelector((state) => state.dashboard);
@@ -97,8 +99,9 @@ function Index() {
         });
     };
     useEffect(() => {
+        if (!showTopRatedArea) return;
         fetchAreaList(currentPage, filters);
-    }, [ currentPage, filters ]);
+    }, [ currentPage, filters, showTopRatedArea ]);
 
     return (
         <div className="main-container">
@@ -112,6 +115,7 @@ function Index() {
                     </div>
                 </div>
                 <DashboardCardItem details={details?.count_arr} />
+                {showTopRatedArea && (
                 <div style={{margin : "0px 10px 0px 15px" }}>
                     {/* <div className={styles.DetailsMainHeading}>Top Rated Area</div> */}
                     <SubHeader heading = "Top Rated Area" 
@@ -132,6 +136,7 @@ function Index() {
                         />
                     }
                 </div>
+                )}
             </>
         )}
         </div>
