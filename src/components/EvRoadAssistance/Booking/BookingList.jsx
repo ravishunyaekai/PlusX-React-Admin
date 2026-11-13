@@ -214,7 +214,7 @@ const RoadAssistanceBookingList = () => {
     return (
         <div className='main-container'>
             <SubHeader
-                heading="Ev Road Assitance Booking List"
+                heading="EV Road Assitance Booking List"
                 fetchFilteredData    = {fetchFilteredData}
                 dynamicFilters       = {dynamicFilters}
                 filterValues         = {filters}
