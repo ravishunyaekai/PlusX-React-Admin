@@ -349,6 +349,7 @@ const EditOfflineLead = () => {
         }
         if (selectedOption?.value !== 'NC') {
             setReasonForNonConversion(null);
+            setLeadRemarks('');
             setErrors((prev) => ({ ...prev, reasonForNonConversion: '' }));
         }
         if (selectedOption?.value === 'C') {
@@ -654,7 +655,10 @@ const EditOfflineLead = () => {
                 appendIfSet("jump_start_required", jumpStart?.value);
                 appendIfSet("booking_status", bookingStatus?.value);
                 appendIfSet("reason_for_non_conversion", reasonForNonConversion?.value);
-                appendIfSet("lead_remarks", leadRemarks.trim());
+                formData.append(
+                    "lead_remarks",
+                    reasonForNonConversion?.value === 'other' ? leadRemarks.trim() : ''
+                );
 
                 if (bookingStatus?.value === 'C') {
                     appendIfSet("cancellation_remarks", cancellationRemarks);
@@ -781,6 +785,9 @@ const EditOfflineLead = () => {
                                 value={reasonForNonConversion}
                                 onChange={(selectedOption) => {
                                     setReasonForNonConversion(selectedOption);
+                                    if (selectedOption?.value !== 'other') {
+                                        setLeadRemarks('');
+                                    }
                                     setErrors((prev) => ({ ...prev, reasonForNonConversion: '' }));
                                 }}
                                 placeholder="Select Reason"
@@ -792,6 +799,7 @@ const EditOfflineLead = () => {
                             )}
                         </div>
                     </div>
+                    {reasonForNonConversion?.value === 'other' && (
                     <div className={styles.row}>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Remarks / Notes</label>
@@ -805,6 +813,7 @@ const EditOfflineLead = () => {
                         </div>
                         <div className={styles.addShopInputContainer}></div>
                     </div>
+                    )}
                     </>
                     )}
 

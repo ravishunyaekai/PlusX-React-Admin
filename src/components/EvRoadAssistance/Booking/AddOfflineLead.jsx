@@ -207,6 +207,7 @@ const AddOfflineLead = () => {
         }
         if (selectedOption?.value !== 'NC') {
             setReasonForNonConversion(null);
+            setLeadRemarks('');
             setErrors((prev) => ({ ...prev, reasonForNonConversion: '' }));
         }
         if (selectedOption?.value === 'C') {
@@ -503,7 +504,9 @@ const AddOfflineLead = () => {
 
             if (!isBookingCompleted) {
                 appendIfSet("reason_for_non_conversion", reasonForNonConversion?.value);
-                appendIfSet("lead_remarks", leadRemarks.trim());
+                if (reasonForNonConversion?.value === 'other') {
+                    appendIfSet("lead_remarks", leadRemarks.trim());
+                }
             }
 
             if (bookingStatus?.value === 'C') {
@@ -591,6 +594,9 @@ const AddOfflineLead = () => {
                                 value={reasonForNonConversion}
                                 onChange={(selectedOption) => {
                                     setReasonForNonConversion(selectedOption);
+                                    if (selectedOption?.value !== 'other') {
+                                        setLeadRemarks('');
+                                    }
                                     setErrors((prev) => ({ ...prev, reasonForNonConversion: '' }));
                                 }}
                                 placeholder="Select Reason"
@@ -602,6 +608,7 @@ const AddOfflineLead = () => {
                             )}
                         </div>
                     </div>
+                    {reasonForNonConversion?.value === 'other' && (
                     <div className={styles.row}>
                         <div className={styles.addShopInputContainer}>
                             <label className={styles.addShopLabel}>Remarks / Notes</label>
@@ -615,6 +622,7 @@ const AddOfflineLead = () => {
                         </div>
                         <div className={styles.addShopInputContainer}></div>
                     </div>
+                    )}
                     </>
                     )}
 
@@ -976,7 +984,7 @@ const AddOfflineLead = () => {
                             />
                             {errors.bookingCompletedBy && <p className={styles.error}>{errors.bookingCompletedBy}</p>}
                         </div>
-                        {(isBookingCompleted || bookingStatus?.value === 'PU') && bookingStatus?.value !== 'C' && (<>
+                        {(isBookingCompleted || bookingStatus?.value === 'PU') ? (
                             <div className={styles.addShopInputContainer}>
                                 <label className={styles.addShopLabel}>Select Van</label>
                                 <Select
@@ -992,7 +1000,9 @@ const AddOfflineLead = () => {
                                 />
                                 {errors.vanId && <p className={styles.error}>{errors.vanId}</p>}
                             </div>
-                        </>)}
+                        ) : (
+                            <div className={styles.addShopInputContainer}></div>
+                        )}
                     </div>
                     )}
                     

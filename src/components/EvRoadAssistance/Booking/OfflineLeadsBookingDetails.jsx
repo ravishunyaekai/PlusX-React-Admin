@@ -128,7 +128,11 @@ const OfflineLeadsBookingDetails = () => {
         'Reason for Non-Conversion',
         getReasonForNonConversionLabel(reasonForNonConversion)
     );
-    addLeadField('leadRemarks', 'Remarks / Notes', leadRemarks);
+    addLeadField(
+        'leadRemarks',
+        'Remarks / Notes',
+        String(reasonForNonConversion || '').toLowerCase() === 'other' ? leadRemarks : ''
+    );
 
     addField('bookingStatus', 'Booking Status', statusLabel);
 
