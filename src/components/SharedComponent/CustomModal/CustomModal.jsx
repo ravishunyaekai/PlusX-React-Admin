@@ -2,10 +2,26 @@ import React, { useState } from 'react';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import styles from './custommodal.module.css';
 
-const Custommodal = ({ isOpen, onClose, driverList, onSelectDriver, bookingId, onAssignDriver }) => {
+const Custommodal = ({
+  isOpen,
+  onClose,
+  driverList,
+  itemList,
+  onSelectDriver,
+  onSelectItem,
+  bookingId,
+  onAssignDriver,
+  onAssign,
+  selectTitle = 'Select Driver',
+  idKey = 'rsa_id',
+  nameKey = 'rsa_name',
+}) => {
   
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState(null);
+  const list = itemList ?? driverList ?? [];
+  const handleSelect = onSelectItem ?? onSelectDriver;
+  const handleAssign = onAssign ?? onAssignDriver;
 
   if (!isOpen) return null;
 
@@ -20,7 +36,7 @@ const Custommodal = ({ isOpen, onClose, driverList, onSelectDriver, bookingId, o
     <div className={styles.modalBackdrop}>
       <div className={styles.modal}>
         <div className={styles.modalHead}>
-          Select Driver <span>( {bookingId} )</span>
+          {selectTitle} <span>( {bookingId} )</span>
         </div>
         <div className={styles.driverSelect}>
           <select
@@ -28,16 +44,18 @@ const Custommodal = ({ isOpen, onClose, driverList, onSelectDriver, bookingId, o
             onBlur={() => setIsDropdownOpen(false)}
             // onChange={(e) => onSelectDriver(e.target.value)}
             onChange={(e) => {
-              const driverId = e.target.value;
-              onSelectDriver(driverId); 
-              setSelectedDriver(driverId);
+              const itemId = e.target.value;
+              handleSelect?.(itemId);
+              setSelectedDriver(itemId);
           }}
           >
             <option value="" disabled selected>Select</option>
-            {driverList.map((driver, index) => (
-              <option key={index} value={driver.rsa_id} disabled={driver.isUnavailable}>
-                {/* {driver.rsa_name} {driver.isUnavailable ? '(Unavailable)' : ''} */}
-                {driver.rsa_name} ({getStatusLabel(driver.status)})
+            {list.map((item, index) => (
+              <option key={index} value={item[idKey]} disabled={item.isUnavailable}>
+                {item[nameKey]}
+                {item.status !== undefined && item.status !== null
+                  ? ` (${getStatusLabel(item.status)})`
+                  : ''}
               </option>
             ))}
           </select>
@@ -50,7 +68,7 @@ const Custommodal = ({ isOpen, onClose, driverList, onSelectDriver, bookingId, o
             Close
           </button>
           <button className={styles.assignBtn} 
-          onClick={onAssignDriver}
+          onClick={handleAssign}
           disabled={!selectedDriver}
           >
             Assign
