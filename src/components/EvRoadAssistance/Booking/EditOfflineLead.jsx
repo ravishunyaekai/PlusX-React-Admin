@@ -12,7 +12,11 @@ import UploadIcon from '../../../assets/images/uploadicon.svg';
 import PdfIcon from '../../../assets/images/PdfIcon.svg';
 import { onUploadImageError } from '../../../utils/uploadUrl';
 import { applyBackendFieldErrors, getBackendErrorMessage, OFFLINE_RSA_ERROR_FIELDS } from '../../../utils/mapBackendErrorsToFields';
-import { findReasonForNonConversionOption, reasonForNonConversionOptions } from './offlineLeadConstants';
+import {
+    findReasonForNonConversionOption,
+    reasonForNonConversionOptions,
+    shouldShowOfflineVanField,
+} from './offlineLeadConstants';
 import { sortSelectOptionsOtherLast, sortVehicleBrandList } from '../../../utils/sortVehicleBrandOptions';
 
 const batteryLevelOption = [
@@ -142,8 +146,14 @@ const EditOfflineLead = () => {
     const [reasonForNonConversion, setReasonForNonConversion]   = useState(null);
     const [leadRemarks, setLeadRemarks]                         = useState('');
     const [driverMatch, setDriverMatch]                       = useState({ rsa_id: null, name: null });
+    const [vanMatch, setVanMatch]                             = useState({ pod_id: null });
+    const [rsaVanOption, setRsaVanOption]                     = useState([]);
+    const [vanId, setVanId]                                   = useState(null);
     const [isBookingNotCompleted, setIsBookingNotCompleted]   = useState(false);
     const [lockedContact, setLockedContact]                   = useState({ mobile: false, email: false });
+
+    const isStoredAsCompletedBooking = !isBookingNotCompleted;
+    const showVanField = shouldShowOfflineVanField(isStoredAsCompletedBooking, bookingStatus?.value);
 
     const formValuesRef              = useRef({});
     const lastLookupKeyRef           = useRef('');
@@ -210,6 +220,28 @@ const EditOfflineLead = () => {
                 setRsaDriverOption(options);
             } else {
                 console.log('error in all-rsa-list api', response);
+            }
+        });
+    };
+
+    const fetchRsaVanList = () => {
+        const obj = {
+            userId : userDetails?.user_id,
+            email  : userDetails?.email,
+        };
+        postRequestWithToken('all-rsa-van-list', obj, (response) => {
+            if (response.code === 200) {
+                const options = (response?.data || []).map((van) => {
+                    const podId = van.pod_id ?? van.value;
+                    const podName = van.pod_name ?? van.label;
+                    return {
+                        value : podId,
+                        label : podName || podId,
+                    };
+                });
+                setRsaVanOption(options);
+            } else {
+                console.log('error in all-rsa-van-list api', response);
             }
         });
     };
@@ -299,6 +331,7 @@ const EditOfflineLead = () => {
                     rsa_id : data.rsa_id,
                     name   : data.driver_name || data.booking_completed_by || data.rsa_name,
                 });
+                setVanMatch({ pod_id: data.pod_id || null });
 
                 fetchVehicleList(data.vehicle_make, data.vehicle_model);
             } else {
@@ -315,6 +348,7 @@ const EditOfflineLead = () => {
         }
         fetchVehicleList();
         fetchRsaDriverList();
+        fetchRsaVanList();
         fetchDetails();
     }, []);
 
@@ -329,6 +363,15 @@ const EditOfflineLead = () => {
             setBookingCompletedBy(driver);
         }
     }, [rsaDriverOption, driverMatch]);
+
+    useEffect(() => {
+        if (!vanMatch.pod_id || !rsaVanOption.length) return;
+
+        const van = rsaVanOption.find((option) => option.value === vanMatch.pod_id);
+        if (van) {
+            setVanId(van);
+        }
+    }, [rsaVanOption, vanMatch]);
 
     const handleVehicleMakeChange = (selectedOption) => {
         setVehicleMake(selectedOption);
@@ -351,6 +394,10 @@ const EditOfflineLead = () => {
             setReasonForNonConversion(null);
             setLeadRemarks('');
             setErrors((prev) => ({ ...prev, reasonForNonConversion: '' }));
+        }
+        if (!shouldShowOfflineVanField(isStoredAsCompletedBooking, selectedOption?.value)) {
+            setVanId(null);
+            setErrors((prev) => ({ ...prev, vanId: '' }));
         }
         if (selectedOption?.value === 'C') {
             setBookingCompletedBy(null);
@@ -607,6 +654,14 @@ const EditOfflineLead = () => {
             });
         }
 
+        if (shouldShowOfflineVanField(isStoredAsCompletedBooking, bookingStatus?.value)) {
+            fields.push({
+                name         : "vanId",
+                value        : vanId,
+                errorMessage : "Select Van is required.",
+            });
+        }
+
         const newErrors = fields.reduce((errors, { name, value, errorMessage }) => {
             if (!value || (typeof value === 'string' && value.trim() === '')) {
                 errors[name] = errorMessage;
@@ -678,6 +733,10 @@ const EditOfflineLead = () => {
                     if (proofOfTransaction && typeof proofOfTransaction !== 'string') {
                         formData.append("proof_of_transaction", proofOfTransaction);
                     }
+
+                    if (shouldShowOfflineVanField(isStoredAsCompletedBooking, bookingStatus?.value)) {
+                        appendIfSet("podId", vanId?.value);
+                    }
                 }
 
             } else {
@@ -719,6 +778,10 @@ const EditOfflineLead = () => {
                         && serviceTermsCondition
                         && typeof serviceTermsCondition !== 'string') {
                         formData.append("service_terms_condition", serviceTermsCondition);
+                    }
+
+                    if (shouldShowOfflineVanField(isStoredAsCompletedBooking, bookingStatus?.value)) {
+                        appendIfSet("podId", vanId?.value);
                     }
                 }
             }
@@ -1196,7 +1259,25 @@ const EditOfflineLead = () => {
                             />
                             {errors.bookingCompletedBy && <p className={styles.error}>{errors.bookingCompletedBy}</p>}
                         </div>
-                        <div className={styles.addShopInputContainer}></div>
+                        {showVanField ? (
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel}>Select Van</label>
+                                <Select
+                                    className={styles.addShopSelect}
+                                    options={rsaVanOption}
+                                    value={vanId}
+                                    onChange={(selectedOption) => {
+                                        setVanId(selectedOption);
+                                        setErrors((prev) => ({ ...prev, vanId: '' }));
+                                    }}
+                                    placeholder="Select RSA Van"
+                                    isClearable={true}
+                                />
+                                {errors.vanId && <p className={styles.error}>{errors.vanId}</p>}
+                            </div>
+                        ) : (
+                            <div className={styles.addShopInputContainer}></div>
+                        )}
                     </div>
                     )}
 

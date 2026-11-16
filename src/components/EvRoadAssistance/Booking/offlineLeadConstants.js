@@ -21,3 +21,9 @@ export const getReasonForNonConversionLabel = (value) => {
     const option = findReasonForNonConversionOption(value);
     return option?.label || String(value);
 };
+
+/** Show RSA van on add/edit offline lead when recording or completing a booking. */
+export const shouldShowOfflineVanField = (isBookingCompleted, statusValue) =>
+    (isBookingCompleted || statusValue === 'PU')
+    && statusValue !== 'C'
+    && statusValue !== 'NC';

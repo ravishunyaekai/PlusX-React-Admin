@@ -11,7 +11,7 @@ import { AiOutlineClose } from 'react-icons/ai';
 import UploadIcon from '../../../assets/images/uploadicon.svg';
 import PdfIcon from '../../../assets/images/PdfIcon.svg';
 import { applyBackendFieldErrors, getBackendErrorMessage, OFFLINE_RSA_ERROR_FIELDS } from '../../../utils/mapBackendErrorsToFields';
-import { reasonForNonConversionOptions } from './offlineLeadConstants';
+import { reasonForNonConversionOptions, shouldShowOfflineVanField } from './offlineLeadConstants';
 import { sortSelectOptionsOtherLast, sortVehicleBrandList } from '../../../utils/sortVehicleBrandOptions';
 
 const batteryLevelOption = [
@@ -114,6 +114,7 @@ const AddOfflineLead = () => {
 
     const [rsaVanOption, setRsaVanOption] = useState([]);
     const [vanId, setVanId]               = useState(null);
+    const showVanField = shouldShowOfflineVanField(isBookingCompleted, bookingStatus?.value);
 
     useEffect(() => {
         formValuesRef.current = {
@@ -170,8 +171,15 @@ const AddOfflineLead = () => {
         };
         postRequestWithToken('all-rsa-van-list', obj, (response) => {
             if (response.code === 200) {
-                
-                setRsaVanOption(response?.data);
+                const options = (response?.data || []).map((van) => {
+                    const podId = van.pod_id ?? van.value;
+                    const podName = van.pod_name ?? van.label;
+                    return {
+                        value : podId,
+                        label : podName || podId,
+                    };
+                });
+                setRsaVanOption(options);
             } else {
                 console.log('error in all-rsa-list api', response);
             }
@@ -209,6 +217,10 @@ const AddOfflineLead = () => {
             setReasonForNonConversion(null);
             setLeadRemarks('');
             setErrors((prev) => ({ ...prev, reasonForNonConversion: '' }));
+        }
+        if (!shouldShowOfflineVanField(isBookingCompleted, selectedOption?.value)) {
+            setVanId(null);
+            setErrors((prev) => ({ ...prev, vanId: '' }));
         }
         if (selectedOption?.value === 'C') {
             setBookingCompletedBy(null);
@@ -455,6 +467,14 @@ const AddOfflineLead = () => {
             });
         }
 
+        if (shouldShowOfflineVanField(isBookingCompleted, bookingStatus?.value)) {
+            fields.push({
+                name         : "vanId",
+                value        : vanId,
+                errorMessage : "Select Van is required.",
+            });
+        }
+
         const newErrors = fields.reduce((errors, { name, value, errorMessage }) => {
             if (!value || (typeof value === 'string' && value.trim() === '')) {
                 errors[name] = errorMessage;
@@ -531,10 +551,10 @@ const AddOfflineLead = () => {
 
             if ((isBookingCompleted || bookingStatus?.value === 'PU') && serviceTermsCondition) {
                 formData.append("service_terms_condition", serviceTermsCondition);
-            } 
-            if ((isBookingCompleted || bookingStatus?.value === 'PU') && serviceTermsCondition) {
-                formData.append("podId", vanId);
-            }   
+            }
+            if (shouldShowOfflineVanField(isBookingCompleted, bookingStatus?.value)) {
+                appendIfSet("podId", vanId?.value);
+            }
             postRequestWithTokenAndFile('ev-road-assistance-add-offline-booking', formData, async (response) => {
                 if (response.code === 200 || response.status === 1) {
                     toast(response.message, { type : 'success' });
@@ -984,7 +1004,7 @@ const AddOfflineLead = () => {
                             />
                             {errors.bookingCompletedBy && <p className={styles.error}>{errors.bookingCompletedBy}</p>}
                         </div>
-                        {(isBookingCompleted || bookingStatus?.value === 'PU') ? (
+                        {showVanField ? (
                             <div className={styles.addShopInputContainer}>
                                 <label className={styles.addShopLabel}>Select Van</label>
                                 <Select
