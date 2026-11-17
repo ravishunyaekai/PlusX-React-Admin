@@ -278,13 +278,13 @@ const RoadAssistanceBookingList = () => {
             {loading ? <Loader /> :          
                 chargerBookingList.length === 0 ? (
                     <EmptyList
-                        tableHeaders={["Booking Date", "Booking ID", "Customer Name", "Price", "Status", "Driver Name", "Driver Assign", "Van Assign", "Action",""]}
+                        tableHeaders={["Booking Date", "Booking ID", "Customer Name", "Price", "Status", "Driver Assign", "Van Assign", "Action",""]}
                         message="No data available"
                     />
                 ) : (
                 <>
                     <List
-                        tableHeaders={["Booking Date", "Booking ID", "Customer Name", "Price", "Status", "Driver Name", "Driver Assign", "Van Assign", "Action",""]}
+                        tableHeaders={["Booking Date", "Booking ID", "Customer Name", "Price", "Status", "Driver Assign", "Van Assign", "Action",""]}
                         listData={chargerBookingList}
                         keyMapping={[
                             { key: 'created_at', label: 'Date & Time', format: (date) => moment(date).format('DD MMM YYYY hh:mm A') },
@@ -292,20 +292,24 @@ const RoadAssistanceBookingList = () => {
                             { key: 'name', label: 'Customer Name' },
                             { key: 'price', label: 'Price', format: (price) => (price ? `AED ${price.toFixed(2)}` : '0') },
                             { key: 'order_status', label: 'Status', format: (status) => statusMapping[status] || status },
-                            { key: 'rsa_name', label: 'Driver Name' }, 
                             {
                                 key         : 'driver_assign',
                                 label       : 'Driver Assign',
-                                relatedKeys : ['order_status'], 
+                                relatedKeys : ['order_status', 'rsa_name'],
                                 format      : (data, key, relatedKeys) => {
-                                    const isBookingConfirmed = ['CNF', 'A'].includes(data[relatedKeys[0]]);
-                                    
+                                    const isBookingConfirmed = ['CNF', 'A'].includes(data.order_status);
+                                    const driverName = data.rsa_name;
+
+                                    if (driverName) {
+                                        return <span>{driverName}</span>;
+                                    }
+
                                     return isBookingConfirmed && userDetails.departmentId == 1 ? (
-                                        <img 
-                                            src={AddDriver} 
-                                            className={"logo"} 
-                                            onClick={() => openModal(data.request_id)} 
-                                            alt="Assign Driver" 
+                                        <img
+                                            src={AddDriver}
+                                            className={"logo"}
+                                            onClick={() => openModal(data.request_id)}
+                                            alt="Assign Driver"
                                         />
                                     ) : null;
                                 }
@@ -313,9 +317,14 @@ const RoadAssistanceBookingList = () => {
                             {
                                 key         : 'van_assign',
                                 label       : 'Van Assign',
-                                relatedKeys : ['order_status'],
+                                relatedKeys : ['order_status', 'van_id'],
                                 format      : (data, key, relatedKeys) => {
-                                    const isBookingConfirmed = ['CNF', 'A'].includes(data[relatedKeys[0]]);
+                                    const isBookingConfirmed = ['CNF', 'A'].includes(data.order_status);
+                                    const vanId = data.van_id ?? data.pod_id;
+
+                                    if (vanId) {
+                                        return <span>{vanId}</span>;
+                                    }
 
                                     return isBookingConfirmed && userDetails.departmentId == 1 ? (
                                         <img
