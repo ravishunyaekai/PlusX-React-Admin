@@ -62,7 +62,6 @@ const EditCommunity = () => {
         const fields = [
             { name: "communityName", value: communityName,  errorMessage: "Community Name is required." },
             { name: "areaName",      value: areaName,       errorMessage: "Area Name is required." },
-            { name: "noofResidents", value: noofResidents,  errorMessage: "Total number of Residents is required." },
             { name: "managerName",   value: managerName,    errorMessage: "Manager Name is required." },
             { name: "managerEmail",  value: managerEmail,   errorMessage: "Please enter a valid Email ID.", isEmail: true },
         ];
@@ -281,7 +280,6 @@ const EditCommunity = () => {
                                         setNoofResidents(value);
                                     }}
                                 />
-                                {errors.noofResidents && noofResidents === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.noofResidents}</p>}
                             </div>
                         </div>
                     </div>
