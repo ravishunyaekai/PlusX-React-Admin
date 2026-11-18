@@ -231,6 +231,11 @@ import RsaVanList from "../components/RsaVan/RsaVanList.jsx";
 import AddRsaVan from "../components/RsaVan/AddRsaVan.jsx";
 import EditRsaVan from "../components/RsaVan/EditRsaVan.jsx";
 import RsaVanDetails  from "../components/RsaVan/RsaVanDetails.jsx";
+
+// Partner Charger Management
+import Partner from "../components/partnersCharger/index.jsx";
+import PartnerDashboard from "../components/partnersCharger/dashboard/index.jsx";
+import SessionsList from "../components/partnersCharger/sessions/sessionsList.jsx";
  
 const router = createBrowserRouter([ 
     {
@@ -705,6 +710,55 @@ const router = createBrowserRouter([
                         path: "session-detail/:sessionId",
                         element: <ResidentsSessionDetails />,
                     },
+                ],
+            },
+            // partner charger management
+            {
+                path: "/partners",
+                element: <Partner />,
+                children: [
+                    {
+                        path: "dashboard",
+                        element: <PartnerDashboard />,
+                    },
+                    {
+                        path: "sessions-list",
+                        element: <SessionsList />,
+                    }, 
+                    {
+                        path: "stations-list",
+                        element: <ResidentsList />,
+                    }, 
+                    {
+                        path: "charger-list",
+                        element: <ResidentsList />,
+                    }, 
+                    {
+                        path: "alert-list",
+                        element: <ResidentsList />,
+                    }, 
+                    // {
+                    //     path: "resident-details/:residentId",
+                    //     element: <ResidentsDetails />,
+                    // }, {
+                    //     path: "add-resident",
+                    //     element: <AddResidents />,
+                    // }, {
+                    //     path: "resident-edit/:residentId",
+                    //     element: <EditResidents />,
+                    // }, {
+                    //     path: "resident-invoice",
+                    //     element: <ResidentsInvoiceList />,
+                    // }, {
+                    //     path: "create-invoice",
+                    //     element: <AddInvoice />,
+                    // }, {
+                    //     path: "invoice-details/:invoiceId",
+                    //     element: <ResidentsInvoiceDetails />,
+                    // }, {
+                    //     path: "session-detail/:sessionId",
+                    //     element: <ResidentsSessionDetails />,
+                    // },
                 ],
             },
             {

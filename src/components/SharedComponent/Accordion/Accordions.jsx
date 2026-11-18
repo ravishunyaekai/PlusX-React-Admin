@@ -131,7 +131,7 @@ const AccordionFilter = ({ type, isOpen, fetchFilteredData, dynamicFilters, filt
                                                     <Calendar handleDateChange={handleScheduleDateChange}/>
                                                 </div>  
                                             )}
-                                            { (type != 'Roadside Assistance Slot List' ) && (
+                                            { (type != 'Roadside Assistance Slot List' && type !== 'Live Sessions') && (
                                                 <div className={`col-xl-4 col-lg-6 col-12 ${styles.filterItem}`}>
                                                     <label className={styles.filterLabel} htmlFor="date_filter">
                                                         {type === 'RSA Offline Leads'

@@ -14,6 +14,7 @@ export const ADMIN_MODULE_KEYS = {
   CHARGER_INSTALLATION: 'charger_installation',
   COMMUNITY_CHARGER: 'community_charger',
   VENDOR_CHARGING: 'vendor_charging',
+  PARTNERS: 'partners',
   CHARGE_SHARE: 'charge_share',
   COUPON: 'coupon',
   OFFER: 'offer',
@@ -33,6 +34,7 @@ export const ADMIN_MODULE_DEFAULT_LABELS = {
   [ADMIN_MODULE_KEYS.COMMUNITY_CHARGER]: 'Community Charger',
   [ADMIN_MODULE_KEYS.VENDOR_CHARGING]: 'Vendor Charging Package',
   [ADMIN_MODULE_KEYS.CHARGE_SHARE]: 'Charge Share Listings',
+  [ADMIN_MODULE_KEYS.PARTNERS]: 'Partner Chargers Management',
   [ADMIN_MODULE_KEYS.COUPON]: 'Coupon',
   [ADMIN_MODULE_KEYS.OFFER]: 'Offer',
 };
@@ -51,6 +53,7 @@ export const ADMIN_MODULE_SIDEBAR_ORDER = [
   ADMIN_MODULE_KEYS.COMMUNITY_CHARGER,
   ADMIN_MODULE_KEYS.VENDOR_CHARGING,
   ADMIN_MODULE_KEYS.CHARGE_SHARE,
+  ADMIN_MODULE_KEYS.PARTNERS,
   ADMIN_MODULE_KEYS.COUPON,
   ADMIN_MODULE_KEYS.OFFER,
 ];
@@ -70,6 +73,7 @@ export const MODULE_ENTRY_PATH = {
   [ADMIN_MODULE_KEYS.COMMUNITY_CHARGER]: '/community/community-list',
   [ADMIN_MODULE_KEYS.VENDOR_CHARGING]: '/vendors/vendor-list',
   [ADMIN_MODULE_KEYS.CHARGE_SHARE]: '/charger-share/request-list',
+  [ADMIN_MODULE_KEYS.PARTNERS]: '/partners/dashboard',
   [ADMIN_MODULE_KEYS.COUPON]: '/coupon/coupon-list',
   [ADMIN_MODULE_KEYS.OFFER]: '/offer/offer-list',
 };

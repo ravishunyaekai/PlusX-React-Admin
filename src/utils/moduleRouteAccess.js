@@ -17,6 +17,7 @@ const ROUTE_PREFIX_TO_MODULE = [
   { prefix: '/community', module: ADMIN_MODULE_KEYS.COMMUNITY_CHARGER },
   { prefix: '/vendors', module: ADMIN_MODULE_KEYS.VENDOR_CHARGING },
   { prefix: '/coupon', module: ADMIN_MODULE_KEYS.COUPON },
+  { prefix: '/partners', module: ADMIN_MODULE_KEYS.PARTNERS },
   { prefix: '/offer', module: ADMIN_MODULE_KEYS.OFFER },
   { prefix: '/ev-insurance', module: ADMIN_MODULE_KEYS.EV_INSURANCE },
 ];

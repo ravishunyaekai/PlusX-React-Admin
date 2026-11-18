@@ -31,6 +31,7 @@ const SideNavbar = () => {
         chargerInstallation : { stationList : false, chargerList : false, brandList: false, inquiryTracking: false },
         community  : { communityList : false, residentList : false, residentInvoice: false },
         vendorChargingPackage  : { vendorList : false, customerList : false },
+        partners               : { dashboard : false, sessionsList : false, stationsList : false, partnersChargerList: false, alertList: false },
     });
     const location = useLocation();
     const handleItemClicked = (menu, id, e) => {
@@ -100,6 +101,8 @@ const SideNavbar = () => {
             
             vendorChargingPackage : location.pathname.includes("/vendors")
                 ? prevState.vendorChargingPackage : { vendorList : false, customerList : false },
+            partners : location.pathname.includes("/partners")
+                ? prevState.partners : { dashboard : false, sessionsList : false, stationsList : false, partnersChargerList: false, alertList: false },
 
         })); 
         const dropdownPaths = [
@@ -113,6 +116,7 @@ const SideNavbar = () => {
             "/community",
             "/charger-share",
             "/vendors",
+            "/partners",
         ];
         if (!dropdownPaths.some((path) => location.pathname.includes(path))) {
             sessionStorage.removeItem("checkedItems");
@@ -247,6 +251,19 @@ const SideNavbar = () => {
                     )}
                     {can(ADMIN_MODULE_KEYS.CHARGE_SHARE) && (
                     <SideBarLinkItem label={labels[ADMIN_MODULE_KEYS.CHARGE_SHARE]}  path="/charger-share/request-list"  isActive={isActive("/charger-share")} />
+                    )}
+
+                    {can(ADMIN_MODULE_KEYS.PARTNERS) && (
+                    <SidebarDropdown
+                        menuName={labels[ADMIN_MODULE_KEYS.PARTNERS]}
+                        menuItems={menuItems.partners}
+                        openDropdown={openDropdown}
+                        handleItemClick={(id, e) =>
+                            handleItemClicked("partners", id, e)
+                        }
+                        toggleDropdown={toggleDropdown}
+                        checkedItems={checkedItems.partners}
+                    />
                     )}
 
                     {can(ADMIN_MODULE_KEYS.COUPON) && (

@@ -57,4 +57,11 @@ export const menuItems = {
         { id: "vendorList",   label: "Vendor List",    path: "/vendors/vendor-list" },
         { id: "customerList", label: "Customer List",  path: "/vendors/customer-list" },
     ],
+    partners: [
+        { id: "dashboard",           label: "Dashboard",    path: "/partners/dashboard" },
+        { id: "sessionsList",        label: "Sessions",     path: "/partners/sessions-list" },
+        { id: "stationsList",        label: "Stations",     path: "/partners/stations-list" },
+        { id: "partnersChargerList", label: "Chargers",     path: "/partners/charger-list" },
+        { id: "alertList",           label: "Alerts",       path: "/partners/alert-list" },
+    ],
 };
