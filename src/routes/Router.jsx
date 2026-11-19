@@ -239,6 +239,8 @@ import SessionsList from "../components/partnersCharger/sessions/sessionsList.js
 import SessionDetails  from "../components/partnersCharger/sessions/sessionsDetails.jsx";
 import PartnerStationList from "../components/partnersCharger/stations/stationList.jsx";
 import ParnterStationDetails  from "../components/partnersCharger/stations/stationDetails.jsx";
+import PartnerAddStation from "../components/partnersCharger/stations/addPartnerStation.jsx";
+import PartnerEditStation from "../components/partnersCharger/stations/editPartnerStation.jsx";
 import PartnerChargerList from "../components/partnersCharger/charger/chargerList.jsx";
 import PartnerChargerDetails  from "../components/partnersCharger/charger/chargerDetails.jsx";
 import AlertList from "../components/partnersCharger/alert/alertList.jsx";
@@ -745,11 +747,11 @@ const router = createBrowserRouter([
                     }, 
                     {
                         path: "add-station",
-                        element: <ParnterStationDetails />,
+                        element: <PartnerAddStation />,
                     }, 
                     {
                         path: "edit-station/:stationId",
-                        element: <ParnterStationDetails />,
+                        element: <PartnerEditStation />,
                     }, 
                     {
                         path: "charger-list",
@@ -761,11 +763,11 @@ const router = createBrowserRouter([
                     },
                     {
                         path: "add-charger",
-                        element: <PartnerChargerDetails />,
+                        element: <PartnerAddStation />,
                     }, 
                     {
                         path: "edit-charger/:chargerId",
-                        element: <PartnerChargerDetails />,
+                        element: <PartnerEditStation />,
                     }, 
                     {
                         path: "alert-list",

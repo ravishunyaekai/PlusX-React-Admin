@@ -1,0 +1,1280 @@
+import { useState, useRef, useEffect } from "react";
+import Select from "react-select";
+// import { GoogleMap, useJsApiLoader, useLoadScript, Marker } from "@react-google-maps/api";
+import UploadIcon from '../../../assets/images/uploadicon.svg';
+import { AiOutlineClose } from 'react-icons/ai';
+import styles from './addPartnerStation.module.css';
+import { MultiSelect } from "react-multi-select-component";
+import { useNavigate } from 'react-router-dom';
+import { postRequestWithTokenAndFile, postRequestWithToken } from '../../../api/Requests';
+import { toast, ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
+import ReactInputMask from "react-input-mask"
+import Add from '../../../assets/images/Add.svg';
+import PhoneInput from 'react-phone-input-2';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import 'react-phone-input-2/lib/style.css';
+import { applyBackendFieldErrors, getBackendErrorMessage } from '../../../utils/mapBackendErrorsToFields';
+import { sortSelectOptionsOtherLast, sortVehicleBrandList } from '../../../utils/sortVehicleBrandOptions';
+
+const emiratesOptions = [
+    { value: 'Abu Dhabi',      label: 'Abu Dhabi' },
+    { value: 'Ajman',          label: 'Ajman' },
+    { value: 'Dubai',          label: 'Dubai' },
+    { value: 'Fujairah',       label: 'Fujairah' },
+    { value: 'Ras Al Khaimah', label: 'Ras Al Khaimah' },
+    { value: 'Sharjah',        label: 'Sharjah' },
+    { value: 'Umm Al Quwain',  label: 'Umm Al Quwain' },
+];
+
+const stationTypeOptions = [
+    { value: 'Public Station',            label: 'Public Station' },
+    { value: 'Private Station',           label: 'Private Station' },
+    { value: 'Commercial Hub',            label: 'Commercial Hub' },
+    { value: 'Residential Community',     label: 'Residential Community' },
+];
+
+const operatingHoursOptions = [
+    { value: '24 x 7',              label: '24 x 7' },
+    { value: '6 AM - 10 PM',        label: '6 AM - 10 PM' },
+    { value: '9 AM - 9 PM',         label: '9 AM - 9 PM' },
+    { value: 'custom schedule',     label: 'Custom Schedule' },
+];
+
+const AdministrativeStatusOption = [
+    { value: 'Active',                label: 'Active' },
+    { value: 'In-active',             label: 'In-active' },
+    { value: 'Pending Approval',      label: 'Pending Approval' },
+    { value: 'Under Maintenance',     label: 'Under Maintenance' },
+];
+
+const MIN_MOBILE_DIGITS = 9;
+const EMAIL_REGEX = /\S+@\S+\.\S+/;
+
+const isValidEmailFormat = (value) => EMAIL_REGEX.test(String(value || '').trim());
+
+const createEmptyVehicle = () => ({
+    vehicleType            : null,
+    vehicleMake            : null,
+    vehicleModel           : null,
+    vehicleSpecification   : null,
+    plateEmirates          : null,
+    plateCode              : '',
+    plateNumber            : '',
+    vehicleMakeOption      : [],
+    vehicleModelOption     : [],
+});
+
+const isVehicleRowPartial = (vehicle) => (
+    vehicle.vehicleType
+    || vehicle.vehicleMake
+    || vehicle.vehicleModel
+    || vehicle.vehicleSpecification
+    || vehicle.plateEmirates
+    || String(vehicle.plateCode || '').trim()
+    || String(vehicle.plateNumber || '').trim()
+);
+
+const isVehicleRowComplete = (vehicle) => (
+    vehicle.vehicleType
+    && vehicle.vehicleMake
+    && vehicle.vehicleModel
+    && vehicle.vehicleSpecification
+    && vehicle.plateEmirates
+    && String(vehicle.plateCode || '').trim()
+    && String(vehicle.plateNumber || '').trim()
+);
+
+const selectMenuStyles = {
+    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+    menu: (base) => ({
+        ...base,
+        backgroundColor: '#242424',
+        border: '1px solid #3a3a3a',
+        zIndex: 9999,
+    }),
+    menuList: (base) => ({
+        ...base,
+        backgroundColor: '#242424',
+        padding: 0,
+    }),
+    option: (base, state) => ({
+        ...base,
+        backgroundColor: state.isSelected
+            ? '#00ffc3'
+            : state.isFocused
+                ? '#333333'
+                : '#242424',
+        color: state.isSelected ? '#000000' : '#ffffff',
+        cursor: 'pointer',
+    }),
+};
+
+const AddPartnerStation = () => {
+    const userDetails           = JSON.parse(sessionStorage.getItem('userDetails'));
+    const navigate              = useNavigate();
+    const [errors, setErrors]   = useState({});
+    const [loading, setLoading] = useState(false);
+
+    const [stationId, setStationId]           = useState('')
+    // const [mobileNo, setMobileNo]                   = useState("");
+    const [phoneValue, setPhoneValue]               = useState('');
+    const [phoneCountry, setPhoneCountry]           = useState({ dialCode: '971', countryCode: 'ae' });
+    const [email, setEmail]                         = useState("");
+    const [emirates, setEmirates]                   = useState(null);
+    const [vehicles, setVehicles]                   = useState([createEmptyVehicle()]);
+    const [plateEmiratesOptions, setPlateEmiratesOptions] = useState([]);
+    // SINGLE-SELECT COMMUNITY (old):
+    // const [community, setCommunity]                 = useState("");
+    // MULTI-SELECT COMMUNITY (new): selected options as [{ label, value }, ...]
+    const [community, setCommunity]                 = useState([]);
+    const [address, setAddress]                     = useState('');
+    const [sessionAllocation, setSessionAllocation] = useState('');
+    const [allocatedTime, setAllocatedTime]         = useState('');
+    const [kwhAllocated, setkwhAllocated]           = useState('');
+    const [perKwhCharge, setPerKwhCharge]           = useState('');
+    const [extraCharge, setExtraCharge]             = useState('');
+
+    const serviceDropdownRef                      = useRef(null);
+    const formValuesRef                           = useRef({});
+    const lastLookupKeyRef                        = useRef('');
+    const lookupTimerRef                          = useRef(null);
+    const lookupSeqRef                            = useRef(0);
+
+    const [latitude, setLatitude]             = useState('')
+    const [longitude, setLongitude]           = useState('')
+    const [password, setPassword]               = useState("");
+    const [confirmPassword, setConfirmPassword] = useState(null);
+    const [showPassword, setShowPassword]       = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [description, setDescription]       = useState('')
+    // SINGLE-SELECT COMMUNITY (old):
+    // const [communityOptions, setCommunityOptions] = useState('');
+    // MULTI-SELECT COMMUNITY (new): dropdown options from all-community-list API
+    const [communityOptions, setCommunityOptions] = useState([]);
+
+    const updateVehicleAt = (index, updates) => {
+        setVehicles((prev) => {
+            const next = [...prev];
+            next[index] = { ...next[index], ...updates };
+            return next;
+        });
+    };
+
+    const clearVehicleFieldErrors = (index, fields = []) => {
+        setErrors((prev) => {
+            const next = { ...prev };
+            fields.forEach((field) => {
+                delete next[`${field}_${index}`];
+            });
+            delete next.vehicles;
+            return next;
+        });
+    };
+
+    const handleVehicleMakeChange = (index, selectedOption) => {
+        updateVehicleAt(index, {
+            vehicleMake        : selectedOption,
+            vehicleModel       : null,
+            vehicleModelOption : sortSelectOptionsOtherLast(selectedOption?.models || []),
+        });
+        clearVehicleFieldErrors(index, ['vehicleMake', 'vehicleModel']);
+    };
+
+    const handleVehicleTypeChange = (index, selectedOption) => {
+        updateVehicleAt(index, {
+            vehicleType        : selectedOption,
+            vehicleMake        : null,
+            vehicleModel       : null,
+            vehicleMakeOption  : [],
+            vehicleModelOption : [],
+        });
+        clearVehicleFieldErrors(index, ['vehicleType', 'vehicleMake', 'vehicleModel']);
+        if (selectedOption?.value) {
+            fetchVehicleList(selectedOption.value, index);
+        }
+    };
+
+    const addVehicle = () => {
+        setVehicles((prev) => [...prev, createEmptyVehicle()]);
+    };
+
+    const handleRemoveVehicle = (index) => {
+        setVehicles((prev) => prev.filter((_, i) => i !== index));
+        setErrors((prev) => {
+            const next = { ...prev };
+            Object.keys(next).forEach((key) => {
+                if (key.endsWith(`_${index}`)) {
+                    delete next[key];
+                }
+            });
+            delete next.vehicles;
+            return next;
+        });
+    };
+
+    useEffect(() => {
+        formValuesRef.current = { stationId, email, emirates, phoneValue, phoneCountry };
+    }, [stationId, email, emirates, phoneValue, phoneCountry]);
+
+    useEffect(() => () => {
+        if (lookupTimerRef.current) clearTimeout(lookupTimerRef.current);
+    }, []);
+
+    const getLocalMobile = (phone = phoneValue, country = phoneCountry) => {
+        if (!phone || !country?.dialCode) return '';
+        return phone.startsWith(country.dialCode)
+            ? phone.slice(country.dialCode.length)
+            : phone;
+    };
+
+    const applyRiderLookupData = (rider) => {
+        if (!rider) return;
+        const current = formValuesRef.current;
+        const cleared = {};
+
+        const name = rider.resident_name || '';
+        if (!String(current.stationId || '').trim() && name) {
+            setStationId(name);
+            cleared.stationId = '';
+        }
+
+        const emailValue = rider.resident_email || '';
+        if (!String(current.email || '').trim() && emailValue) {
+            setEmail(emailValue);
+            cleared.email = '';
+        }
+
+        const emirateValue = String(rider.emirates || '').trim();
+        if (!current.emirates && emirateValue) {
+            const match = emiratesOptions.find((option) => (
+                option.value.toLowerCase() === emirateValue.toLowerCase()
+                || option.label.toLowerCase() === emirateValue.toLowerCase()
+            ));
+            if (match) {
+                setEmirates(match);
+                cleared.emirates = '';
+            }
+        }
+
+        const localMobile = getLocalMobile(current.phoneValue, current.phoneCountry);
+        if (!localMobile && rider.mobile_number) {
+            const riderDial = String(rider.country_code || '+971').replace(/\D/g, '') || '971';
+            setPhoneValue(`${riderDial}${rider.mobile_number}`);
+            setPhoneCountry((prev) => ({ ...prev, dialCode: riderDial }));
+            cleared.mobileNo = '';
+        }
+
+        if (Object.keys(cleared).length > 0) {
+            setErrors((prev) => ({ ...prev, ...cleared }));
+        }
+    };
+
+    const lookupResident = ({ mobile, residentEmail }) => {
+        const mobileNo = String(mobile || '').trim();
+        const emailId  = String(residentEmail || '').trim();
+        const hasMobile = mobileNo.length >= MIN_MOBILE_DIGITS;
+        const hasEmail  = isValidEmailFormat(emailId);
+        if (!hasMobile && !hasEmail) return;
+
+        const key = `${hasMobile ? mobileNo : ''}|${hasEmail ? emailId.toLowerCase() : ''}`;
+        if (key === lastLookupKeyRef.current) return;
+        lastLookupKeyRef.current = key;
+
+        const seq = ++lookupSeqRef.current;
+        const payload = {
+            userId : userDetails?.user_id,
+            email  : userDetails?.email,
+        };
+        if (hasMobile) payload.mobile_number = mobileNo;
+        if (hasEmail) payload.resident_email = emailId;
+
+        postRequestWithToken('resident-rider-lookup', payload, (response) => {
+            if (seq !== lookupSeqRef.current) return;
+            if (response.code === 200 && Number(response.found) === 1 && response.data) {
+                applyRiderLookupData(response.data);
+            }
+        });
+    };
+
+    const scheduleResidentLookup = (payload) => {
+        if (lookupTimerRef.current) clearTimeout(lookupTimerRef.current);
+        lookupTimerRef.current = setTimeout(() => lookupResident(payload), 400);
+    };
+
+    const handlePhoneChange = (phone, country) => {
+        setPhoneValue(phone);
+        setPhoneCountry(country);
+        setErrors((prev) => ({ ...prev, mobileNo: '' }));
+
+        const localMobile = getLocalMobile(phone, country);
+        if (localMobile.length >= MIN_MOBILE_DIGITS || isValidEmailFormat(email)) {
+            scheduleResidentLookup({ mobile: localMobile, residentEmail: email });
+        } else {
+            lastLookupKeyRef.current = '';
+            lookupSeqRef.current += 1;
+        }
+    };
+
+    const handlePhoneBlur = () => {
+        lookupResident({ mobile: getLocalMobile(), residentEmail: email });
+    };
+
+    const handleEmailChange = (e) => {
+        const value = e.target.value.slice(0, 50);
+        setEmail(value);
+        setErrors((prev) => ({ ...prev, email: '' }));
+
+        if (isValidEmailFormat(value) || getLocalMobile().length >= MIN_MOBILE_DIGITS) {
+            scheduleResidentLookup({ mobile: getLocalMobile(), residentEmail: value });
+        } else {
+            lastLookupKeyRef.current = '';
+        }
+    };
+
+    const handleEmailBlur = () => {
+        lookupResident({ mobile: getLocalMobile(), residentEmail: email });
+    };
+
+    const handleDecimalInput = (value, setter) => {
+        const sanitized = value
+            .replace(/[^0-9.]/g, '')
+            .replace(/(\..*)\./g, '$1');
+        setter(sanitized);
+    };
+
+    // SINGLE-SELECT COMMUNITY (old):
+    // const handleCommunity = (selectedOption) => {
+    //     setCommunity(selectedOption);
+    // }
+    // MULTI-SELECT COMMUNITY (new): MultiSelect passes the full selected array
+    const handleCommunity = (selectedOptions) => {
+        setCommunity(selectedOptions);
+        if (selectedOptions.length > 0) {
+            setErrors((prev) => ({ ...prev, community: '' }));
+        }
+    }
+    const handleCancel = () => {
+        navigate('/community/resident-list')
+    }
+    const validateForm = () => {
+        const mobileNo = getLocalMobile();
+        const fields = [
+            { name: "stationId",        value: stationId,         errorMessage: "Residant Name is required." },
+            { name: "mobileNo",            value: mobileNo,             errorMessage: "Please enter a valid Mobile No.", isMobile: true },
+            { name: "email",               value: email,                errorMessage: "Please enter a valid Email ID.", isEmail: true },
+            { name: "emirates",            value: emirates,             errorMessage: "Emirates is required." },
+            { name: "community",           value: community,            errorMessage: "At least one community is required.", isArray: true },
+            { name: "address",             value: address,              errorMessage: "Address is required." },
+            { name: "sessionAllocation",   value: sessionAllocation,    errorMessage: "Session Allocation is required." },
+            { name: "allocatedTime",       value: allocatedTime,        errorMessage: "Allocated Time is required." },
+            { name: "kwhAllocated",        value: kwhAllocated,         errorMessage: "kWh Allocated is required." },
+            { name: "perKwhCharge",        value: perKwhCharge,         errorMessage: "kWh Charge is required." },
+            { name: "extraCharge",         value: extraCharge,          errorMessage: "Extra Charge is required." },
+        ];
+
+        const newErrors = fields.reduce((errors, { name, value, errorMessage, isEmail, isMobile, isArray }) => {
+            if ((isArray && (!value || value.length === 0)) || (!isArray && !value)) {
+                errors[name] = errorMessage;
+            } else if (isEmail && !/\S+@\S+\.\S+/.test(value)) {
+                errors[name] = errorMessage;
+            } else if (isMobile && (isNaN(value) || value.length < 9)) {
+                errors[name] = errorMessage;
+            }
+            return errors;
+        }, {});
+
+        let hasCompleteVehicle = false;
+        vehicles.forEach((vehicle, index) => {
+            const isFirstRow = index === 0;
+            const hasPartial = isVehicleRowPartial(vehicle);
+
+            if (isFirstRow || hasPartial) {
+                if (!vehicle.vehicleType) {
+                    newErrors[`vehicleType_${index}`] = 'Vehicle Type is required.';
+                }
+                if (!vehicle.vehicleMake) {
+                    newErrors[`vehicleMake_${index}`] = 'Vehicle Brand is required.';
+                }
+                if (!vehicle.vehicleModel) {
+                    newErrors[`vehicleModel_${index}`] = 'Vehicle Model is required.';
+                }
+                if (!vehicle.vehicleSpecification) {
+                    newErrors[`vehicleSpecification_${index}`] = 'Vehicle Specification is required.';
+                }
+                if (!vehicle.plateEmirates) {
+                    newErrors[`plateEmirates_${index}`] = 'Emirates is required.';
+                }
+                if (!String(vehicle.plateCode || '').trim()) {
+                    newErrors[`plateCode_${index}`] = 'Plate Code is required.';
+                }
+                if (!String(vehicle.plateNumber || '').trim()) {
+                    newErrors[`plateNumber_${index}`] = 'Plate Number is required.';
+                }
+                if (isVehicleRowComplete(vehicle)) {
+                    hasCompleteVehicle = true;
+                }
+            }
+        });
+
+        if (!hasCompleteVehicle) {
+            newErrors.vehicles = 'At least one complete vehicle is required.';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+    
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        setLoading(true);
+        if (validateForm()) {
+            const completeVehicles = vehicles.filter(isVehicleRowComplete);
+            const vehiclePayload = completeVehicles.map((vehicle) => ({
+                vehicle_type          : vehicle.vehicleType?.value,
+                vehicle_make          : vehicle.vehicleMake?.value,
+                vehicle_model         : vehicle.vehicleModel?.value,
+                vehicle_specification : vehicle.vehicleSpecification?.value,
+                vehicle_emirates      : vehicle.plateEmirates?.value,
+                vehicle_code          : String(vehicle.plateCode || '').trim(),
+                vehicle_number        : String(vehicle.plateNumber || '').trim(),
+            }));
+            const primaryVehicle = completeVehicles[0] || {};
+
+            const obj = {
+                userId                     : userDetails?.user_id,
+                email                      : userDetails?.email,
+                resident_name              : stationId, 
+                mobile_number              : getLocalMobile(),
+                country_code               : phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971',
+                resident_email             : email,
+                emirates                   : emirates?.value,
+                vehicle_type               : primaryVehicle.vehicleType?.value,
+                vehicle_make               : primaryVehicle.vehicleMake?.value,
+                vehicle_model              : primaryVehicle.vehicleModel?.value,
+                vehicle_specification      : primaryVehicle.vehicleSpecification?.value,
+                vehicle_emirates           : primaryVehicle.plateEmirates?.value,
+                vehicle_code               : String(primaryVehicle.plateCode || '').trim(),
+                vehicle_number             : String(primaryVehicle.plateNumber || '').trim(),
+                vehicles                   : JSON.stringify(vehiclePayload),
+                // SINGLE-SELECT COMMUNITY (old):
+                // community_id               : community.value,
+                // MULTI-SELECT COMMUNITY (new): send array of IDs to resident-add API
+                community_ids              : community.map((item) => item.value),
+                address                    : address,
+                monthly_session_allocation : sessionAllocation,
+                alloted_time               : allocatedTime, 
+                kwh_allocated              : kwhAllocated, 
+                per_kwh_charge             : perKwhCharge, 
+                extra_charge               : extraCharge
+            }
+            postRequestWithToken('resident-add', obj, async (response) => {
+                if (response.status === 1) {
+                    toast(response.message , {type:'success'})
+                    setTimeout(() => {
+                        setLoading(false);
+                        navigate('/community/resident-list');
+                    }, 1000);
+                } else {
+                    const applied = applyBackendFieldErrors(response, setErrors, {
+                        email: 'email',
+                        contact: 'mobileNo',
+                    });
+                    if (!applied) {
+                        toast(getBackendErrorMessage(response), { type: 'error' });
+                    }
+                    console.log('Error in resident-add API:', response);
+                    setLoading(false);
+                }
+            } )
+        } else {
+            toast.error("Some fields are missing");
+            setLoading(false);
+        }
+    };
+
+    const fetchDetails = () => {
+        const obj = {
+            userId: userDetails?.user_id,
+            email: userDetails?.email,
+        };
+        postRequestWithToken('all-community-list', obj, (response) => {
+            if (response.code === 200) {
+                // SINGLE-SELECT COMMUNITY (old):
+                // setCommunityOptions(response.data)
+                // MULTI-SELECT COMMUNITY (new):
+                setCommunityOptions(response.data || []);
+            } else {
+                // SINGLE-SELECT COMMUNITY (old):
+                // console.log('error in rider-details API', response);
+                // MULTI-SELECT COMMUNITY (new):
+                console.log('error in all-community-list API', response);
+            }
+        });
+    };
+
+    const fetchVehicleList = (type, index) => {
+        const apiEndpoint = type === 'Bike' ? 'vehicle-bike-brand-list' : 'vehicle-brand-list';
+        const obj = {
+            userId: userDetails?.user_id,
+            email: userDetails?.email,
+        };
+        postRequestWithToken(apiEndpoint, obj, (response) => {
+            if (response.code === 200) {
+                updateVehicleAt(index, { vehicleMakeOption: sortVehicleBrandList(response?.data || []) });
+            } else {
+                console.log(`error in ${apiEndpoint}`, response);
+            }
+        });
+    };
+
+    const fetchLocationList = () => {
+        const obj = {
+            userId: userDetails?.user_id,
+            email: userDetails?.email,
+        };
+        postRequestWithToken('location-list', obj, (response) => {
+            if (response.code === 200) {
+                const options = (response?.data || []).map((item) => ({
+                    ...item,
+                    value: item.code || item.value,
+                    label: item.code || item.label,
+                }));
+                setPlateEmiratesOptions(options);
+            } else {
+                console.log('error in location-list API', response);
+            }
+        });
+    };
+
+    useEffect(() => {
+        if (!userDetails || !userDetails.access_token) {
+            navigate('/login');
+            return;
+        }
+        fetchDetails();
+        fetchLocationList();
+    }, []);
+    
+    return (
+        <div className={styles.addShopContainer}>
+            
+            <div className={styles.addHeading}>Add Station</div>
+            <div className={styles.addShopFormSection}>
+                <ToastContainer />
+                <form className={styles.formSection} onSubmit={handleSubmit}>
+                    <div className={styles.formSectionBlock}>
+                        <div className={styles.formSectionHeading}>Station Information</div>
+                        <div className={styles.row}>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="stationId">Station ID</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="stationId"
+                                    placeholder="Station ID"
+                                    className={styles.inputField}
+                                    value={stationId}
+                                    onChange={(e) => setStationId(e.target.value)}
+                                />
+                                {errors.stationId && stationId === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.stationId}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="stationName">Station Name</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="stationName"
+                                    placeholder="station Name"
+                                    className={styles.inputField}
+                                    value={stationId}
+                                    onChange={(e) => setStationId(e.target.value)}
+                                />
+                                {errors.stationId && stationId === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.stationId}</p>}
+                            </div>
+                            {/* <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="mobileNo">Mobile Number</label>
+                                <PhoneInput
+                                    country="ae"
+                                    value={phoneValue}
+                                    onChange={handlePhoneChange}
+                                    onBlur={handlePhoneBlur}
+                                    enableSearch={true}
+                                    countryCodeEditable={false}
+                                    containerClass={styles.phoneInputContainer}
+                                    inputClass={styles.phoneInputField}
+                                    buttonClass={styles.phoneInputButton}
+                                    dropdownClass={styles.phoneInputDropdown}
+                                    placeholder="Mobile Number"
+                                />
+                                {errors.mobileNo && <p className="error" style={{ color: 'red' }}>{errors.mobileNo}</p>}
+                            </div> */}
+                        </div>
+                        <div className={styles.row}>
+                            {/* <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="noofResidents">Email Address</label>
+                                <input
+                                    className={styles.inputField}
+                                    type="email"
+                                    autoComplete='off'
+                                    placeholder="Email ID"
+                                    value={email}
+                                    onChange={handleEmailChange}
+                                    onBlur={handleEmailBlur}
+                                />
+                                {errors.email && <p className="error" style={{ color: 'red' }}>{errors.email}</p>}
+                            </div> */}
+                            {/* <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel}>Emirates</label>
+                                <Select
+                                    className={styles.addShopSelect}
+                                    options={emiratesOptions}
+                                    value={emirates}
+                                    onChange={(selectedOption) => {
+                                        setEmirates(selectedOption);
+                                        setErrors((prev) => ({ ...prev, emirates: '' }));
+                                    }}
+                                    placeholder="Select Emirates"
+                                    isClearable={true}
+                                    menuPortalTarget={document.body}
+                                    menuPosition="fixed"
+                                    styles={selectMenuStyles}
+                                />
+                                {errors.emirates && !emirates && <p className={styles.error} style={{ color: 'red' }}>{errors.emirates}</p>}
+                            </div> */}
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel}>Station Type</label>
+                                <Select
+                                    className={styles.addShopSelect}
+                                    options={stationTypeOptions}
+                                    value={emirates}
+                                    onChange={(selectedOption) => {
+                                        setEmirates(selectedOption);
+                                        setErrors((prev) => ({ ...prev, emirates: '' }));
+                                    }}
+                                    placeholder="Select Emirates"
+                                    isClearable={true}
+                                    menuPortalTarget={document.body}
+                                    menuPosition="fixed"
+                                    styles={selectMenuStyles}
+                                />
+                                {errors.emirates && !emirates && <p className={styles.error} style={{ color: 'red' }}>{errors.emirates}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="operatorName">Operator Name</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="operatorName"
+                                    placeholder="Operator Name"
+                                    className={styles.inputField}
+                                    value={stationId}
+                                    onChange={(e) => setStationId(e.target.value)}
+                                />
+                                {errors.stationId && stationId === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.stationId}</p>}
+                            </div>
+                        </div>
+                        {/* <div className={styles.row}>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="fullAddress">Full Address</label>
+                                <input
+                                    className={styles.inputField}
+                                    type="text"
+                                    autoComplete='off'
+                                    placeholder="Enter full address"
+                                    value={address}
+                                    onChange={(e) => setAddress(e.target.value)}
+                                />
+                                {errors.address && address === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.address}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel}>Community</label>
+                                <div ref={serviceDropdownRef}>
+                                    <MultiSelect
+                                        className={styles.addShopSelect}
+                                        options={communityOptions}
+                                        value={community}
+                                        onChange={handleCommunity}
+                                        labelledBy="Select Communities"
+                                        hasSelectAll={true}
+                                        closeOnChangedValue={false}
+                                        closeOnSelect={false}
+                                    />
+                                </div>
+                                {errors.community && community.length === 0 && (
+                                    <p className="error" style={{ color: 'red' }}>{errors.community}</p>
+                                )}
+                            </div>
+                        </div> */}
+                    </div>
+
+                    {/* <div className={styles.formSectionBlock}>
+                        <div className={styles.sectionHeadingRow}>
+                            <div className={styles.formSectionHeading}>Vehicle Details</div>
+                            <button type="button" onClick={addVehicle} className={styles.featureButton}>
+                                <img src={Add} alt="Add" className={styles.addImg} />
+                                <span>Add</span>
+                            </button>
+                        </div>
+                        {vehicles.map((vehicle, index) => (
+                                <div key={index} className={styles.vehicleEntryBlock}>
+                                    {index > 0 && (
+                                        <div className={styles.vehicleEntryHeader}>
+                                            <button
+                                                type="button"
+                                                className={styles.removeButton}
+                                                style={{ position: 'static' }}
+                                                onClick={() => handleRemoveVehicle(index)}
+                                            >
+                                                <AiOutlineClose size={20} style={{ padding: '2px' }} />
+                                            </button>
+                                        </div>
+                                    )}
+                                    <div className={styles.row}>
+                                        <div className={styles.addShopInputContainer}>
+                                            <label className={styles.addShopLabel} htmlFor={`vehicleType-${index}`}>Vehicle Type</label>
+                                            <Select
+                                                className={styles.addShopSelect}
+                                                options={vehicleTypeOptions}
+                                                value={vehicle.vehicleType}
+                                                onChange={(selectedOption) => handleVehicleTypeChange(index, selectedOption)}
+                                                placeholder="Select Vehicle Type"
+                                                isClearable={true}
+                                                menuPortalTarget={document.body}
+                                                menuPosition="fixed"
+                                                styles={selectMenuStyles}
+                                            />
+                                            {errors[`vehicleType_${index}`] && (
+                                                <p className={styles.error} style={{ color: 'red' }}>{errors[`vehicleType_${index}`]}</p>
+                                            )}
+                                        </div>
+                                        <div className={styles.addShopInputContainer}>
+                                            <label className={styles.addShopLabel}>Vehicle Brand</label>
+                                            <Select
+                                                className={styles.addShopSelect}
+                                                options={vehicle.vehicleMakeOption}
+                                                value={vehicle.vehicleMake}
+                                                onChange={(selectedOption) => handleVehicleMakeChange(index, selectedOption)}
+                                                placeholder="Select Vehicle Brand"
+                                                isClearable={true}
+                                                isDisabled={!vehicle.vehicleType}
+                                                menuPortalTarget={document.body}
+                                                menuPosition="fixed"
+                                                styles={selectMenuStyles}
+                                            />
+                                            {errors[`vehicleMake_${index}`] && (
+                                                <p className={styles.error} style={{ color: 'red' }}>{errors[`vehicleMake_${index}`]}</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className={styles.row}>
+                                        <div className={styles.addShopInputContainer}>
+                                            <label className={styles.addShopLabel}>Vehicle Model</label>
+                                            <Select
+                                                className={styles.addShopSelect}
+                                                options={vehicle.vehicleModelOption}
+                                                value={vehicle.vehicleModel}
+                                                onChange={(selectedOption) => {
+                                                    updateVehicleAt(index, { vehicleModel: selectedOption });
+                                                    clearVehicleFieldErrors(index, ['vehicleModel']);
+                                                }}
+                                                placeholder="Select Vehicle Model"
+                                                isClearable={true}
+                                                isDisabled={!vehicle.vehicleMake}
+                                                menuPortalTarget={document.body}
+                                                menuPosition="fixed"
+                                                styles={selectMenuStyles}
+                                            />
+                                            {errors[`vehicleModel_${index}`] && (
+                                                <p className={styles.error} style={{ color: 'red' }}>{errors[`vehicleModel_${index}`]}</p>
+                                            )}
+                                        </div>
+                                        <div className={styles.addShopInputContainer}>
+                                            <label className={styles.addShopLabel}>Vehicle Details</label>
+                                            <div className={styles.vehicleSpecField}>
+                                                <div className={styles.vehicleSpecEmirates}>
+                                                    <Select
+                                                        className={styles.addShopSelect}
+                                                        options={plateEmiratesOptions}
+                                                        value={vehicle.plateEmirates}
+                                                        onChange={(selectedOption) => {
+                                                            updateVehicleAt(index, { plateEmirates: selectedOption });
+                                                            clearVehicleFieldErrors(index, ['plateEmirates']);
+                                                        }}
+                                                        placeholder="Emirates"
+                                                        isClearable={true}
+                                                        menuPortalTarget={document.body}
+                                                        menuPosition="fixed"
+                                                        styles={{
+                                                            ...selectMenuStyles,
+                                                            menu: (base) => ({
+                                                                ...selectMenuStyles.menu(base),
+                                                                minWidth: 160,
+                                                            }),
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div className={styles.vehicleSpecPlate}>
+                                                    <input
+                                                        type="text"
+                                                        autoComplete="off"
+                                                        id={`plateCode-${index}`}
+                                                        placeholder="Plate Code"
+                                                        className={styles.vehicleSpecInput}
+                                                        value={vehicle.plateCode}
+                                                        onChange={(e) => {
+                                                            updateVehicleAt(index, { plateCode: e.target.value });
+                                                            clearVehicleFieldErrors(index, ['plateCode']);
+                                                        }}
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        autoComplete="off"
+                                                        id={`plateNumber-${index}`}
+                                                        placeholder="Plate Number"
+                                                        className={styles.vehicleSpecInput}
+                                                        value={vehicle.plateNumber}
+                                                        onChange={(e) => {
+                                                            updateVehicleAt(index, { plateNumber: e.target.value });
+                                                            clearVehicleFieldErrors(index, ['plateNumber']);
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                            {(errors[`plateEmirates_${index}`] || errors[`plateCode_${index}`] || errors[`plateNumber_${index}`]) && (
+                                                <p className={styles.error} style={{ color: 'red' }}>
+                                                    {errors[`plateEmirates_${index}`] || errors[`plateCode_${index}`] || errors[`plateNumber_${index}`]}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className={styles.row}>
+                                        <div className={styles.addShopInputContainer}>
+                                            <label className={styles.addShopLabel}>Vehicle Specification</label>
+                                            <Select
+                                                className={styles.addShopSelect}
+                                                options={vehicleSpecificationOptions}
+                                                value={vehicle.vehicleSpecification}
+                                                onChange={(selectedOption) => {
+                                                    updateVehicleAt(index, { vehicleSpecification: selectedOption });
+                                                    clearVehicleFieldErrors(index, ['vehicleSpecification']);
+                                                }}
+                                                placeholder="Select Vehicle Specification"
+                                                isClearable={true}
+                                                menuPortalTarget={document.body}
+                                                menuPosition="fixed"
+                                                styles={selectMenuStyles}
+                                            />
+                                            {errors[`vehicleSpecification_${index}`] && (
+                                                <p className={styles.error} style={{ color: 'red' }}>{errors[`vehicleSpecification_${index}`]}</p>
+                                            )}
+                                        </div>
+                                        <div className={styles.addShopInputContainer} aria-hidden="true" />
+                                    </div>
+                                </div>
+                            ))}
+                        {errors.vehicles && (
+                            <p className={styles.error} style={{ color: 'red' }}>{errors.vehicles}</p>
+                        )}
+                    </div> */}
+
+                    <div className={styles.formSectionBlock}>
+                        <div className={styles.formSectionHeading}>Location Details</div>
+                        <div className={styles.row}>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="fullAddress">Address</label>
+                                <input
+                                    className={styles.inputField}
+                                    type="text"
+                                    autoComplete='off'
+                                    placeholder="Enter Address"
+                                    value={address}
+                                    onChange={(e) => setAddress(e.target.value)}
+                                />
+                                {errors.address && address === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.address}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="city">City</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="city"
+                                    placeholder="City"
+                                    className={styles.inputField}
+                                    value={stationId}
+                                    onChange={(e) => setStationId(e.target.value)}
+                                />
+                                {errors.stationId && stationId === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.stationId}</p>}
+                            </div>
+                            {/* <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="sessionAllocation">Monthly Session Allocation</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="sessionAllocation"
+                                    placeholder="Monthly Session Allocation"
+                                    className={styles.inputField}
+                                    value={sessionAllocation}
+                                    onChange={(e) => handleDecimalInput(e.target.value, setSessionAllocation)}
+                                />
+                                {errors.sessionAllocation && sessionAllocation === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.sessionAllocation}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="allocatedTime">Allocated Time In Minute</label>
+                                <input
+                                    className={styles.inputField}
+                                    type="text"
+                                    autoComplete='off'
+                                    placeholder="Allocated Time"
+                                    value={allocatedTime}
+                                    onChange={(e) => handleDecimalInput(e.target.value, setAllocatedTime)}
+                                />
+                                {errors.allocatedTime && allocatedTime === "" &&   <p className="error" style={{ color: 'red' }}>{errors.allocatedTime}</p>}
+                            </div> */}
+                        </div>
+                        <div className={styles.row}>
+                            {/* <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="kwhAllcation">kWh Allocation/Month</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="kwhAllcation"
+                                    placeholder="kWh Allocation/Month"
+                                    className={styles.inputField}
+                                    value={kwhAllocated}
+                                    onChange={(e) => handleDecimalInput(e.target.value, setkwhAllocated)}
+                                />
+                                {errors.kwhAllocated && kwhAllocated === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.kwhAllocated}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="perkwhCharge">Per kWh charge (AED)</label>
+                                <input
+                                    className={styles.inputField}
+                                    type="text"
+                                    autoComplete='off'
+                                    placeholder="Per kWh charge (AED)"
+                                    value={perKwhCharge}
+                                    onChange={(e) => handleDecimalInput(e.target.value, setPerKwhCharge)}
+                                />
+                                {errors.perKwhCharge && perKwhCharge === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.perKwhCharge}</p>}
+                            </div> */}
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel}>Emirates</label>
+                                <Select
+                                    className={styles.addShopSelect}
+                                    options={emiratesOptions}
+                                    value={emirates}
+                                    onChange={(selectedOption) => {
+                                        setEmirates(selectedOption);
+                                        setErrors((prev) => ({ ...prev, emirates: '' }));
+                                    }}
+                                    placeholder="Select Emirates"
+                                    isClearable={true}
+                                    menuPortalTarget={document.body}
+                                    menuPosition="fixed"
+                                    styles={selectMenuStyles}
+                                />
+                                {errors.emirates && !emirates && <p className={styles.error} style={{ color: 'red' }}>{errors.emirates}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="countryName">Country</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="countryName"
+                                    placeholder="Country"
+                                    className={styles.inputField}
+                                    value={stationId}
+                                    onChange={(e) => setStationId(e.target.value)}
+                                />
+                                {errors.stationId && stationId === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.stationId}</p>}
+                            </div>
+                        </div>
+                        <div className={styles.row}>
+                            {/* <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="extraCharge">Extra Charge/Min Over Allocated Time (AED)</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="extraCharge"
+                                    placeholder="Extra Charge/Min Over Allocated Time (AED)"
+                                    className={styles.inputField}
+                                    value={extraCharge}
+                                    onChange={(e) => handleDecimalInput(e.target.value, setExtraCharge)}
+                                />
+                                {errors.extraCharge && extraCharge === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.extraCharge}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer} aria-hidden="true" /> */}
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="latitude">Latitude</label>
+                                <input type="text"
+                                    id="latitude"
+                                        autoComplete="off"
+                                    placeholder="Latitude"
+                                    className={styles.inputField}
+                                    value={latitude}
+                                    // onChange={(e) => setLatitude(e.target.value)}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (/^-?\d*\.?\d{0,8}$/.test(value)) {
+                                            setLatitude(value);
+                                        }
+                                    }}
+                                    
+                                />
+                                {errors.latitude && latitude === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.latitude}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="longitude">Longitude</label>
+                                <input type="text"
+                                    id="longitude"
+                                        autoComplete="off"
+                                    placeholder="Longitude"
+                                    className={styles.inputField}
+                                    value={longitude}
+                                    // onChange={(e) => setLongitude(e.target.value)}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (/^-?\d*\.?\d{0,8}$/.test(value)) {
+                                            setLongitude(value);
+                                        }
+                                    }}
+                                />
+                                {errors.longitude && longitude === '' &&  <p className={styles.error} style={{ color: 'red' }}>{errors.longitude}</p>}
+                            </div>
+                            {/* <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="extraCharge">Extra Charge/Min Over Allocated Time (AED)</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="extraCharge"
+                                    placeholder="Extra Charge/Min Over Allocated Time (AED)"
+                                    className={styles.inputField}
+                                    value={extraCharge}
+                                    onChange={(e) => handleDecimalInput(e.target.value, setExtraCharge)}
+                                />
+                                {errors.extraCharge && extraCharge === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.extraCharge}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer} aria-hidden="true" /> */}
+                        </div>
+                    </div>
+
+                    <div className={styles.formSectionBlock}>
+                        <div className={styles.formSectionHeading}>Contact & Operations</div>
+                        <div className={styles.row}>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="contactPerson">Contact Person</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="contactPerson"
+                                    placeholder="Contact Person"
+                                    className={styles.inputField}
+                                    value={stationId}
+                                    onChange={(e) => setStationId(e.target.value)}
+                                />
+                                {errors.stationId && stationId === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.stationId}</p>}
+                            </div>
+                            {/* <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="stationName">Station Name</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="stationName"
+                                    placeholder="station Name"
+                                    className={styles.inputField}
+                                    value={stationId}
+                                    onChange={(e) => setStationId(e.target.value)}
+                                />
+                                {errors.stationId && stationId === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.stationId}</p>}
+                            </div> */}
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="mobileNo">Contact Number</label>
+                                <PhoneInput
+                                    country="ae"
+                                    value={phoneValue}
+                                    onChange={handlePhoneChange}
+                                    onBlur={handlePhoneBlur}
+                                    enableSearch={true}
+                                    countryCodeEditable={false}
+                                    containerClass={styles.phoneInputContainer}
+                                    inputClass={styles.phoneInputField}
+                                    buttonClass={styles.phoneInputButton}
+                                    dropdownClass={styles.phoneInputDropdown}
+                                    placeholder="Contact Number"
+                                />
+                                {errors.mobileNo && <p className="error" style={{ color: 'red' }}>{errors.mobileNo}</p>}
+                            </div>
+                        </div>
+                        <div className={styles.row}>
+                            {/* <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="noofResidents">Email Address</label>
+                                <input
+                                    className={styles.inputField}
+                                    type="email"
+                                    autoComplete='off'
+                                    placeholder="Email ID"
+                                    value={email}
+                                    onChange={handleEmailChange}
+                                    onBlur={handleEmailBlur}
+                                />
+                                {errors.email && <p className="error" style={{ color: 'red' }}>{errors.email}</p>}
+                            </div> */}
+                            {/* <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel}>Emirates</label>
+                                <Select
+                                    className={styles.addShopSelect}
+                                    options={emiratesOptions}
+                                    value={emirates}
+                                    onChange={(selectedOption) => {
+                                        setEmirates(selectedOption);
+                                        setErrors((prev) => ({ ...prev, emirates: '' }));
+                                    }}
+                                    placeholder="Select Emirates"
+                                    isClearable={true}
+                                    menuPortalTarget={document.body}
+                                    menuPosition="fixed"
+                                    styles={selectMenuStyles}
+                                />
+                                {errors.emirates && !emirates && <p className={styles.error} style={{ color: 'red' }}>{errors.emirates}</p>}
+                            </div> */}
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel}>Email ID</label>
+                                <input
+                                    className={styles.inputField}
+                                    type="email"
+                                    autoComplete='off'
+                                    placeholder="Email ID"
+                                    value={email}
+                                    onChange={(e) => {
+                                        setEmail(e.target.value.slice(0, 50));
+                                        setErrors((prev) => ({ ...prev, email: '' }));
+                                    }}
+                                />
+                                {errors.email && <p className="error">{errors.email}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel}>Password</label>
+                                <div className={styles.passwordContainer}>
+                                    <input
+                                        className={styles.inputField}
+                                        type={showPassword ? "text" : "password"}
+                                        autoComplete='off'
+                                        placeholder="Password"
+                                        value={password}
+                                        maxlength="20"
+                                        onChange={(e) => setPassword(e.target.value)}
+                                    />
+                                    <div
+                                        className={styles.eyeIcon}
+                                        onClick={() => setShowPassword((prev) => !prev)}
+                                        style={{ color: showPassword ? '#00ffc3' : '#fff' }}
+                                    >
+                                        {showPassword ? <FaEye /> : <FaEyeSlash />}
+                                    </div>
+                                </div>
+                                {errors.password && password.length < 6 &&  <p className="error">{errors.password}</p>}
+                            </div>
+                        </div>
+                        <div className={styles.row}>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel}>Confirm Password</label>
+                                <div className={styles.passwordContainer}>
+                                    <input
+                                        className={styles.inputField}
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        autoComplete='off'
+                                        placeholder="Confirm Password"
+                                        value={confirmPassword}
+                                        maxlength="20"
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                    />
+                                    <div
+                                        className={styles.eyeIcon}
+                                        onClick={() => setShowConfirmPassword((prev) => !prev)}
+                                        style={{ color: showConfirmPassword ? '#00ffc3' : '#fff' }}
+                                    >
+                                        {showConfirmPassword ? <FaEye /> : <FaEyeSlash />}
+                                    </div>
+                                </div>
+                                {errors.confirmPassword && confirmPassword !== password && <p className="error">{errors.confirmPassword}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel}>Operating Hours</label>
+                                <Select
+                                    className={styles.addShopSelect}
+                                    options={operatingHoursOptions}
+                                    value={emirates}
+                                    onChange={(selectedOption) => {
+                                        setEmirates(selectedOption);
+                                        setErrors((prev) => ({ ...prev, emirates: '' }));
+                                    }}
+                                    placeholder="Select Operating Hours"
+                                    isClearable={true}
+                                    menuPortalTarget={document.body}
+                                    menuPosition="fixed"
+                                    styles={selectMenuStyles}
+                                />
+                                {errors.emirates && !emirates && <p className={styles.error} style={{ color: 'red' }}>{errors.emirates}</p>}
+                            </div>
+                        </div>
+                        <div className={styles.row}>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel}>Administrative Status</label>
+                                <Select
+                                    className={styles.addShopSelect}
+                                    options={AdministrativeStatusOption}
+                                    value={emirates}
+                                    onChange={(selectedOption) => {
+                                        setEmirates(selectedOption);
+                                        setErrors((prev) => ({ ...prev, emirates: '' }));
+                                    }}
+                                    placeholder="Select Administrative Status"
+                                    isClearable={true}
+                                    menuPortalTarget={document.body}
+                                    menuPosition="fixed"
+                                    styles={selectMenuStyles}
+                                />
+                                {errors.emirates && !emirates && <p className={styles.error} style={{ color: 'red' }}>{errors.emirates}</p>}
+                            </div>
+                        </div>
+                        <div className={styles.row}>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="description">Station Description</label>
+                                <textarea
+                                    id="description"
+                                    placeholder="Enter Station description"
+                                    className={styles.inputField}
+                                    rows="4"
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                />
+                                {errors.description && description === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.description}</p>}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className={styles.editButton}>
+                        <button className={styles.editCancelBtn} onClick={() => handleCancel()}>Cancel</button>
+                        <button disabled={loading} type="submit" className={styles.editSubmitBtn}>
+                          {loading ? (
+                            <>
+                                <span className="spinner-border spinner-border-sm me-2"></span>
+                                Submit...
+                            </>
+                        ) : (
+                            "Add Station"
+                        )}
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    );
+
+};
+
+export default AddPartnerStation;
