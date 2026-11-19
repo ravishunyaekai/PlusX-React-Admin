@@ -236,7 +236,12 @@ import RsaVanDetails  from "../components/RsaVan/RsaVanDetails.jsx";
 import Partner from "../components/partnersCharger/index.jsx";
 import PartnerDashboard from "../components/partnersCharger/dashboard/index.jsx";
 import SessionsList from "../components/partnersCharger/sessions/sessionsList.jsx";
-import SessionDetails  from "../components/RsaVan/RsaVanDetails.jsx";
+import SessionDetails  from "../components/partnersCharger/sessions/sessionsDetails.jsx";
+import PartnerStationList from "../components/partnersCharger/stations/stationList.jsx";
+import ParnterStationDetails  from "../components/partnersCharger/stations/stationDetails.jsx";
+import PartnerChargerList from "../components/partnersCharger/charger/chargerList.jsx";
+import PartnerChargerDetails  from "../components/partnersCharger/charger/chargerDetails.jsx";
+import AlertList from "../components/partnersCharger/alert/alertList.jsx";
  
 const router = createBrowserRouter([ 
     {
@@ -732,38 +737,40 @@ const router = createBrowserRouter([
                     }, 
                     {
                         path: "stations-list",
-                        element: <ResidentsList />,
+                        element: <PartnerStationList />,
+                    }, 
+                    {
+                        path: "stations-details/:stationID",
+                        element: <ParnterStationDetails />,
+                    }, 
+                    {
+                        path: "add-station",
+                        element: <ParnterStationDetails />,
+                    }, 
+                    {
+                        path: "edit-station/:stationId",
+                        element: <ParnterStationDetails />,
                     }, 
                     {
                         path: "charger-list",
-                        element: <ResidentsList />,
+                        element: <PartnerChargerList />,
+                    }, 
+                    {
+                        path: "charger-details/:chargerId",
+                        element: <PartnerChargerDetails />,
+                    },
+                    {
+                        path: "add-charger",
+                        element: <PartnerChargerDetails />,
+                    }, 
+                    {
+                        path: "edit-charger/:chargerId",
+                        element: <PartnerChargerDetails />,
                     }, 
                     {
                         path: "alert-list",
-                        element: <ResidentsList />,
-                    }, 
-                    // {
-                    //     path: "resident-details/:residentId",
-                    //     element: <ResidentsDetails />,
-                    // }, {
-                    //     path: "add-resident",
-                    //     element: <AddResidents />,
-                    // }, {
-                    //     path: "resident-edit/:residentId",
-                    //     element: <EditResidents />,
-                    // }, {
-                    //     path: "resident-invoice",
-                    //     element: <ResidentsInvoiceList />,
-                    // }, {
-                    //     path: "create-invoice",
-                    //     element: <AddInvoice />,
-                    // }, {
-                    //     path: "invoice-details/:invoiceId",
-                    //     element: <ResidentsInvoiceDetails />,
-                    // }, {
-                    //     path: "session-detail/:sessionId",
-                    //     element: <ResidentsSessionDetails />,
-                    // },
+                        element: <AlertList />,
+                    },
                 ],
             },
             {

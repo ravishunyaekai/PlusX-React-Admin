@@ -1,24 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import styles from './Residents.module.css'
-import BookingDetailsHeader from '../SharedComponent/Details/BookingDetails/BookingDetailsHeader.jsx'
-// import BookingDetailsSection from '../SharedComponent/Details/BookingDetails/BookingDetailsSection'
-import BookingLeftDetails from '../SharedComponent/BookingDetails/BookingLeftDetails.jsx'
-import BookingDetailsAccordion from '../SharedComponent/BookingDetails/BookingDetailsAccordion.jsx'
-import { postRequestWithToken } from '../../api/Requests.js';
+import styles from './session.module.css'
+import BookingDetailsHeader from '../../SharedComponent/Details/BookingDetails/BookingDetailsHeader.jsx'
+// import BookingDetailsSection from '../../SharedComponent/Details/BookingDetails/BookingDetailsSection'
+import BookingLeftDetails from '../../SharedComponent/BookingDetails/BookingLeftDetails.jsx'
+import BookingDetailsAccordion from '../../SharedComponent/BookingDetails/BookingDetailsAccordion.jsx'
+import { postRequestWithToken } from '../../../api/Requests.js';
 import { useParams } from 'react-router-dom';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
-import BookingImageSection from '../SharedComponent/Details/BookingDetails/BookingImageSection.jsx'
+import BookingImageSection from '../../SharedComponent/Details/BookingDetails/BookingImageSection.jsx'
  
 
-import SubHeader from '../SharedComponent/SubHeader/SubHeader';
-import Pagination from '../SharedComponent/Pagination/Pagination';
+import SubHeader from '../../SharedComponent/SubHeader/SubHeader';
+import Pagination from '../../SharedComponent/Pagination/Pagination';
 
-import ResidentSessionList from '../SharedComponent/Details/ResidentSessionList';
-import ResidentInvoiceList from '../SharedComponent/Details/ResidentInvoiceList';
-import DetailsVehicleList from '../SharedComponent/Details/DetailsVehicleList';
+import ResidentSessionList from '../../SharedComponent/Details/ResidentSessionList';
+import ResidentInvoiceList from '../../SharedComponent/Details/ResidentInvoiceList';
+import DetailsVehicleList from '../../SharedComponent/Details/DetailsVehicleList';
 // MULTI-SELECT COMMUNITY (new): shared helper to format multiple community names for display
-import { formatCommunityNamesForDisplay } from '../../utils/residentCommunityHelpers';
+import { formatCommunityNamesForDisplay } from '../../../utils/residentCommunityHelpers';
 
 const mapResidentVehicles = (data = {}) => {
     const vehicles = data?.residentVehicles || data?.vehicles || data?.vehicle_list || [];

@@ -150,7 +150,7 @@ const SessionsList = () => {
                 fetchFilteredData     = {fetchFilteredData} 
                 searchTerm            = {searchTerm}
                 dynamicFilters        = {dynamicFilters}
-                // count                 = {totalCount}
+                count                 = {totalCount}
             />
             {loading ? <Loader /> :
                 sessionList.length === 0 ? (
