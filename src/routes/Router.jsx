@@ -236,6 +236,7 @@ import RsaVanDetails  from "../components/RsaVan/RsaVanDetails.jsx";
 import Partner from "../components/partnersCharger/index.jsx";
 import PartnerDashboard from "../components/partnersCharger/dashboard/index.jsx";
 import SessionsList from "../components/partnersCharger/sessions/sessionsList.jsx";
+import SessionDetails  from "../components/RsaVan/RsaVanDetails.jsx";
  
 const router = createBrowserRouter([ 
     {
@@ -724,6 +725,10 @@ const router = createBrowserRouter([
                     {
                         path: "sessions-list",
                         element: <SessionsList />,
+                    }, 
+                    {
+                        path: "sessions-details/:sessionId",
+                        element: <SessionDetails />,
                     }, 
                     {
                         path: "stations-list",

@@ -23,7 +23,7 @@ function Index() {
     // const showTopRatedArea           = isSuperAdminUser(userDetails);
     const navigate                   = useNavigate();
     const dispatch                   = useDispatch();
-    const { details, status, error } = useSelector((state) => state.dashboard);
+    const { details, status, error } = useSelector((state) => state.partnerDashboard);
     // const [filters, setFilters]         = useState({start_date: null,end_date: null});
 
     useEffect(() => {

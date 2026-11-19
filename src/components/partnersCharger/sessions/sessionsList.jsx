@@ -6,6 +6,7 @@ import { postRequestWithToken } from '../../../api/Requests';
 import { useNavigate } from 'react-router-dom';
 import Loader from "../../SharedComponent/Loader/Loader";
 import EmptyList from '../../SharedComponent/EmptyList/EmptyList';
+import DashboardCardItem from "./DashboardCard/DashboardCard";
 
 export const chargingStatusOptions = [
     { value: 'charging',    label: 'Charging' },
@@ -126,6 +127,21 @@ const SessionsList = () => {
         setCurrentPage(pageNumber);
     };
 
+    const cardData = [
+        {
+            "module": "Active Sessions",
+            "count": 12
+        },
+        {
+            "module": "Avg Duration",
+            "count": "2h 14m"
+        },
+        {
+            "module": "Energy Delivered",
+            "count": "248 kWh"
+        },
+    ]
+
     return (
         <div className='main-container'>
             <SubHeader heading        = "Live Sessions"
@@ -144,6 +160,7 @@ const SessionsList = () => {
                     />
                 ) : ( 
                 <>
+                    <DashboardCardItem details={cardData} />
                     <List 
                         tableHeaders={["Session ID", "Charger ID", "Station Name", "Start Time", "Duration", "Status", "Action"]}
                         pageHeading = "Live Sessions"

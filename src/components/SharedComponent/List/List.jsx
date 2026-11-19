@@ -141,6 +141,9 @@ const List = ({ list, tableHeaders, listData, keyMapping, pageHeading, onDeleteS
         'RSA Van List' : {
             edit_url : '/ev-road-assistance/edit-van', detail_url : '/ev-road-assistance/van-details', detail_id : 'pod_id'
         },
+        'Live Sessions' : {
+            detail_url : '/partners/sessions-details', detail_id : 'session_id'
+        },
     }
     const pageConfig = detailsObject[pageHeading] || { edit_url : '', detail_url : '', detail_id : '' };
     return (
