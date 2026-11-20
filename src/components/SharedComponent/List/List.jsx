@@ -145,10 +145,10 @@ const List = ({ list, tableHeaders, listData, keyMapping, pageHeading, onDeleteS
             detail_url : '/partners/sessions-details', detail_id : 'session_id'
         },
         'Stations' : {
-            edit_url : '/partners/station-details', detail_url : '/partners/station-details', detail_id : 'station_id'
+            edit_url : '/partners/edit-station', detail_url : '/partners/stations-details', detail_id : 'station_id'
         },
         'Chargers' : {
-            edit_url : '/partners/charger-details', detail_url : '/partners/charger-details', detail_id : 'charger_id'
+            edit_url : '/partners/edit-charger', detail_url : '/partners/charger-details', detail_id : 'charger_id'
         },
     }
     const pageConfig = detailsObject[pageHeading] || { edit_url : '', detail_url : '', detail_id : '' };

@@ -21,6 +21,7 @@ const BookingDetailsHeader = ({ content, titles, sectionContent1, type, deviceBa
     return (
         <div className={styles.infoCard}>
             <div className="row">
+                {type !== 'partnersSession' && type !== 'partnersStation' && type !== 'partnerCharger' && (
                 <div className="col-xl-3 col-lg-6 col-12">
                     <div className={styles.detailsHeaderSection}>
                         <div className={styles.detailsImageSection}>
@@ -33,9 +34,10 @@ const BookingDetailsHeader = ({ content, titles, sectionContent1, type, deviceBa
                         </div>
                     </div>
                 </div>
+                )}
                 
                 {type !== 'publicChargingStation' && type !== 'evGuide' && type !== 'electricCarLeasing'
-                 && type !== 'electricBikeLeasing'  && type !== 'buySell' && type !== 'discussionBoard'  && type !== 'shop' && type !== 'Offer Details' &&(
+                 && type !== 'electricBikeLeasing'  && type !== 'buySell' && type !== 'discussionBoard'  && type !== 'shop' && type !== 'Offer Details' && type !== 'partnersSession' && type !== 'partnersStation' && type !== "partnerCharger" &&(
                     <div className="col-xl-3 col-lg-6 col-12">
                         <div className={styles.detailsHeaderSection}>
                             <div className={styles.detailsImageSection}></div>
@@ -297,6 +299,29 @@ const BookingDetailsHeader = ({ content, titles, sectionContent1, type, deviceBa
                             </div>
                         </div>
                     </div>
+                    </>
+                )}
+
+                { (type === 'partnersSession' || type === "partnersStation" || type === "partnerCharger" ) && (
+                    <>
+                    {Object.entries(titles || {}).map(([key, title]) => (
+                            <div className="col-xl-3 col-lg-6 col-12" key={key}>
+                                <div className={styles.detailsHeaderSection}>
+                                    <div className={styles.detailsImageSection}>
+                                    </div>
+
+                                    <div className={styles.infoBlock}>
+                                        <span className={styles.infoHeading}>
+                                            {title}
+                                        </span>
+
+                                        <span className={styles.infoHeadText}>
+                                            {content?.[key] ?? '-'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </>
                 )}
             </div>

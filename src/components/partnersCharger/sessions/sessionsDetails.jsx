@@ -1,72 +1,90 @@
-import React, { useEffect, useState } from 'react';
-import styles from './session.module.css'
-import BookingDetailsHeader from '../../SharedComponent/Details/BookingDetails/BookingDetailsHeader.jsx'
-// import BookingDetailsSection from '../../SharedComponent/Details/BookingDetails/BookingDetailsSection'
-import BookingLeftDetails from '../../SharedComponent/BookingDetails/BookingLeftDetails.jsx'
-import BookingDetailsAccordion from '../../SharedComponent/BookingDetails/BookingDetailsAccordion.jsx'
-import { postRequestWithToken } from '../../../api/Requests.js';
-import { useParams } from 'react-router-dom';
-import moment from 'moment';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import BookingImageSection from '../../SharedComponent/Details/BookingDetails/BookingImageSection.jsx'
- 
+import { useParams } from 'react-router-dom';
+import { postRequestWithToken } from '../../../api/Requests';
+import { toast, ToastContainer } from "react-toastify";
+import styles from './sessions.module.css';
+import BookingDetailsHeader from '../../SharedComponent/Details/BookingDetails/BookingDetailsHeader'
+import BookingImageSection from '../../SharedComponent/Details/BookingDetails/BookingImageSection'
+import BookingMultipleImages from '../../SharedComponent/Details/BookingDetails/BookingMultipleImages.jsx';
+import BookingLeftDetails from '../../SharedComponent/BookingDetails/BookingLeftDetails.jsx'
+import moment from 'moment';
+import 'react-toastify/dist/ReactToastify.css';
 
-import SubHeader from '../../SharedComponent/SubHeader/SubHeader';
-import Pagination from '../../SharedComponent/Pagination/Pagination';
-
-import ResidentSessionList from '../../SharedComponent/Details/ResidentSessionList';
-import ResidentInvoiceList from '../../SharedComponent/Details/ResidentInvoiceList';
-import DetailsVehicleList from '../../SharedComponent/Details/DetailsVehicleList';
-// MULTI-SELECT COMMUNITY (new): shared helper to format multiple community names for display
-import { formatCommunityNamesForDisplay } from '../../../utils/residentCommunityHelpers';
-
-const mapResidentVehicles = (data = {}) => {
-    const vehicles = data?.residentVehicles || data?.vehicles || data?.vehicle_list || [];
-    if (Array.isArray(vehicles) && vehicles.length > 0) {
-        return vehicles.map((vehicle) => ({
-            ...vehicle,
-            emirates: vehicle.emirates || vehicle.vehicle_emirates,
-        }));
-    }
-
-    if (data?.vehicle_type || data?.vehicle_make || data?.vehicle_number) {
-        return [{
-            vehicle_type          : data.vehicle_type,
-            vehicle_code          : data.vehicle_code,
-            vehicle_number        : data.vehicle_number,
-            vehicle_make          : data.vehicle_make,
-            vehicle_model         : data.vehicle_model,
-            vehicle_specification : data.vehicle_specification,
-            emirates              : data.vehicle_emirates || data.emirates,
-        }];
-    }
-
-    return [];
+const formatTime = (timeStr) => {
+    if (timeStr === "Closed") return "Closed";
+    const [start, end] = timeStr?.split('-');
+    const format12Hour = (time) => {
+        const [hour, minute] = time?.split(':');
+        const date = new Date();
+        date.setHours(hour);
+        date.setMinutes(minute);
+        
+        // Format the time to always show two digits for minute and ensure AM/PM
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).replace(':', ':'); 
+    };
+    return `${format12Hour(start)} - ${format12Hour(end)}`;
 };
 
-const SessionsDetails = () => {
-    const userDetails                           = JSON.parse(sessionStorage.getItem('userDetails'));
-    const { residentId }                        = useParams(); 
-    const navigate                              = useNavigate();
-    const [residentDetails, setResidentDetails] = useState();
-    const [vehicleList, setVehicleList]         = useState([]);
-    const [filters, setFilters]                 = useState({start_date: null,end_date: null});
-     
-    const staturArr = { 0 : 'In-active', 1: 'Active' }
-    
+const getFormattedOpeningHours = (details) => {
+    if (details?.always_open === 1) {
+        return "Always Open";
+    }
+    if (!details?.open_days || !details?.open_timing) {
+        return "No opening hours available";
+    }
+    const days = details?.open_days.split('_').map((day) => {
+        // Capitalize the first letter of each day
+        return day.charAt(0).toUpperCase() + day.slice(1).toLowerCase();
+    });
+    const timings = details?.open_timing.split('_').map(formatTime);
+
+    // Check if all the timings are the same
+    const allSameTimings = timings.every(time => time === timings[0]);
+
+    if (allSameTimings) {
+        // If all days have the same timings, return a consolidated range for the whole week
+        return `${days[0]}-${days[days.length - 1]}: ${timings[0]}`;
+    }
+    // Otherwise, show each day with its corresponding timings
+    const formattedOpeningHours = [];
+    let i = 0;
+    while (i < days.length) {
+        let startDay = days[i];
+        let currentTiming = timings[i];
+        let j = i;
+
+        while (j < days.length - 1 && timings[j + 1] === currentTiming) {
+            j++;
+        }
+        const dayRange = startDay + (i === j ? "" : `-${days[j]}`);
+        formattedOpeningHours.push(`${dayRange}: ${currentTiming}`);
+        i = j + 1;
+    }
+    return formattedOpeningHours.join(', ');
+};
+
+
+const SessionDetails = () => {
+  const userDetails                         = JSON.parse(sessionStorage.getItem('userDetails'));
+  const navigate                            = useNavigate()
+  const { stationId }                       = useParams()
+  const [sessionDetails, setSessionDetails] = useState()
+
     const fetchDetails = () => {
         const obj = {
-            userId      : userDetails?.user_id,
-            email       : userDetails?.email,
-            resident_id : residentId,
+            userId     : userDetails?.user_id,
+            email      : userDetails?.email,
+            station_id : stationId
         };
-        postRequestWithToken('resident-details', obj, (response) => {
+        postRequestWithToken('session-details', obj, (response) => {
             if (response.code === 200) {
-                const data = response?.data || {};
-                setResidentDetails(data);
-                setVehicleList(mapResidentVehicles(data));
+                setSessionDetails(response?.data || {});
+                // setImageGallery(response.gallery_data)
+                // setImageGalleryId(response.gallery_id)
+                // setBaseUrl(response.base_url)
             } else {
-                console.log('error in charger-installation-details API', response);
+                console.log('error in session-details API', response);
             }
         });
     };
@@ -79,187 +97,117 @@ const SessionsDetails = () => {
     }, []);
 
     const headerTitles = {
-        bookingIdTitle       : "Resident ID",
-        customerDetailsTitle : "Resident Details",
-    };
-    const content = {
-        bookingId       : residentDetails?.resident_id,
-        createdAt       : moment(residentDetails?.created_at).format('DD MMM YYYY h:mm A'),
-        customerName    : residentDetails?.resident_name,
-        customerContact : `+971 ${residentDetails?.resident_mobile}`,
+        voltage             : "Voltage",
+        current             : "Current", 
+        energy              : "Energy (Session)", 
+        session_duration    : "Session Duration", 
     };
     const sectionTitles1 = {
-        resident_email             : "Email Address",
-        // SINGLE-SELECT COMMUNITY (old):
-        // community_name             : "Community Name",
-        // MULTI-SELECT COMMUNITY (new): label updated to reflect multiple communities
-        community_name             : "Communities",
-        // AREA NAME (old): area_name: "Area Name",
-        address                    : "Full Address",
-        monthly_session_allocation : "Monthly Session Allocation",
-        alloted_time               : "Allocated Time In Minutes",
-        kwh_allocated              : "kWh Allocation/Month",
-        per_kwh_charge             : "Per kWh Charge (AED)",
-        extra_charge               : "Extra Charge/Min Over Allocated Time (AED)",
-        status                     : "Status",
+        station_name : "Session ID",
+        start_time   : "Charger ID",
+        end_time     : "Station Name",
     }
+    const sectionTitles2 = {
+        duration    : "Duration",
+        energy      : "Energy",
+        status      : "Status",
+    }
+    const sectionTitles3 = {
+        start_time    : "Start Time",
+        end_time      : "End Time",
+    }
+
+    const content = {
+        // bookingId     : sessionDetails?.station_id,
+        // createdAt     : moment(sessionDetails?.created_at).format('DD MMM YYYY'),
+        // chargerId     : sessionDetails?.price,
+        voltage             : "233 V",
+        current             : "16.2 A", 
+        energy              : "8.5 kWh", 
+        session_duration    : "32 min", 
+    };
     const sectionContent1 = {
-        resident_email             : residentDetails?.resident_email,
-        // SINGLE-SELECT COMMUNITY (old):
-        // community_name             :  residentDetails?.community_name,
-        // MULTI-SELECT COMMUNITY (new): comma-separated names from API (supports legacy single field too)
-        community_name             : formatCommunityNamesForDisplay(residentDetails),
-        // AREA NAME (old): area_name: residentDetails?.area_name,
-        address                    : residentDetails?.address,
-        monthly_session_allocation : residentDetails?.monthly_session_allocation,
-        alloted_time               : residentDetails?.alloted_time,
-        kwh_allocated              : residentDetails?.kwh_allocated,
-        per_kwh_charge             : residentDetails?.per_kwh_charge,
-        extra_charge               : residentDetails?.extra_charge,
-        status                     : staturArr[residentDetails?.status],
+        station_name : sessionDetails?.station_name,
+        start_time   : sessionDetails?.start_time,
+        end_time     : sessionDetails?.end_time,
     }
-
-
-    // Session History 
-    const searchTerm = [{
-        label : 'Search', 
-        name  : 'search_text', 
-        type  : 'text'
-    }];
-    const fetchFilteredData = (newFilters = {}) => {   
-        setFilters(newFilters);  
-        setCurrentPage(1); 
-    };
-    const [sessionList, setSessionList] = useState([]);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalCount, setTotalCount]   = useState(0);
-    const [totalPages, setTotalPages]   = useState(1);
-    const sessionHeaders = [
-        "Date", "Session ID", "Resident Name", "Area", "Charger ID", "kWh Used", "Duration (In Min.)", "Status", "Action"
-    ];
-    const handlePageChange = (pageNumber) => {
-        setCurrentPage(pageNumber);
-    };
-    const fetchSessionList = (page, appliedFilters = {}) => {
-        const obj = {
-            userId      : userDetails?.user_id,
-            email       : userDetails?.email,
-            resident_id : residentId,
-            page_no     : page,
-            ...appliedFilters,
-        };
-        postRequestWithToken('session-list', obj, (response) => {
-            if (response.code === 200) {
-                setSessionList(response?.data || []);
-                setTotalPages(response?.total_page || response?.totalPage || 1);
-                setTotalCount(response?.total || 0)
-            }
-        });
-    };
-    useEffect(() => {
-        fetchSessionList(currentPage, filters);
-    }, [ currentPage, filters ]);
-
-
-    // Invoice History
-    const invoiceSearchTerm = [{
-        label : 'Search', 
-        name  : 'search_text', 
-        type  : 'text'
-    }];
-    const [invoiceFilters, setInvoiceFilters]         = useState({start_date: null, end_date: null});
-    const invoiceFetchFilteredData = (newFilters = {}) => {   
-        setInvoiceFilters(newFilters);  
-        setInvoiceCurrentPage(1); 
-    };
-    const [invoiceList, setInvoiceList]               = useState([]);
-    const [invoiceCurrentPage, setInvoiceCurrentPage] = useState(1);
-    const [invoicetotalCount, setInvoiceTotalCount]   = useState(0);
-    const [invoicetotalPages, setInvoiceTotalPages]   = useState(1);
-    const invoiceHeaders = [
-        // COMMUNITY & AREA COLUMNS (old):
-        // "Invoice ID", "Resident Name", "Community", "Area", "kWh Allocated", "kWh Used", "Per kW Charge", "Price (AED)", "Over Time (AED)", "Total (AED)", "Status", "Action"
-        "Invoice ID", "Resident Name", "kWh Allocated", "kWh Used", "Per kW Charge", "Price (AED)", "Over Time (AED)", "Total (AED)", "Status", "Action"
-    ];
-    const invoiceHandlePageChange = (pageNumber) => {
-        setInvoiceCurrentPage(pageNumber);
-    };
-
-    const fetchInvoiceList = (page, appliedFilters = {}) => {
-        
-        if(!residentDetails?.resident_mobile) return false;
-        const obj = {
-            userId          : userDetails?.user_id,
-            email           : userDetails?.email,
-            resident_mobile : residentDetails?.resident_mobile,
-            page_no         : page,
-            ...appliedFilters,
-        };
-        postRequestWithToken('scan-charge-invoice-list', obj, (response) => {
-            if (response.code === 200) {
-                setInvoiceList(response?.data || []);
-                setInvoiceTotalPages(response?.total_page || response?.totalPage || 1);
-                setInvoiceTotalCount(response?.total || 0)
-            }
-        });
-    };
-    useEffect(() => {
-        fetchInvoiceList(invoiceCurrentPage, invoiceFilters);
-    }, [ residentDetails, invoiceCurrentPage, invoiceFilters ]);
-
+    const sectionContent2 = {
+        duration        : sessionDetails?.duration,
+        energy          : sessionDetails?.energy,
+        status          : sessionDetails?.status,
+    }
+    const sectionContent3 = {
+        start_time        : sessionDetails?.start_time,
+        end_time          : sessionDetails?.end_time,
+    }
+    
     return (
         <div className='main-container'>
-            <BookingDetailsHeader content={content} titles={headerTitles} type='chargerInstallation' />
+            <ToastContainer />
+            <BookingDetailsHeader titles={headerTitles} content={content}  type='partnersSession' />
             <div className={styles.bookingLeftContainer}>
-                <BookingLeftDetails titles={sectionTitles1} content={sectionContent1} 
-                type='chargerInstallation' />
-            </div>
-            <div className='Details-container-section'>
-                {vehicleList.length > 0 && (
-                    <DetailsVehicleList vehicleList={vehicleList} />
-                )}
-            </div>
-            <div style={{margin : "0px 10px 0px 15px" }}>
-                <SubHeader heading = "Session History"
-                    count={totalCount}
-                    filterValues={filters}
-                    fetchFilteredData={fetchFilteredData}
-                    searchTerm= {searchTerm}
-                />
-                <ResidentSessionList
-                    title=""
-                    headers={sessionHeaders}
-                    bookingData={sessionList}
-                />
-                {sessionList.length > 0 && 
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={handlePageChange}
-                    />
-                }
-            </div>
-            <div style={{margin : "0px 10px 0px 15px" }}>
-                <SubHeader heading = "Invoice History"
-                    count={invoicetotalCount}
-                    filterValues={invoiceFilters}
-                    fetchFilteredData={invoiceFetchFilteredData}
-                    searchTerm= {invoiceSearchTerm}
-                />
-                <ResidentInvoiceList
-                    title=""
-                    headers={invoiceHeaders}
-                    bookingData={invoiceList}
-                />
-                {invoiceList.length > 0 && 
-                    <Pagination
-                        currentPage={invoiceCurrentPage}
-                        totalPages={invoicetotalPages}
-                        onPageChange={invoiceHandlePageChange}
-                    />
-                }
+                <BookingLeftDetails titles={sectionTitles1} content={sectionContent1} sectionTitles2={sectionTitles2} sectionContent2={sectionContent2} 
+                    sectionTitles3={sectionTitles3} sectionContent3={sectionContent3}  type='partnersSession' />
             </div>
         </div>
     )
 }
-export default SessionsDetails
+
+export default SessionDetails;
+
+//   const [imageGallery, setImageGallery]     = useState();
+//   const [imageGalleryId, setImageGalleryId] = useState();
+//   const [baseUrl, setBaseUrl]               = useState()
+
+
+
+    // const handleRemoveGalleryImage = (galleryId) => {
+    //     const confirmDelete = window.confirm("Do you want to delete this item?");
+    //     if (confirmDelete) {
+    //         const obj = { 
+    //             userId     : userDetails?.user_id,
+    //             email      : userDetails?.email,
+    //             gallery_id : galleryId 
+    //         };
+    //         postRequestWithToken('chargers-gallery-del', obj, async (response) => {
+    //             if (response.code === 200) {
+    //                 toast(response.message, { type: "success" });
+
+    //                 setTimeout(() => {
+    //                 fetchDetails();
+    //                 }, 1000);
+    //             } else {
+    //                 toast(response.message, { type: 'error' });
+    //             }
+    //         });
+    //     }
+    // };
+
+// const sectionTitles4 = {
+    //     description : "Description"
+    // }
+    // const imageTitles = {
+    //     coverImage    : "Cover Gallery",
+    //     galleryImages : "Station Gallery",
+    // }
+
+    // const sectionContent4 = {
+    //     description: sessionDetails?.description,
+    // }
+    // const imageContent = {
+    //     coverImage      : sessionDetails?.station_image,
+    //     galleryImages   : imageGallery,
+    //     galleryImagesId : imageGalleryId,
+    //     baseUrl         : baseUrl,
+    //     slotDate        : moment(sessionDetails?.slot_date_time).format('DD MMM YYYY h:mm A'),
+    // }
+
+
+
+
+
+
+    {/* // sectionTitles4={sectionTitles4} sectionContent4={sectionContent4} */}
+
+                {/* <BookingImageSection titles={imageTitles} content={imageContent} type='partnersSession' />
+                <BookingMultipleImages titles={imageTitles} content={imageContent} type='partnersSession' onRemoveImage={handleRemoveGalleryImage} /> */}
