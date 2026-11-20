@@ -1,0 +1,572 @@
+import { useState, useRef, useEffect } from "react";
+import Select from "react-select";
+// import { GoogleMap, useJsApiLoader, useLoadScript, Marker } from "@react-google-maps/api";
+import UploadIcon from '../../../assets/images/uploadicon.svg';
+import { AiOutlineClose } from 'react-icons/ai';
+import styles from './addPartnerCharger.module.css';
+import { MultiSelect } from "react-multi-select-component";
+import { useNavigate } from 'react-router-dom';
+import { postRequestWithTokenAndFile, postRequestWithToken } from '../../../api/Requests';
+import { toast, ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
+import ReactInputMask from "react-input-mask"
+import Add from '../../../assets/images/Add.svg';
+import PhoneInput from 'react-phone-input-2';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import 'react-phone-input-2/lib/style.css';
+import { applyBackendFieldErrors, getBackendErrorMessage } from '../../../utils/mapBackendErrorsToFields';
+import { sortSelectOptionsOtherLast, sortVehicleBrandList } from '../../../utils/sortVehicleBrandOptions';
+import InputMask from 'react-input-mask';
+
+const stationsOptions = [
+    { value: 'Dubai Marina',        label: 'Dubai Marina' },
+    { value: 'Downtown Dubai',      label: 'Downtown Dubai' },
+    { value: 'Business Bay',        label: 'Business Bay' },
+    { value: 'Al Quoz',             label: 'Al Quoz' },
+    { value: 'Jumeirah',            label: 'Jumeirah' },
+];
+
+const chargerTypeOptions = [
+    { value: 'AC',   label: 'AC' },
+    { value: 'DC',   label: 'DC' },
+];
+
+const connectorTypeOptions = [
+    { value: 'Type 2',          label: 'Type 2' },
+    { value: 'CSS2',            label: 'CSS2' },
+    { value: 'CHAdeMO',         label: 'CHAdeMO' },
+    { value: 'GB/T',            label: 'GB/T' },
+    { value: 'Type 1',          label: 'Type 1' },
+];
+
+const inputSupplyOption = [
+    { value: 'Single Phase',    label: 'Single Phase' },
+    { value: 'Three Phase',     label: 'Three Phase' },
+];
+
+const initialAdministrativeStatusOption = [
+    { value: 'Active',              label: 'Active' },
+    { value: 'Pending Connection',  label: 'Pending Connection' },
+    { value: 'Avaiable',            label: 'Avaiable' },
+    { value: 'Charging',            label: 'Charging' },
+    { value: 'Faulty',              label: 'Faulty' },
+    { value: 'Inactive',            label: 'Inactive' },
+];
+
+// const MIN_MOBILE_DIGITS = 9;
+// const EMAIL_REGEX = /\S+@\S+\.\S+/;
+
+// const isValidEmailFormat = (value) => EMAIL_REGEX.test(String(value || '').trim());
+const selectMenuStyles = {
+    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+    menu: (base) => ({
+        ...base,
+        backgroundColor: '#242424',
+        border: '1px solid #3a3a3a',
+        zIndex: 9999,
+    }),
+    menuList: (base) => ({
+        ...base,
+        backgroundColor: '#242424',
+        padding: 0,
+    }),
+    option: (base, state) => ({
+        ...base,
+        backgroundColor: state.isSelected
+            ? '#00ffc3'
+            : state.isFocused
+                ? '#333333'
+                : '#242424',
+        color: state.isSelected ? '#000000' : '#ffffff',
+        cursor: 'pointer',
+    }),
+};
+
+const EditPartnerCharger = () => {
+    const userDetails           = JSON.parse(sessionStorage.getItem('userDetails'));
+    const navigate              = useNavigate();
+    const [errors, setErrors]   = useState({});
+    const [loading, setLoading] = useState(false);
+
+    const [chargerId, setChargerId]                   = useState('');
+    const [chargerName, setChargerName]               = useState('');
+    const [station, setStation]                       = useState(null);
+    const [manufacturer, setManufacturer]             = useState('');
+    const [model, setModel]                           = useState('');
+    const [serialNumber, setSerialNumber]             = useState('');
+    const [chargerType, setChargerType]               = useState(null);
+    const [ratedPower, setRatedPower]                 = useState('');
+    const [connectorType, setConnectorType]           = useState(null);
+    const [noOfConnector, setNoOfConnector]           = useState('');
+    const [inputSupply, setInputSupply]               = useState(null);
+    const [outputVoltage, setOutputVoltage]           = useState('');
+    const [installationDate, setInstallationDate]     = useState('');
+    const [adminStatus, setAdminStatus]               = useState(null);
+    const [sim, setSim]                               = useState('');
+    const [imei, setImei]                             = useState('');
+    const [note, setNote]                             = useState('');
+
+
+    const handleCancel = () => {
+        navigate('/partners/charger-list')
+    }
+    
+    const validateForm = () => {
+        // const mobileNo = getLocalMobile();
+        const fields = [
+            { name: "chargerId",           value: chargerId,            errorMessage: "charger ID is required." },
+            { name: "chargerName",         value: chargerName,          errorMessage: "charger Name is required." },
+            { name: "station",             value: station,              errorMessage: "Station is required." },
+            { name: "manufacturer",        value: manufacturer,         errorMessage: "Manufacturer is required." },
+            { name: "model",               value: model,                errorMessage: "Model is required." },
+            { name: "serialNumber",        value: serialNumber,         errorMessage: "Serial Number is required." },
+            { name: "chargerType",         value: chargerType,          errorMessage: "Charger Type is required." },
+            { name: "ratedPower",          value: ratedPower,           errorMessage: "Rated Power is required." },
+            { name: "connectorType",       value: connectorType,        errorMessage: "Connector Type is required." },
+            { name: "noOfConnector",       value: noOfConnector,        errorMessage: "Number Of Connector is required." },
+            { name: "inputSupply",         value: inputSupply,          errorMessage: "Input Supply is required." },
+            { name: "outputVoltage",       value: outputVoltage,        errorMessage: "Output Voltage is required." },
+            { name: "installationDate",    value: installationDate,     errorMessage: "Installation Date is required." },
+            { name: "adminStatus",         value: adminStatus,          errorMessage: "Initial Administrative Status is required." },
+            { name: "note",                value: note,                 errorMessage: "Installation Notes is required." },
+        ];
+
+        const newErrors = fields.reduce((errors, { name, value, errorMessage, isEmail, isMobile, isPasswordMatch, isArray }) => {
+            if (!value) {
+                errors[name] = errorMessage;
+            } else if (isEmail && !/\S+@\S+\.\S+/.test(value)) {
+                errors[name] = errorMessage;
+            } else if (isMobile && (isNaN(value) || value.length < 9)) {
+                errors[name] = errorMessage;
+                
+            } 
+            // else if (isPasswordMatch && value !== password) {
+            //     errors[name] = errorMessage;
+               
+            // } else if (name === 'password' && value.length < 6) {
+            //     errors[name] = "Password should be at least 6 characters long.";
+            // }
+            return errors;
+        }, {});
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+    
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        setLoading(true);
+        if (validateForm()) {
+
+            const obj = {
+                userId                     : userDetails?.user_id,
+                email                      : userDetails?.email,
+
+                station_id                 : chargerId,
+                station_name               : chargerName,
+                station_type               : station,
+                operator_name              : manufacturer,
+                model                      : model,           
+                serial_number              : serialNumber,    
+                charger_type               : chargerType,     
+                rated_power                : ratedPower,      
+                connector_type             : connectorType,   
+                no_of_connector            : noOfConnector,   
+                input_supply               : inputSupply,     
+                outpur_voltage             : outputVoltage,   
+                installation_date          : installationDate,
+                admin_status               : adminStatus,     
+                sim_iccid                  : sim,
+                imei_number                : imei,
+                installation_note          : note,
+            }
+            postRequestWithToken('add-charger', obj, async (response) => {
+                if (response.status === 1) {
+                    toast(response.message , {type:'success'})
+                    setTimeout(() => {
+                        setLoading(false);
+                        navigate('/partners/charger-list');
+                    }, 1000);
+                } else {
+                    const applied = applyBackendFieldErrors(response, setErrors, {
+                        email: 'email',
+                        contact: 'mobileNo',
+                    });
+                    if (!applied) {
+                        toast(getBackendErrorMessage(response), { type: 'error' });
+                    }
+                    console.log('Error in add-charger API:', response);
+                    setLoading(false);
+                }
+            } )
+        } else {
+            toast.error("Some fields are missing");
+            setLoading(false);
+        }
+    };
+
+    // const fetchDetails = () => {
+    //     const obj = {
+    //         userId: userDetails?.user_id,
+    //         email: userDetails?.email,
+    //     };
+    //     postRequestWithToken('all-community-list', obj, (response) => {
+    //         if (response.code === 200) {
+    //             // SINGLE-SELECT COMMUNITY (old):
+    //             // setCommunityOptions(response.data)
+    //             // MULTI-SELECT COMMUNITY (new):
+    //             // setCommunityOptions(response.data || []);
+    //         } else {
+    //             // SINGLE-SELECT COMMUNITY (old):
+    //             // console.log('error in rider-details API', response);
+    //             // MULTI-SELECT COMMUNITY (new):
+    //             console.log('error in all-community-list API', response);
+    //         }
+    //     });
+    // };
+
+    useEffect(() => {
+        if (!userDetails || !userDetails.access_token) {
+            navigate('/login');
+            return;
+        }
+        // fetchDetails();
+    }, []);
+    
+    return (
+        <div className={styles.addShopContainer}>
+            
+            <div className={styles.addHeading}>Edit Charger</div>
+            <div className={styles.addShopFormSection}>
+                <ToastContainer />
+                <form className={styles.formSection} onSubmit={handleSubmit}>
+                    <div className={styles.formSectionBlock}>
+                        <div className={styles.formSectionHeading}>General Information</div>
+                        <div className={styles.row}>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="chargerId">Charger ID</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="chargerId"
+                                    placeholder="Charger ID"
+                                    className={styles.inputField}
+                                    value={chargerId}
+                                    onChange={(e) => setChargerId(e.target.value)}
+                                />
+                                {errors.chargerId && chargerId === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.chargerId}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="chargerName">Charger Name</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="chargerName"
+                                    placeholder="Charger Name"
+                                    className={styles.inputField}
+                                    value={chargerName}
+                                    onChange={(e) => setChargerName(e.target.value)}
+                                />
+                                {errors.chargerName && chargerName === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.chargerName}</p>}
+                            </div>
+                        </div>
+                        <div className={styles.row}>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel}>Station</label>
+                                <Select
+                                    className={styles.addShopSelect}
+                                    options={stationsOptions}
+                                    value={station}
+                                    onChange={(selectedOption) => {
+                                        setStation(selectedOption);
+                                        setErrors((prev) => ({ ...prev, station: '' }));
+                                    }}
+                                    placeholder="Select Station"
+                                    isClearable={true}
+                                    menuPortalTarget={document.body}
+                                    menuPosition="fixed"
+                                    styles={selectMenuStyles}
+                                />
+                                {errors.station && !station && <p className={styles.error} style={{ color: 'red' }}>{errors.station}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="manufacturer">Manufacturer</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="manufacturer"
+                                    placeholder="Manufacturer"
+                                    className={styles.inputField}
+                                    value={manufacturer}
+                                    onChange={(e) => setManufacturer(e.target.value)}
+                                />
+                                {errors.manufacturer && manufacturer === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.manufacturer}</p>}
+                            </div>
+                        </div>
+                        <div className={styles.row}>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="model">Model</label>
+                                <input
+                                    className={styles.inputField}
+                                    type="text"
+                                    autoComplete='off'
+                                    placeholder="Model"
+                                    value={model}
+                                    onChange={(e) => setModel(e.target.value)}
+                                />
+                                {errors.model && model === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.model}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="serialNumber">Serial Number</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="serialNumber"
+                                    placeholder="Serial Number"
+                                    className={styles.inputField}
+                                    value={serialNumber}
+                                    onChange={(e) => setSerialNumber(e.target.value)}
+                                />
+                                {errors.serialNumber && serialNumber === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.serialNumber}</p>}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className={styles.formSectionBlock}>
+                        <div className={styles.formSectionHeading}>Charger Configuration</div>
+                        
+                        <div className={styles.row}>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel}>Charger Type</label>
+                                <Select
+                                    className={styles.addShopSelect}
+                                    options={chargerTypeOptions}
+                                    value={chargerType}
+                                    onChange={(selectedOption) => {
+                                        setChargerType(selectedOption);
+                                        setErrors((prev) => ({ ...prev, chargerType: '' }));
+                                    }}
+                                    placeholder="Select Charger Type"
+                                    isClearable={true}
+                                    menuPortalTarget={document.body}
+                                    menuPosition="fixed"
+                                    styles={selectMenuStyles}
+                                />
+                                {errors.chargerType && !chargerType && <p className={styles.error} style={{ color: 'red' }}>{errors.chargerType}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="ratedPower">Rated Power (kW)</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="ratedPower"
+                                    placeholder="Rated Power (kW)"
+                                    className={styles.inputField}
+                                    value={ratedPower}
+                                    onChange={(e) => {
+                                    const value = e.target.value;
+                                        if (/^\d*\.?\d*$/.test(value)) {
+                                            setRatedPower(value);
+                                        }
+                                    }}
+                                />
+                                {errors.ratedPower && ratedPower === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.ratedPower}</p>}
+                            </div>
+                        </div>
+                        <div className={styles.row}>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel}>Connector Type</label>
+                                <Select
+                                    className={styles.addShopSelect}
+                                    options={connectorTypeOptions}
+                                    value={connectorType}
+                                    onChange={(selectedOption) => {
+                                        setConnectorType(selectedOption);
+                                        setErrors((prev) => ({ ...prev, connectorType: '' }));
+                                    }}
+                                    placeholder="Select Connector Type"
+                                    isClearable={true}
+                                    menuPortalTarget={document.body}
+                                    menuPosition="fixed"
+                                    styles={selectMenuStyles}
+                                />
+                                {errors.connectorType && !connectorType && <p className={styles.error} style={{ color: 'red' }}>{errors.connectorType}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="noOfConnectors">Number of Connectors</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="noOfConnector"
+                                    placeholder="Number of Connectors"
+                                    className={styles.inputField}
+                                    value={noOfConnector}
+                                    onChange={(e) => {
+                                    const value = e.target.value;
+                                        if (/^\d*\.?\d*$/.test(value)) {
+                                            setNoOfConnector(value);
+                                        }
+                                    }}
+                                />
+                                {errors.noOfConnector && noOfConnector === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.noOfConnector}</p>}
+                            </div>
+                        </div>
+                        <div className={styles.row}>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel}>Input Supply</label>
+                                <Select
+                                    className={styles.addShopSelect}
+                                    options={inputSupplyOption}
+                                    value={inputSupply}
+                                    onChange={(selectedOption) => {
+                                        setInputSupply(selectedOption);
+                                        setErrors((prev) => ({ ...prev, inputSupply: '' }));
+                                    }}
+                                    placeholder="Select Input Supply"
+                                    isClearable={true}
+                                    menuPortalTarget={document.body}
+                                    menuPosition="fixed"
+                                    styles={selectMenuStyles}
+                                />
+                                {errors.inputSupply && !inputSupply && <p className={styles.error} style={{ color: 'red' }}>{errors.inputSupply}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="outputVoltage">Maximum Output Voltage (V)</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="outputVoltage"
+                                    placeholder="Maximum Output Voltage (V)"
+                                    className={styles.inputField}
+                                    value={outputVoltage}
+                                    onChange={(e) => {
+                                    const value = e.target.value;
+                                        if (/^\d*\.?\d*$/.test(value)) {
+                                            setOutputVoltage(value);
+                                        }
+                                    }}
+                                />
+                                {errors.outputVoltage && outputVoltage === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.outputVoltage}</p>}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className={styles.formSectionBlock}>
+                        <div className={styles.formSectionHeading}>Installation & Status</div>
+                        <div className={styles.row}>
+                            <div className={styles.inputGroup}>
+                                <label className={styles.label}>Installation Date</label>
+                                <InputMask
+                                    mask="99-99-9999"
+                                    value={installationDate}
+                                    onChange={(e) => {
+                                        setInstallationDate(e.target.value);
+                                        if (errors.installationDate && e.target.value.length === 10) {
+                                            setErrors((prevErrors) => ({ ...prevErrors, installationDate: "" }));
+                                        }
+                                    }}
+                                    onBlur={() => {
+                                        if (installationDate.length === 10) {
+                                            const [day, month, year] = installationDate.split('-');
+                                            const isValidDate =
+                                            !isNaN(Date.parse(`${year}-${month}-${day}`)) &&
+                                            day <= 31 && month <= 12; 
+                                            if (!isValidDate) {
+                                                setErrors((prevErrors) => ({
+                                                    ...prevErrors,
+                                                    installationDate: "Invalid date in DD-MM-YYYY format",
+                                                }));
+                                            }
+                                        }
+                                    }}
+                                    placeholder="DD-MM-YYYY"
+                                    className={styles.inputCharger}
+                                />
+                                {errors.installationDate && installationDate ==='' && <p className="error">{errors.installationDate}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel}>Initial Administrative Status</label>
+                                <Select
+                                    className={styles.addShopSelect}
+                                    options={initialAdministrativeStatusOption}
+                                    value={adminStatus}
+                                    onChange={(selectedOption) => {
+                                        setAdminStatus(selectedOption);
+                                        setErrors((prev) => ({ ...prev, adminStatus: '' }));
+                                    }}
+                                    placeholder="Select Input Supply"
+                                    isClearable={true}
+                                    menuPortalTarget={document.body}
+                                    menuPosition="fixed"
+                                    styles={selectMenuStyles}
+                                />
+                                {errors.adminStatus && !adminStatus && <p className={styles.error} style={{ color: 'red' }}>{errors.adminStatus}</p>}
+                            </div>
+                        </div>
+                        <div className={styles.row}>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="sim">SIM ICCID</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="sim"
+                                    placeholder="SIM ICCID"
+                                    className={styles.inputField}
+                                    value={sim}
+                                    onChange={(e) => setSim(e.target.value)}
+                                />
+                                {errors.sim && sim === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.sim}</p>}
+                            </div>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="imei">IMEI</label>
+                                <input
+                                    type="text"
+                                    autoComplete="off"
+                                    id="imei"
+                                    placeholder="IMEI"
+                                    className={styles.inputField}
+                                    value={imei}
+                                    onChange={(e) => setImei(e.target.value)}
+                                />
+                                {errors.imei && imei === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.imei}</p>}
+                            </div>
+                        </div>
+                        
+                        <div className={styles.row}>
+                            <div className={styles.addShopInputContainer}>
+                                <label className={styles.addShopLabel} htmlFor="note">Installation Notes</label>
+                                <textarea
+                                    id="note"
+                                    placeholder="Enter Installation Notes"
+                                    className={styles.inputField}
+                                    rows="4"
+                                    value={note}
+                                    onChange={(e) => setNote(e.target.value)}
+                                />
+                                {errors.note && note === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.note}</p>}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className={styles.editButton}>
+                        <button className={styles.editCancelBtn} onClick={() => handleCancel()}>Cancel</button>
+                        <button disabled={loading} type="submit" className={styles.editSubmitBtn}>
+                          {loading ? (
+                            <>
+                                <span className="spinner-border spinner-border-sm me-2"></span>
+                                Submit...
+                            </>
+                        ) : (
+                            "Edit Charger"
+                        )}
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    );
+
+};
+
+export default EditPartnerCharger;

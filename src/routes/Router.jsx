@@ -235,14 +235,20 @@ import RsaVanDetails  from "../components/RsaVan/RsaVanDetails.jsx";
 // Partner Charger Management
 import Partner from "../components/partnersCharger/index.jsx";
 import PartnerDashboard from "../components/partnersCharger/dashboard/index.jsx";
+
 import SessionsList from "../components/partnersCharger/sessions/sessionsList.jsx";
 import SessionDetails  from "../components/partnersCharger/sessions/sessionsDetails.jsx";
+
 import PartnerStationList from "../components/partnersCharger/stations/stationList.jsx";
 import ParnterStationDetails  from "../components/partnersCharger/stations/stationDetails.jsx";
 import PartnerAddStation from "../components/partnersCharger/stations/addPartnerStation.jsx";
 import PartnerEditStation from "../components/partnersCharger/stations/editPartnerStation.jsx";
+
 import PartnerChargerList from "../components/partnersCharger/charger/chargerList.jsx";
 import PartnerChargerDetails  from "../components/partnersCharger/charger/chargerDetails.jsx";
+import PartnerAddCharger from "../components/partnersCharger/charger/addPartnerCharger.jsx";
+import PartnerEditCharger from "../components/partnersCharger/charger/editPartnerCharger.jsx";
+
 import AlertList from "../components/partnersCharger/alert/alertList.jsx";
  
 const router = createBrowserRouter([ 
@@ -763,11 +769,11 @@ const router = createBrowserRouter([
                     },
                     {
                         path: "add-charger",
-                        element: <PartnerAddStation />,
+                        element: <PartnerAddCharger />,
                     }, 
                     {
                         path: "edit-charger/:chargerId",
-                        element: <PartnerEditStation />,
+                        element: <PartnerEditCharger />,
                     }, 
                     {
                         path: "alert-list",
