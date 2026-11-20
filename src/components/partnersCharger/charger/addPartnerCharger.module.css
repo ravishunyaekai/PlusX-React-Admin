@@ -47,6 +47,14 @@
   font-size: 20px;
   font-weight: 600;
 }
+.fieldHalfWidth {
+  flex: 0 0 calc(50% - 10px);
+  max-width: calc(50% - 10px);
+}
+.row > .addShopInputContainer.fieldHalfWidth {
+  flex: 0 0 calc(50% - 10px);
+  max-width: calc(50% - 10px);
+}
 .sectionHeadingRow {
   display: flex;
   justify-content: space-between;

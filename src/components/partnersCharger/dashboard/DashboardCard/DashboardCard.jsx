@@ -28,39 +28,42 @@ import TotalRegisterYourInterestImage from "../../../../assets/images/DashboardC
 
 const DashboardCard = ({ details }) => {
   const dispatch = useDispatch();
-  const activeCardIndex = useSelector((state) => state.dashboard.activeCardIndex);
+  const activeCardIndex = useSelector((state) => state.partnerDashboard.activeCardIndex);
   const userDetails = ensureSessionUserDetails();
 
   const handleCardClick = (index) => {
     dispatch(setActiveCardIndex(index));
   };
 
+  const countFor = (label, key) =>
+    details?.find((item) => item.module === label || item.key === key)?.count ?? 0;
+
   const cardData = [
     {
         moduleKey : ADMIN_MODULE_KEYS.PARTNERS,
         icon  : PublicChargersImage,
-        count : details?.find((item) => item.module === "Total Chargers") ?.count || 0,
+        count : countFor("Total Chargers", "total_chargers"),
         title : "Total Chargers",
         route : "/partners/charger-list",
     },
     {
         moduleKey : ADMIN_MODULE_KEYS.PARTNERS,
         icon  : ChargerInstallationImage,
-        count : details?.find((item) => item.module === "Available Chargers") ?.count || 0,
+        count : countFor("Available Chargers", "available_chargers"),
         title : "Available Chargers",
         route : "/partners/charger-list",
     },
     {
         moduleKey : ADMIN_MODULE_KEYS.PARTNERS,
         icon  : PODBooking,
-        count : details?.find((item) => item.module === "Currently Charging") ?.count || 0,
+        count : countFor("Currently Charging", "currently_charging"),
         title : "Currently Charging",
         route : "/partners/sessions-list",
     },
     {
         moduleKey : ADMIN_MODULE_KEYS.PARTNERS,
         icon  : ChargerInstallationImage,
-        count : details?.find((item) => item.module === "Faulty Chargers") ?.count || 0,
+        count : countFor("Faulty Chargers", "faulty_chargers"),
         title : "Faulty Chargers",
         route : "/partners/alert-list",
     },

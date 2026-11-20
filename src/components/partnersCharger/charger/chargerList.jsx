@@ -92,16 +92,28 @@ const ChargerList = () => {
             page_no : page,
             ...appliedFilters,
         }
-        postRequestWithToken('charger-list', obj, async(response) => { //resident-list
-            if (response.code === 200) {
-                setChargerList(response?.data)
-                setTotalPages(response?.total_page || 1); 
-                setTotalCount(response?.total || 0);
+        postRequestWithToken('partner-charger-list', obj, async (response) => {
+            const isSuccess = response.code === 200 || Number(response.status) === 1;
+            if (isSuccess) {
+                const rows = Array.isArray(response?.data) ? response.data : [];
+                setChargerList(rows.map((row) => ({
+                    ...row,
+                    charger_id   : row.charger_id ?? row.id ?? '',
+                    charger_name : row.charger_name ?? '',
+                    station      : row.station_name ?? row.station_id ?? row.station ?? '',
+                    type         : row.charger_type ?? row.type ?? '',
+                    rated_power  : row.rated_power_kw ?? row.rated_power ?? '',
+                    connectors   : row.connector_count ?? row.no_of_connector ?? row.number_of_connectors ?? row.connectors ?? '',
+                    status       : row.admin_status ?? row.status ?? '',
+                })));
+                setTotalPages(response?.total_page || response?.total_pages || 1);
+                setTotalCount(response?.total ?? response?.total_count ?? rows.length);
             } else {
-                console.log('error in charger-list api', response);
+                console.log('error in partner-charger-list api', response);
+                setChargerList([]);
             }
             setLoading(false);
-        })
+        });
     }
 
     useEffect(() => {

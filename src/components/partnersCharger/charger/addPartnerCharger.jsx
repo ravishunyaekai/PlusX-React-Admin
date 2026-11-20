@@ -15,16 +15,11 @@ import PhoneInput from 'react-phone-input-2';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import 'react-phone-input-2/lib/style.css';
 import { applyBackendFieldErrors, getBackendErrorMessage } from '../../../utils/mapBackendErrorsToFields';
-import { sortSelectOptionsOtherLast, sortVehicleBrandList } from '../../../utils/sortVehicleBrandOptions';
+import {
+    buildPartnerChargerPayload,
+    mapStationListToOptions,
+} from '../../../utils/partnerChargerFormHelpers';
 import InputMask from 'react-input-mask';
-
-const stationsOptions = [
-    { value: 'Dubai Marina',        label: 'Dubai Marina' },
-    { value: 'Downtown Dubai',      label: 'Downtown Dubai' },
-    { value: 'Business Bay',        label: 'Business Bay' },
-    { value: 'Al Quoz',             label: 'Al Quoz' },
-    { value: 'Jumeirah',            label: 'Jumeirah' },
-];
 
 const chargerTypeOptions = [
     { value: 'AC',   label: 'AC' },
@@ -33,7 +28,7 @@ const chargerTypeOptions = [
 
 const connectorTypeOptions = [
     { value: 'Type 2',          label: 'Type 2' },
-    { value: 'CSS2',            label: 'CSS2' },
+    { value: 'CCS2',            label: 'CCS2' },
     { value: 'CHAdeMO',         label: 'CHAdeMO' },
     { value: 'GB/T',            label: 'GB/T' },
     { value: 'Type 1',          label: 'Type 1' },
@@ -47,7 +42,7 @@ const inputSupplyOption = [
 const initialAdministrativeStatusOption = [
     { value: 'Active',              label: 'Active' },
     { value: 'Pending Connection',  label: 'Pending Connection' },
-    { value: 'Avaiable',            label: 'Avaiable' },
+    { value: 'Available',            label: 'Available' },
     { value: 'Charging',            label: 'Charging' },
     { value: 'Faulty',              label: 'Faulty' },
     { value: 'Inactive',            label: 'Inactive' },
@@ -88,7 +83,6 @@ const AddPartnerCharger = () => {
     const [errors, setErrors]   = useState({});
     const [loading, setLoading] = useState(false);
 
-    const [chargerId, setChargerId]                   = useState('');
     const [chargerName, setChargerName]               = useState('');
     const [station, setStation]                       = useState(null);
     const [manufacturer, setManufacturer]             = useState('');
@@ -105,7 +99,19 @@ const AddPartnerCharger = () => {
     const [sim, setSim]                               = useState('');
     const [imei, setImei]                             = useState('');
     const [note, setNote]                             = useState('');
+    const [stationOptions, setStationOptions]         = useState([]);
 
+    const fetchStationOptions = () => {
+        postRequestWithToken('all-partner-station-list', {
+            userId : userDetails?.user_id,
+            email  : userDetails?.email,
+        }, (response) => {
+            const ok = response.code === 200 || Number(response.status) === 1;
+            if (ok) {
+                setStationOptions(mapStationListToOptions(response.data));
+            }
+        });
+    };
 
     const handleCancel = () => {
         navigate('/partners/charger-list')
@@ -114,7 +120,6 @@ const AddPartnerCharger = () => {
     const validateForm = () => {
         // const mobileNo = getLocalMobile();
         const fields = [
-            { name: "chargerId",           value: chargerId,            errorMessage: "charger ID is required." },
             { name: "chargerName",         value: chargerName,          errorMessage: "charger Name is required." },
             { name: "station",             value: station,              errorMessage: "Station is required." },
             { name: "manufacturer",        value: manufacturer,         errorMessage: "Manufacturer is required." },
@@ -157,48 +162,53 @@ const AddPartnerCharger = () => {
         e.preventDefault();
         setLoading(true);
         if (validateForm()) {
+            const obj = buildPartnerChargerPayload({
+                chargerName,
+                station,
+                manufacturer,
+                model,
+                serialNumber,
+                chargerType,
+                ratedPower,
+                connectorType,
+                noOfConnector,
+                inputSupply,
+                outputVoltage,
+                installationDate,
+                adminStatus,
+                sim,
+                imei,
+                note,
+            }, userDetails);
 
-            const obj = {
-                userId                     : userDetails?.user_id,
-                email                      : userDetails?.email,
-
-                station_id                 : chargerId,
-                station_name               : chargerName,
-                station_type               : station,
-                operator_name              : manufacturer,
-                model                      : model,           
-                serial_number              : serialNumber,    
-                charger_type               : chargerType,     
-                rated_power                : ratedPower,      
-                connector_type             : connectorType,   
-                no_of_connector            : noOfConnector,   
-                input_supply               : inputSupply,     
-                outpur_voltage             : outputVoltage,   
-                installation_date          : installationDate,
-                admin_status               : adminStatus,     
-                sim_iccid                  : sim,
-                imei_number                : imei,
-                installation_note          : note,
-            }
-            postRequestWithToken('add-charger', obj, async (response) => {
-                if (response.status === 1) {
-                    toast(response.message , {type:'success'})
+            postRequestWithToken('partner-charger-add', obj, async (response) => {
+                if (response.status === 1 || response.code === 200) {
+                    toast(getBackendErrorMessage(response, 'Charger added successfully!'), { type: 'success' });
                     setTimeout(() => {
                         setLoading(false);
                         navigate('/partners/charger-list');
                     }, 1000);
                 } else {
-                    const applied = applyBackendFieldErrors(response, setErrors, {
-                        email: 'email',
-                        contact: 'mobileNo',
-                    });
+                    const applied = applyBackendFieldErrors(
+                        response,
+                        setErrors,
+                        {},
+                        {},
+                        [
+                            { match: /charger id already exists/i, key: 'chargerId' },
+                            { match: 'charger_id', key: 'chargerId', label: 'Charger ID' },
+                            { match: /installation notes/i, key: 'note' },
+                            { match: /number of connector/i, key: 'noOfConnector' },
+                            { match: 'installation_notes', key: 'note', label: 'Installation Notes' },
+                            { match: 'connector_count', key: 'noOfConnector', label: 'Number of Connectors' },
+                        ]
+                    );
                     if (!applied) {
                         toast(getBackendErrorMessage(response), { type: 'error' });
                     }
-                    console.log('Error in add-charger API:', response);
                     setLoading(false);
                 }
-            } )
+            });
         } else {
             toast.error("Some fields are missing");
             setLoading(false);
@@ -230,7 +240,7 @@ const AddPartnerCharger = () => {
             navigate('/login');
             return;
         }
-        // fetchDetails();
+        fetchStationOptions();
     }, []);
     
     return (
@@ -244,19 +254,6 @@ const AddPartnerCharger = () => {
                         <div className={styles.formSectionHeading}>General Information</div>
                         <div className={styles.row}>
                             <div className={styles.addShopInputContainer}>
-                                <label className={styles.addShopLabel} htmlFor="chargerId">Charger ID</label>
-                                <input
-                                    type="text"
-                                    autoComplete="off"
-                                    id="chargerId"
-                                    placeholder="Charger ID"
-                                    className={styles.inputField}
-                                    value={chargerId}
-                                    onChange={(e) => setChargerId(e.target.value)}
-                                />
-                                {errors.chargerId && chargerId === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.chargerId}</p>}
-                            </div>
-                            <div className={styles.addShopInputContainer}>
                                 <label className={styles.addShopLabel} htmlFor="chargerName">Charger Name</label>
                                 <input
                                     type="text"
@@ -269,13 +266,11 @@ const AddPartnerCharger = () => {
                                 />
                                 {errors.chargerName && chargerName === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.chargerName}</p>}
                             </div>
-                        </div>
-                        <div className={styles.row}>
                             <div className={styles.addShopInputContainer}>
                                 <label className={styles.addShopLabel}>Station</label>
                                 <Select
                                     className={styles.addShopSelect}
-                                    options={stationsOptions}
+                                    options={stationOptions}
                                     value={station}
                                     onChange={(selectedOption) => {
                                         setStation(selectedOption);
@@ -289,6 +284,8 @@ const AddPartnerCharger = () => {
                                 />
                                 {errors.station && !station && <p className={styles.error} style={{ color: 'red' }}>{errors.station}</p>}
                             </div>
+                        </div>
+                        <div className={styles.row}>
                             <div className={styles.addShopInputContainer}>
                                 <label className={styles.addShopLabel} htmlFor="manufacturer">Manufacturer</label>
                                 <input
@@ -302,8 +299,6 @@ const AddPartnerCharger = () => {
                                 />
                                 {errors.manufacturer && manufacturer === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.manufacturer}</p>}
                             </div>
-                        </div>
-                        <div className={styles.row}>
                             <div className={styles.addShopInputContainer}>
                                 <label className={styles.addShopLabel} htmlFor="model">Model</label>
                                 <input
@@ -316,7 +311,9 @@ const AddPartnerCharger = () => {
                                 />
                                 {errors.model && model === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.model}</p>}
                             </div>
-                            <div className={styles.addShopInputContainer}>
+                        </div>
+                        <div className={styles.row}>
+                            <div className={`${styles.addShopInputContainer} ${styles.fieldHalfWidth}`}>
                                 <label className={styles.addShopLabel} htmlFor="serialNumber">Serial Number</label>
                                 <input
                                     type="text"

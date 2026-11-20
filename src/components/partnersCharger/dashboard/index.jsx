@@ -43,7 +43,7 @@ function Index() {
         }
     }, [error]);
 
-    const isLoading = status === "loading";
+    const isLoading = status === "loading" && details == null;
 
     // API call every 5 minute
     useEffect(() => {
@@ -111,7 +111,7 @@ function Index() {
             <>
                 <div className={`row ${style.row}`}>
                     <div className={`col-xl-12 col-lg-12`}>
-                        <NewMapComponet className={style.mapContainer} location = {details?.location} podLocation = {details?.podLocation}/>
+                        <NewMapComponet stations={details?.stations ?? details?.location ?? []} />
                     </div>
                 </div>
                 <DashboardCardItem details={details?.count_arr} />

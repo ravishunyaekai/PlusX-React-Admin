@@ -5,7 +5,8 @@ import UploadIcon from '../../../assets/images/uploadicon.svg';
 import { AiOutlineClose } from 'react-icons/ai';
 import styles from './addPartnerCharger.module.css';
 import { MultiSelect } from "react-multi-select-component";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import Loader from '../../SharedComponent/Loader/Loader';
 import { postRequestWithTokenAndFile, postRequestWithToken } from '../../../api/Requests';
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
@@ -15,16 +16,15 @@ import PhoneInput from 'react-phone-input-2';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import 'react-phone-input-2/lib/style.css';
 import { applyBackendFieldErrors, getBackendErrorMessage } from '../../../utils/mapBackendErrorsToFields';
-import { sortSelectOptionsOtherLast, sortVehicleBrandList } from '../../../utils/sortVehicleBrandOptions';
+import {
+    buildPartnerChargerPayload,
+    findSelectOption,
+    installationDateFromApi,
+    mapStationListToOptions,
+    readPartnerChargerDetails,
+    stationSelectOption,
+} from '../../../utils/partnerChargerFormHelpers';
 import InputMask from 'react-input-mask';
-
-const stationsOptions = [
-    { value: 'Dubai Marina',        label: 'Dubai Marina' },
-    { value: 'Downtown Dubai',      label: 'Downtown Dubai' },
-    { value: 'Business Bay',        label: 'Business Bay' },
-    { value: 'Al Quoz',             label: 'Al Quoz' },
-    { value: 'Jumeirah',            label: 'Jumeirah' },
-];
 
 const chargerTypeOptions = [
     { value: 'AC',   label: 'AC' },
@@ -33,7 +33,7 @@ const chargerTypeOptions = [
 
 const connectorTypeOptions = [
     { value: 'Type 2',          label: 'Type 2' },
-    { value: 'CSS2',            label: 'CSS2' },
+    { value: 'CCS2',            label: 'CCS2' },
     { value: 'CHAdeMO',         label: 'CHAdeMO' },
     { value: 'GB/T',            label: 'GB/T' },
     { value: 'Type 1',          label: 'Type 1' },
@@ -42,12 +42,13 @@ const connectorTypeOptions = [
 const inputSupplyOption = [
     { value: 'Single Phase',    label: 'Single Phase' },
     { value: 'Three Phase',     label: 'Three Phase' },
+    { value: 'Industrial',      label: 'Industrial' },
 ];
 
 const initialAdministrativeStatusOption = [
     { value: 'Active',              label: 'Active' },
     { value: 'Pending Connection',  label: 'Pending Connection' },
-    { value: 'Avaiable',            label: 'Avaiable' },
+    { value: 'Available',            label: 'Available' },
     { value: 'Charging',            label: 'Charging' },
     { value: 'Faulty',              label: 'Faulty' },
     { value: 'Inactive',            label: 'Inactive' },
@@ -85,10 +86,11 @@ const selectMenuStyles = {
 const EditPartnerCharger = () => {
     const userDetails           = JSON.parse(sessionStorage.getItem('userDetails'));
     const navigate              = useNavigate();
+    const { chargerId: routeChargerId } = useParams();
     const [errors, setErrors]   = useState({});
     const [loading, setLoading] = useState(false);
+    const [detailsLoading, setDetailsLoading] = useState(true);
 
-    const [chargerId, setChargerId]                   = useState('');
     const [chargerName, setChargerName]               = useState('');
     const [station, setStation]                       = useState(null);
     const [manufacturer, setManufacturer]             = useState('');
@@ -105,7 +107,63 @@ const EditPartnerCharger = () => {
     const [sim, setSim]                               = useState('');
     const [imei, setImei]                             = useState('');
     const [note, setNote]                             = useState('');
+    const [stationOptions, setStationOptions]         = useState([]);
+    const [chargerDetailsCache, setChargerDetailsCache] = useState(null);
 
+    const fetchStationOptions = () => {
+        postRequestWithToken('all-partner-station-list', {
+            userId : userDetails?.user_id,
+            email  : userDetails?.email,
+        }, (response) => {
+            const ok = response.code === 200 || Number(response.status) === 1;
+            if (ok) {
+                setStationOptions(mapStationListToOptions(response.data));
+            }
+        });
+    };
+
+    const hydrateForm = (data = {}) => {
+        const fields = readPartnerChargerDetails(data);
+        setChargerName(fields.chargerName);
+        setStation(stationSelectOption(fields.stationId, fields.stationName, stationOptions));
+        setManufacturer(fields.manufacturer);
+        setModel(fields.model);
+        setSerialNumber(fields.serialNumber);
+        setChargerType(findSelectOption(chargerTypeOptions, fields.chargerType));
+        setRatedPower(fields.ratedPower !== '' && fields.ratedPower != null ? String(fields.ratedPower) : '');
+        setConnectorType(findSelectOption(connectorTypeOptions, fields.connectorType));
+        setNoOfConnector(fields.noOfConnector !== '' && fields.noOfConnector != null ? String(fields.noOfConnector) : '');
+        setInputSupply(findSelectOption(inputSupplyOption, fields.inputSupply));
+        setOutputVoltage(fields.outputVoltage !== '' && fields.outputVoltage != null ? String(fields.outputVoltage) : '');
+        setInstallationDate(installationDateFromApi(fields.installationDate));
+        setAdminStatus(findSelectOption(initialAdministrativeStatusOption, fields.adminStatus));
+        setSim(fields.sim);
+        setImei(fields.imei);
+        setNote(fields.note);
+    };
+
+    const fetchChargerDetails = () => {
+        if (!routeChargerId) {
+            toast.error('Invalid charger.');
+            navigate('/partners/charger-list');
+            return;
+        }
+        setDetailsLoading(true);
+        postRequestWithToken('partner-charger-details', {
+            userId     : userDetails?.user_id,
+            email      : userDetails?.email,
+            charger_id : routeChargerId,
+        }, (response) => {
+            const ok = response.code === 200 || Number(response.status) === 1;
+            if (ok && response.data) {
+                setChargerDetailsCache(response.data);
+                hydrateForm(response.data);
+            } else {
+                toast(getBackendErrorMessage(response, 'Failed to load charger.'), { type: 'error' });
+            }
+            setDetailsLoading(false);
+        });
+    };
 
     const handleCancel = () => {
         navigate('/partners/charger-list')
@@ -114,7 +172,6 @@ const EditPartnerCharger = () => {
     const validateForm = () => {
         // const mobileNo = getLocalMobile();
         const fields = [
-            { name: "chargerId",           value: chargerId,            errorMessage: "charger ID is required." },
             { name: "chargerName",         value: chargerName,          errorMessage: "charger Name is required." },
             { name: "station",             value: station,              errorMessage: "Station is required." },
             { name: "manufacturer",        value: manufacturer,         errorMessage: "Manufacturer is required." },
@@ -157,48 +214,47 @@ const EditPartnerCharger = () => {
         e.preventDefault();
         setLoading(true);
         if (validateForm()) {
+            const obj = buildPartnerChargerPayload({
+                chargerId: routeChargerId,
+                chargerName,
+                station,
+                manufacturer,
+                model,
+                serialNumber,
+                chargerType,
+                ratedPower,
+                connectorType,
+                noOfConnector,
+                inputSupply,
+                outputVoltage,
+                installationDate,
+                adminStatus,
+                sim,
+                imei,
+                note,
+            }, userDetails);
 
-            const obj = {
-                userId                     : userDetails?.user_id,
-                email                      : userDetails?.email,
-
-                station_id                 : chargerId,
-                station_name               : chargerName,
-                station_type               : station,
-                operator_name              : manufacturer,
-                model                      : model,           
-                serial_number              : serialNumber,    
-                charger_type               : chargerType,     
-                rated_power                : ratedPower,      
-                connector_type             : connectorType,   
-                no_of_connector            : noOfConnector,   
-                input_supply               : inputSupply,     
-                outpur_voltage             : outputVoltage,   
-                installation_date          : installationDate,
-                admin_status               : adminStatus,     
-                sim_iccid                  : sim,
-                imei_number                : imei,
-                installation_note          : note,
-            }
-            postRequestWithToken('add-charger', obj, async (response) => {
-                if (response.status === 1) {
-                    toast(response.message , {type:'success'})
+            postRequestWithToken('partner-charger-edit', obj, async (response) => {
+                if (response.status === 1 || response.code === 200) {
+                    toast(getBackendErrorMessage(response, 'Charger updated successfully!'), { type: 'success' });
                     setTimeout(() => {
                         setLoading(false);
                         navigate('/partners/charger-list');
                     }, 1000);
                 } else {
-                    const applied = applyBackendFieldErrors(response, setErrors, {
-                        email: 'email',
-                        contact: 'mobileNo',
-                    });
+                    const applied = applyBackendFieldErrors(
+                        response,
+                        setErrors,
+                        {},
+                        {},
+                        [{ match: 'charger_id', key: 'chargerId', label: 'Charger ID' }]
+                    );
                     if (!applied) {
                         toast(getBackendErrorMessage(response), { type: 'error' });
                     }
-                    console.log('Error in add-charger API:', response);
                     setLoading(false);
                 }
-            } )
+            });
         } else {
             toast.error("Some fields are missing");
             setLoading(false);
@@ -230,9 +286,27 @@ const EditPartnerCharger = () => {
             navigate('/login');
             return;
         }
-        // fetchDetails();
+        fetchStationOptions();
     }, []);
-    
+
+    useEffect(() => {
+        if (!userDetails?.access_token) return;
+        fetchChargerDetails();
+    }, [routeChargerId]);
+
+    useEffect(() => {
+        if (!chargerDetailsCache) return;
+        hydrateForm(chargerDetailsCache);
+    }, [stationOptions]);
+
+    if (detailsLoading) {
+        return (
+            <div className={styles.addShopContainer}>
+                <Loader />
+            </div>
+        );
+    }
+
     return (
         <div className={styles.addShopContainer}>
             
@@ -243,19 +317,6 @@ const EditPartnerCharger = () => {
                     <div className={styles.formSectionBlock}>
                         <div className={styles.formSectionHeading}>General Information</div>
                         <div className={styles.row}>
-                            <div className={styles.addShopInputContainer}>
-                                <label className={styles.addShopLabel} htmlFor="chargerId">Charger ID</label>
-                                <input
-                                    type="text"
-                                    autoComplete="off"
-                                    id="chargerId"
-                                    placeholder="Charger ID"
-                                    className={styles.inputField}
-                                    value={chargerId}
-                                    onChange={(e) => setChargerId(e.target.value)}
-                                />
-                                {errors.chargerId && chargerId === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.chargerId}</p>}
-                            </div>
                             <div className={styles.addShopInputContainer}>
                                 <label className={styles.addShopLabel} htmlFor="chargerName">Charger Name</label>
                                 <input
@@ -269,13 +330,11 @@ const EditPartnerCharger = () => {
                                 />
                                 {errors.chargerName && chargerName === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.chargerName}</p>}
                             </div>
-                        </div>
-                        <div className={styles.row}>
                             <div className={styles.addShopInputContainer}>
                                 <label className={styles.addShopLabel}>Station</label>
                                 <Select
                                     className={styles.addShopSelect}
-                                    options={stationsOptions}
+                                    options={stationOptions}
                                     value={station}
                                     onChange={(selectedOption) => {
                                         setStation(selectedOption);
@@ -289,6 +348,8 @@ const EditPartnerCharger = () => {
                                 />
                                 {errors.station && !station && <p className={styles.error} style={{ color: 'red' }}>{errors.station}</p>}
                             </div>
+                        </div>
+                        <div className={styles.row}>
                             <div className={styles.addShopInputContainer}>
                                 <label className={styles.addShopLabel} htmlFor="manufacturer">Manufacturer</label>
                                 <input
@@ -302,8 +363,6 @@ const EditPartnerCharger = () => {
                                 />
                                 {errors.manufacturer && manufacturer === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.manufacturer}</p>}
                             </div>
-                        </div>
-                        <div className={styles.row}>
                             <div className={styles.addShopInputContainer}>
                                 <label className={styles.addShopLabel} htmlFor="model">Model</label>
                                 <input
@@ -316,7 +375,9 @@ const EditPartnerCharger = () => {
                                 />
                                 {errors.model && model === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.model}</p>}
                             </div>
-                            <div className={styles.addShopInputContainer}>
+                        </div>
+                        <div className={styles.row}>
+                            <div className={`${styles.addShopInputContainer} ${styles.fieldHalfWidth}`}>
                                 <label className={styles.addShopLabel} htmlFor="serialNumber">Serial Number</label>
                                 <input
                                     type="text"

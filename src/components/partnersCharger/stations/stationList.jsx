@@ -12,7 +12,23 @@ import EmptyList from '../../SharedComponent/EmptyList/EmptyList';
 //     { value: 'completed',   label: 'Completed'     },
 //     { value: 'error',       label: 'Error'    },
 // ];
-  
+
+const formatStationStatus = (status) => {
+    if (status === 1 || status === '1') return 'Active';
+    if (status === 0 || status === '0') return 'In-active';
+    return status ?? '—';
+};
+
+const normalizePartnerStationRow = (row = {}) => ({
+    ...row,
+    station_id   : row.station_id ?? row.id ?? '',
+    station_name : row.station_name ?? '',
+    city         : row.city ?? '',
+    contact_no   : row.contact_no ?? row.contact_number ?? '',
+    chargers     : row.chargers ?? row.number_of_chargers ?? '',
+    status       : row.admin_status ?? formatStationStatus(row.status),
+});
+
 const StationList = () => {
     const userDetails                     = JSON.parse(sessionStorage.getItem('userDetails')); 
     const navigate                        = useNavigate();
@@ -86,16 +102,19 @@ const StationList = () => {
             page_no : page,
             ...appliedFilters,
         }
-        postRequestWithToken('station-list', obj, async(response) => { //resident-list
-            if (response.code === 200) {
-                setStationList(response?.data)
-                setTotalPages(response?.total_page || 1); 
-                setTotalCount(response?.total || 0);
+        postRequestWithToken('partner-station-list', obj, async (response) => {
+            const isSuccess = response.code === 200 || Number(response.status) === 1;
+            if (isSuccess) {
+                const rows = Array.isArray(response?.data) ? response.data : [];
+                setStationList(rows.map(normalizePartnerStationRow));
+                setTotalPages(response?.total_page || response?.total_pages || 1);
+                setTotalCount(response?.total ?? response?.total_count ?? rows.length);
             } else {
-                console.log('error in station-list api', response);
+                console.log('error in partner-station-list api', response);
+                setStationList([]);
             }
             setLoading(false);
-        })
+        });
     }
 
     useEffect(() => {

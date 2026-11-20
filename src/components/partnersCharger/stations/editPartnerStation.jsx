@@ -1,21 +1,15 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Select from "react-select";
-// import { GoogleMap, useJsApiLoader, useLoadScript, Marker } from "@react-google-maps/api";
-import UploadIcon from '../../../assets/images/uploadicon.svg';
-import { AiOutlineClose } from 'react-icons/ai';
 import styles from './addPartnerStation.module.css';
-import { MultiSelect } from "react-multi-select-component";
-import { useNavigate } from 'react-router-dom';
-import { postRequestWithTokenAndFile, postRequestWithToken } from '../../../api/Requests';
+import { useNavigate, useParams } from 'react-router-dom';
+import Loader from '../../SharedComponent/Loader/Loader';
+import { postRequestWithToken } from '../../../api/Requests';
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import ReactInputMask from "react-input-mask"
-import Add from '../../../assets/images/Add.svg';
 import PhoneInput from 'react-phone-input-2';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import 'react-phone-input-2/lib/style.css';
 import { applyBackendFieldErrors, getBackendErrorMessage } from '../../../utils/mapBackendErrorsToFields';
-import { sortSelectOptionsOtherLast, sortVehicleBrandList } from '../../../utils/sortVehicleBrandOptions';
 
 const emiratesOptions = [
     { value: 'Abu Dhabi',      label: 'Abu Dhabi' },
@@ -42,48 +36,25 @@ const operatingHoursOptions = [
 ];
 
 const AdministrativeStatusOption = [
-    { value: 'Active',                label: 'Active' },
-    { value: 'In-active',             label: 'In-active' },
-    { value: 'Pending Approval',      label: 'Pending Approval' },
-    { value: 'Under Maintenance',     label: 'Under Maintenance' },
+    { value: 'Active',              label: 'Active' },
+    { value: 'Inactive',            label: 'Inactive' },
+    { value: 'Pending approval',    label: 'Pending approval' },
+    { value: 'Under maintenance',   label: 'Under maintenance' },
 ];
 
+const normalizeAdminStatusValue = (value) => {
+    const key = String(value ?? '').trim().toLowerCase();
+    const aliases = {
+        active: 'Active',
+        inactive: 'Inactive',
+        'in-active': 'Inactive',
+        'pending approval': 'Pending approval',
+        'under maintenance': 'Under maintenance',
+    };
+    return aliases[key] || String(value ?? '').trim();
+};
+
 const MIN_MOBILE_DIGITS = 9;
-const EMAIL_REGEX = /\S+@\S+\.\S+/;
-
-const isValidEmailFormat = (value) => EMAIL_REGEX.test(String(value || '').trim());
-
-// const createEmptyVehicle = () => ({
-//     vehicleType            : null,
-//     vehicleMake            : null,
-//     vehicleModel           : null,
-//     vehicleSpecification   : null,
-//     plateEmirates          : null,
-//     plateCode              : '',
-//     plateNumber            : '',
-//     vehicleMakeOption      : [],
-//     vehicleModelOption     : [],
-// });
-
-// const isVehicleRowPartial = (vehicle) => (
-//     vehicle.vehicleType
-//     || vehicle.vehicleMake
-//     || vehicle.vehicleModel
-//     || vehicle.vehicleSpecification
-//     || vehicle.plateEmirates
-//     || String(vehicle.plateCode || '').trim()
-//     || String(vehicle.plateNumber || '').trim()
-// );
-
-// const isVehicleRowComplete = (vehicle) => (
-//     vehicle.vehicleType
-//     && vehicle.vehicleMake
-//     && vehicle.vehicleModel
-//     && vehicle.vehicleSpecification
-//     && vehicle.plateEmirates
-//     && String(vehicle.plateCode || '').trim()
-//     && String(vehicle.plateNumber || '').trim()
-// );
 
 const selectMenuStyles = {
     menuPortal: (base) => ({ ...base, zIndex: 9999 }),
@@ -110,13 +81,22 @@ const selectMenuStyles = {
     }),
 };
 
+const findSelectOption = (options, value) => {
+    const v = String(value ?? '').trim();
+    if (!v) return null;
+    return options.find(
+        (o) => o.value.toLowerCase() === v.toLowerCase() || o.label.toLowerCase() === v.toLowerCase()
+    ) || { value: v, label: v };
+};
+
 const EditPartnerStation = () => {
     const userDetails           = JSON.parse(sessionStorage.getItem('userDetails'));
     const navigate              = useNavigate();
+    const { stationId: routeStationId } = useParams();
     const [errors, setErrors]   = useState({});
     const [loading, setLoading] = useState(false);
+    const [detailsLoading, setDetailsLoading] = useState(true);
 
-    const [stationId, setStationId]                         = useState('');
     const [stationName, setStationName]                     = useState('');
     const [stationType, setStationType]                     = useState(null);
     const [operatorName, setOperatorName]                   = useState('');
@@ -131,112 +111,13 @@ const EditPartnerStation = () => {
     const [phoneCountry, setPhoneCountry]                   = useState({ dialCode: '971', countryCode: 'ae' });
     const [email, setEmail]                                 = useState("");
     const [password, setPassword]                           = useState("");
-    const [confirmPassword, setConfirmPassword]             = useState(null);
+    const [confirmPassword, setConfirmPassword]             = useState('');
     const [showPassword, setShowPassword]                   = useState(false);
     const [showConfirmPassword, setShowConfirmPassword]     = useState(false);
     const [operatingHour, setOperatingHour]                 = useState(null);
     const [adminStatus, setAdminStatus]                     = useState(null);
     const [chargers, setChargers]                           = useState("");
     const [description, setDescription]                     = useState('')
-
-    // const [phoneValue, setPhoneValue]               = useState('');
-    // const [phoneCountry, setPhoneCountry]           = useState({ dialCode: '971', countryCode: 'ae' });
-
-    
-
-    // const [vehicles, setVehicles]                   = useState([createEmptyVehicle()]);
-    // const [plateEmiratesOptions, setPlateEmiratesOptions] = useState([]);
-    // SINGLE-SELECT COMMUNITY (old):
-    // const [community, setCommunity]                 = useState("");
-    // MULTI-SELECT COMMUNITY (new): selected options as [{ label, value }, ...]
-    // const [community, setCommunity]                 = useState([]);
-    
-    // const [sessionAllocation, setSessionAllocation] = useState('');
-    // const [allocatedTime, setAllocatedTime]         = useState('');
-    // const [kwhAllocated, setkwhAllocated]           = useState('');
-    // const [perKwhCharge, setPerKwhCharge]           = useState('');
-    // const [extraCharge, setExtraCharge]             = useState('');
-
-    // const serviceDropdownRef                      = useRef(null);
-    // const formValuesRef                           = useRef({});
-    // const lastLookupKeyRef                        = useRef('');
-    // const lookupTimerRef                          = useRef(null);
-    // const lookupSeqRef                            = useRef(0);
-
-    
-    
-    // SINGLE-SELECT COMMUNITY (old):
-    // const [communityOptions, setCommunityOptions] = useState('');
-    // MULTI-SELECT COMMUNITY (new): dropdown options from all-community-list API
-    // const [communityOptions, setCommunityOptions] = useState([]);
-
-    // const updateVehicleAt = (index, updates) => {
-    //     setVehicles((prev) => {
-    //         const next = [...prev];
-    //         next[index] = { ...next[index], ...updates };
-    //         return next;
-    //     });
-    // };
-
-    // const clearVehicleFieldErrors = (index, fields = []) => {
-    //     setErrors((prev) => {
-    //         const next = { ...prev };
-    //         fields.forEach((field) => {
-    //             delete next[`${field}_${index}`];
-    //         });
-    //         delete next.vehicles;
-    //         return next;
-    //     });
-    // };
-
-    // const handleVehicleMakeChange = (index, selectedOption) => {
-    //     updateVehicleAt(index, {
-    //         vehicleMake        : selectedOption,
-    //         vehicleModel       : null,
-    //         vehicleModelOption : sortSelectOptionsOtherLast(selectedOption?.models || []),
-    //     });
-    //     clearVehicleFieldErrors(index, ['vehicleMake', 'vehicleModel']);
-    // };
-
-    // const handleVehicleTypeChange = (index, selectedOption) => {
-    //     updateVehicleAt(index, {
-    //         vehicleType        : selectedOption,
-    //         vehicleMake        : null,
-    //         vehicleModel       : null,
-    //         vehicleMakeOption  : [],
-    //         vehicleModelOption : [],
-    //     });
-    //     clearVehicleFieldErrors(index, ['vehicleType', 'vehicleMake', 'vehicleModel']);
-    //     if (selectedOption?.value) {
-    //         fetchVehicleList(selectedOption.value, index);
-    //     }
-    // };
-
-    // const addVehicle = () => {
-    //     setVehicles((prev) => [...prev, createEmptyVehicle()]);
-    // };
-
-    // const handleRemoveVehicle = (index) => {
-    //     setVehicles((prev) => prev.filter((_, i) => i !== index));
-    //     setErrors((prev) => {
-    //         const next = { ...prev };
-    //         Object.keys(next).forEach((key) => {
-    //             if (key.endsWith(`_${index}`)) {
-    //                 delete next[key];
-    //             }
-    //         });
-    //         delete next.vehicles;
-    //         return next;
-    //     });
-    // };
-
-    // useEffect(() => {
-    //     formValuesRef.current = { stationId, email, emirates, phoneValue, phoneCountry };
-    // }, [stationId, email, emirates, phoneValue, phoneCountry]);
-
-    // useEffect(() => () => {
-    //     if (lookupTimerRef.current) clearTimeout(lookupTimerRef.current);
-    // }, []);
 
     const getLocalMobile = (phone = contactNumber, country = phoneCountry) => {
         if (!phone || !country?.dialCode) return '';
@@ -245,139 +126,17 @@ const EditPartnerStation = () => {
             : phone;
     };
 
-    // const applyRiderLookupData = (rider) => {
-    //     if (!rider) return;
-    //     const current = formValuesRef.current;
-    //     const cleared = {};
-
-    //     const name = rider.resident_name || '';
-    //     if (!String(current.stationId || '').trim() && name) {
-    //         setStationId(name);
-    //         cleared.stationId = '';
-    //     }
-
-    //     const emailValue = rider.resident_email || '';
-    //     if (!String(current.email || '').trim() && emailValue) {
-    //         setEmail(emailValue);
-    //         cleared.email = '';
-    //     }
-
-    //     const emirateValue = String(rider.emirates || '').trim();
-    //     if (!current.emirates && emirateValue) {
-    //         const match = emiratesOptions.find((option) => (
-    //             option.value.toLowerCase() === emirateValue.toLowerCase()
-    //             || option.label.toLowerCase() === emirateValue.toLowerCase()
-    //         ));
-    //         if (match) {
-    //             setEmirates(match);
-    //             cleared.emirates = '';
-    //         }
-    //     }
-
-    //     const localMobile = getLocalMobile(current.phoneValue, current.phoneCountry);
-    //     if (!localMobile && rider.mobile_number) {
-    //         const riderDial = String(rider.country_code || '+971').replace(/\D/g, '') || '971';
-    //         setPhoneValue(`${riderDial}${rider.mobile_number}`);
-    //         setPhoneCountry((prev) => ({ ...prev, dialCode: riderDial }));
-    //         cleared.mobileNo = '';
-    //     }
-
-    //     if (Object.keys(cleared).length > 0) {
-    //         setErrors((prev) => ({ ...prev, ...cleared }));
-    //     }
-    // };
-
-    // const lookupResident = ({ mobile, residentEmail }) => {
-    //     const mobileNo = String(mobile || '').trim();
-    //     const emailId  = String(residentEmail || '').trim();
-    //     const hasMobile = mobileNo.length >= MIN_MOBILE_DIGITS;
-    //     const hasEmail  = isValidEmailFormat(emailId);
-    //     if (!hasMobile && !hasEmail) return;
-
-    //     const key = `${hasMobile ? mobileNo : ''}|${hasEmail ? emailId.toLowerCase() : ''}`;
-    //     if (key === lastLookupKeyRef.current) return;
-    //     lastLookupKeyRef.current = key;
-
-    //     const seq = ++lookupSeqRef.current;
-    //     const payload = {
-    //         userId : userDetails?.user_id,
-    //         email  : userDetails?.email,
-    //     };
-    //     if (hasMobile) payload.mobile_number = mobileNo;
-    //     if (hasEmail) payload.resident_email = emailId;
-
-    //     postRequestWithToken('resident-rider-lookup', payload, (response) => {
-    //         if (seq !== lookupSeqRef.current) return;
-    //         if (response.code === 200 && Number(response.found) === 1 && response.data) {
-    //             applyRiderLookupData(response.data);
-    //         }
-    //     });
-    // };
-
-    // const scheduleResidentLookup = (payload) => {
-    //     if (lookupTimerRef.current) clearTimeout(lookupTimerRef.current);
-    //     lookupTimerRef.current = setTimeout(() => lookupResident(payload), 400);
-    // };
-
     const handlePhoneChange = (phone, country) => {
         setContactNumber(phone);
         setPhoneCountry(country);
         setErrors((prev) => ({ ...prev, contactNumber: '' }));
-
-        // const localMobile = getLocalMobile(phone, country);
-        // if (localMobile.length >= MIN_MOBILE_DIGITS || isValidEmailFormat(email)) {
-        //     scheduleResidentLookup({ mobile: localMobile, email: email });
-        // } else {
-        //     lastLookupKeyRef.current = '';
-        //     lookupSeqRef.current += 1;
-        // }
     };
 
-    // const handlePhoneBlur = () => {
-    //     lookupResident({ mobile: getLocalMobile(), residentEmail: email });
-    // };
-
-    // const handleEmailChange = (e) => {
-    //     const value = e.target.value.slice(0, 50);
-    //     setEmail(value);
-    //     setErrors((prev) => ({ ...prev, email: '' }));
-
-    //     if (isValidEmailFormat(value) || getLocalMobile().length >= MIN_MOBILE_DIGITS) {
-    //         scheduleResidentLookup({ mobile: getLocalMobile(), residentEmail: value });
-    //     } else {
-    //         lastLookupKeyRef.current = '';
-    //     }
-    // };
-
-    // const handleEmailBlur = () => {
-    //     lookupResident({ mobile: getLocalMobile(), residentEmail: email });
-    // };
-
-    // const handleDecimalInput = (value, setter) => {
-    //     const sanitized = value
-    //         .replace(/[^0-9.]/g, '')
-    //         .replace(/(\..*)\./g, '$1');
-    //     setter(sanitized);
-    // };
-
-    // SINGLE-SELECT COMMUNITY (old):
-    // const handleCommunity = (selectedOption) => {
-    //     setCommunity(selectedOption);
-    // }
-    // MULTI-SELECT COMMUNITY (new): MultiSelect passes the full selected array
-    // const handleCommunity = (selectedOptions) => {
-    //     setCommunity(selectedOptions);
-    //     if (selectedOptions.length > 0) {
-    //         setErrors((prev) => ({ ...prev, community: '' }));
-    //     }
-    // }
     const handleCancel = () => {
         navigate('/partners/stations-list')
     }
     const validateForm = () => {
-        // const mobileNo = getLocalMobile();
         const fields = [
-            { name: "stationId",           value: stationId,            errorMessage: "Station ID is required." },
             { name: "stationName",         value: stationName,          errorMessage: "Station Name is required." },
             { name: "stationType",         value: stationType,          errorMessage: "Station Type is required." },
             { name: "operatorName",        value: operatorName,         errorMessage: "Operator Name is required." },
@@ -388,86 +147,47 @@ const EditPartnerStation = () => {
             { name: "latitude",            value: latitude,             errorMessage: "Latitude is required." },
             { name: "longitude",           value: longitude,            errorMessage: "Longitude is required." },
             { name: "contactPerson",       value: contactPerson,        errorMessage: "Contact Person is required." },
-            { name: "contactNumber",       value: contactNumber,        errorMessage: "Contact Number is required.", isMobile: true  },
+            { name: "contactNumber",       value: contactNumber,        errorMessage: "Please enter a valid contact number.", isMobile: true, optional: true },
             { name: "email",               value: email,                errorMessage: "Please enter a valid Email ID.", isEmail: true },
-            { name: "password",            value: password,             errorMessage: "Password is required." },
-            { name: "confirmPassword",     value: confirmPassword,      errorMessage: "Passwords do not match.", isPasswordMatch: true },
             { name: "operatingHour",       value: operatingHour,        errorMessage: "Operating Hour is required." },
             { name: "adminStatus",         value: adminStatus,          errorMessage: "Administrative Status is required." },
             { name: "chargers",            value: chargers,             errorMessage: "No. of Chargers is required." },
             { name: "description",         value: description,          errorMessage: "Station Description is required." },
-
-            // { name: "community",           value: community,            errorMessage: "At least one community is required.", isArray: true },
-            // { name: "sessionAllocation",   value: sessionAllocation,    errorMessage: "Session Allocation is required." },
-            // { name: "allocatedTime",       value: allocatedTime,        errorMessage: "Allocated Time is required." },
-            // { name: "kwhAllocated",        value: kwhAllocated,         errorMessage: "kWh Allocated is required." },
-            // { name: "perKwhCharge",        value: perKwhCharge,         errorMessage: "kWh Charge is required." },
-            // { name: "extraCharge",         value: extraCharge,          errorMessage: "Extra Charge is required." },
-            // { name: "stationName",         value: stationName,          errorMessage: "Please enter a valid Mobile No.", isMobile: true },
         ];
 
-        const newErrors = fields.reduce((errors, { name, value, errorMessage, isEmail, isMobile, isPasswordMatch, isArray }) => {
-            // if ((isArray && (!value || value.length === 0)) || (!isArray && !value)) {
-            //     errors[name] = errorMessage;
-            // } else if (isEmail && !/\S+@\S+\.\S+/.test(value)) {
-            //     errors[name] = errorMessage;
-            // } else if (isMobile && (isNaN(value) || value.length < 9)) {
-            //     errors[name] = errorMessage;
-            // }
-            // return errors;
+        if (password || confirmPassword) {
+            if (!password) {
+                fields.push({ name: "password", value: password, errorMessage: "Password is required." });
+            }
+            if (!confirmPassword) {
+                fields.push({ name: "confirmPassword", value: confirmPassword, errorMessage: "Confirm Password is required." });
+            }
+            if (password && confirmPassword && password !== confirmPassword) {
+                fields.push({ name: "confirmPassword", value: confirmPassword, errorMessage: "Passwords do not match.", isPasswordMatch: true });
+            }
+        }
+
+        const newErrors = fields.reduce((errors, { name, value, errorMessage, isEmail, isMobile, isPasswordMatch, optional }) => {
+            if (isMobile && optional) {
+                const local = getLocalMobile(value);
+                if (local && local.length < MIN_MOBILE_DIGITS) {
+                    errors[name] = errorMessage;
+                }
+                return errors;
+            }
             if (!value) {
                 errors[name] = errorMessage;
             } else if (isEmail && !/\S+@\S+\.\S+/.test(value)) {
                 errors[name] = errorMessage;
             } else if (isMobile && (isNaN(value) || value.length < 9)) {
                 errors[name] = errorMessage;
-                
             } else if (isPasswordMatch && value !== password) {
                 errors[name] = errorMessage;
-               
             } else if (name === 'password' && value.length < 6) {
                 errors[name] = "Password should be at least 6 characters long.";
-                
             }
             return errors;
         }, {});
-
-        // let hasCompleteVehicle = false;
-        // vehicles.forEach((vehicle, index) => {
-        //     const isFirstRow = index === 0;
-        //     const hasPartial = isVehicleRowPartial(vehicle);
-
-        //     if (isFirstRow || hasPartial) {
-        //         if (!vehicle.vehicleType) {
-        //             newErrors[`vehicleType_${index}`] = 'Vehicle Type is required.';
-        //         }
-        //         if (!vehicle.vehicleMake) {
-        //             newErrors[`vehicleMake_${index}`] = 'Vehicle Brand is required.';
-        //         }
-        //         if (!vehicle.vehicleModel) {
-        //             newErrors[`vehicleModel_${index}`] = 'Vehicle Model is required.';
-        //         }
-        //         if (!vehicle.vehicleSpecification) {
-        //             newErrors[`vehicleSpecification_${index}`] = 'Vehicle Specification is required.';
-        //         }
-        //         if (!vehicle.plateEmirates) {
-        //             newErrors[`plateEmirates_${index}`] = 'Emirates is required.';
-        //         }
-        //         if (!String(vehicle.plateCode || '').trim()) {
-        //             newErrors[`plateCode_${index}`] = 'Plate Code is required.';
-        //         }
-        //         if (!String(vehicle.plateNumber || '').trim()) {
-        //             newErrors[`plateNumber_${index}`] = 'Plate Number is required.';
-        //         }
-        //         if (isVehicleRowComplete(vehicle)) {
-        //             hasCompleteVehicle = true;
-        //         }
-        //     }
-        // });
-
-        // if (!hasCompleteVehicle) {
-        //     newErrors.vehicles = 'At least one complete vehicle is required.';
-        // }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -477,82 +197,59 @@ const EditPartnerStation = () => {
         e.preventDefault();
         setLoading(true);
         if (validateForm()) {
-            // const completeVehicles = vehicles.filter(isVehicleRowComplete);
-            // const vehiclePayload = completeVehicles.map((vehicle) => ({
-            //     vehicle_type          : vehicle.vehicleType?.value,
-            //     vehicle_make          : vehicle.vehicleMake?.value,
-            //     vehicle_model         : vehicle.vehicleModel?.value,
-            //     vehicle_specification : vehicle.vehicleSpecification?.value,
-            //     vehicle_emirates      : vehicle.plateEmirates?.value,
-            //     vehicle_code          : String(vehicle.plateCode || '').trim(),
-            //     vehicle_number        : String(vehicle.plateNumber || '').trim(),
-            // }));
-            // const primaryVehicle = completeVehicles[0] || {};
 
+            const localContact = getLocalMobile().trim();
             const obj = {
-                userId                     : userDetails?.user_id,
-                email                      : userDetails?.email,
+                userId              : userDetails?.user_id,
+                email               : userDetails?.email,
 
-                station_id                 : stationId,
-                station_name               : stationName,
-                station_type               : stationType,
-                operator_name              : operatorName,
-                address                    : address,
-                city                       : city,
-                emirates                   : emirates,
-                country_code               : phoneCountry?.dialCode ? `+${phoneCountry.dialCode}` : '+971',
-                lat                        : latitude,
-                long                       : longitude,
-                contact_person             : contactPerson,
-                contact_number             : getLocalMobile(),
-                contact_email              : email,
-                password                   : confirmPassword,
-                operating_hour             : operatingHour,
-                administrative_status      : adminStatus,
-                no_of_chargers             : chargers,
-                description                : description,
-                
-
-                // resident_email             : email,
-                // emirates                   : emirates?.value,
-                // vehicle_type               : primaryVehicle.vehicleType?.value,
-                // vehicle_make               : primaryVehicle.vehicleMake?.value,
-                // vehicle_model              : primaryVehicle.vehicleModel?.value,
-                // vehicle_specification      : primaryVehicle.vehicleSpecification?.value,
-                // vehicle_emirates           : primaryVehicle.plateEmirates?.value,
-                // vehicle_code               : String(primaryVehicle.plateCode || '').trim(),
-                // vehicle_number             : String(primaryVehicle.plateNumber || '').trim(),
-                // vehicles                   : JSON.stringify(vehiclePayload),
-                // SINGLE-SELECT COMMUNITY (old):
-                // community_id               : community.value,
-                // MULTI-SELECT COMMUNITY (new): send array of IDs to resident-add API
-                // community_ids              : community.map((item) => item.value),
-                // address                    : address,
-                // monthly_session_allocation : sessionAllocation,
-                // alloted_time               : allocatedTime, 
-                // kwh_allocated              : kwhAllocated, 
-                // per_kwh_charge             : perKwhCharge, 
-                // extra_charge               : extraCharge
-            }
-            postRequestWithToken('add-station', obj, async (response) => {
-                if (response.status === 1) {
-                    toast(response.message , {type:'success'})
+                station_id          : String(routeStationId).trim(),
+                station_name        : String(stationName).trim(),
+                station_type        : stationType?.value || '',
+                operator_name       : String(operatorName).trim(),
+                address             : String(address).trim(),
+                city                : String(city).trim(),
+                state_emirate       : emirates?.value || '',
+                country             : String(country).trim(),
+                latitude            : String(latitude).trim() || null,
+                longitude           : String(longitude).trim() || null,
+                contact_person      : String(contactPerson).trim() || null,
+                contact_number      : localContact || null,
+                master_email        : String(email).trim(),
+                operating_hours     : operatingHour?.value || '',
+                admin_status        : adminStatus?.value || 'Active',
+                description         : String(description).trim(),
+                number_of_chargers  : chargers === '' ? null : Number(chargers),
+                master_password     : String(password).trim(),
+                confirm_password    : confirmPassword,
+            };
+            postRequestWithToken('partner-station-edit', obj, async (response) => {
+                if (response.status === 1 || response.code === 200) {
+                    toast(getBackendErrorMessage(response, 'Station updated successfully!'), { type: 'success' });
                     setTimeout(() => {
                         setLoading(false);
                         navigate('/partners/stations-list');
                     }, 1000);
                 } else {
-                    const applied = applyBackendFieldErrors(response, setErrors, {
-                        email: 'email',
-                        contact: 'mobileNo',
-                    });
+                    const applied = applyBackendFieldErrors(
+                        response,
+                        setErrors,
+                        { email: 'email', contact: 'contactNumber' },
+                        {
+                            email: 'Station master email already exists',
+                            contact: 'Contact number already exist',
+                        },
+                        [
+                            { match: /confirm password/i, key: 'confirmPassword' },
+                            { match: 'confirm_password', key: 'confirmPassword', label: 'Confirm Password' },
+                        ]
+                    );
                     if (!applied) {
                         toast(getBackendErrorMessage(response), { type: 'error' });
                     }
-                    console.log('Error in add-station API:', response);
                     setLoading(false);
                 }
-            } )
+            });
         } else {
             toast.error("Some fields are missing");
             setLoading(false);
@@ -573,69 +270,81 @@ const EditPartnerStation = () => {
         });
     };
 
-    // const fetchDetails = () => {
-    //     const obj = {
-    //         userId: userDetails?.user_id,
-    //         email: userDetails?.email,
-    //     };
-    //     postRequestWithToken('all-community-list', obj, (response) => {
-    //         if (response.code === 200) {
-    //             // SINGLE-SELECT COMMUNITY (old):
-    //             // setCommunityOptions(response.data)
-    //             // MULTI-SELECT COMMUNITY (new):
-    //             // setCommunityOptions(response.data || []);
-    //         } else {
-    //             // SINGLE-SELECT COMMUNITY (old):
-    //             // console.log('error in rider-details API', response);
-    //             // MULTI-SELECT COMMUNITY (new):
-    //             console.log('error in all-community-list API', response);
-    //         }
-    //     });
-    // };
+    const hydrateFormFromDetails = (data = {}) => {
+        setStationName(data.station_name ?? '');
+        setStationType(findSelectOption(stationTypeOptions, data.station_type));
+        setOperatorName(data.operator_name ?? '');
+        setAddress(data.address ?? '');
+        setCity(data.city ?? '');
+        setEmirates(findSelectOption(emiratesOptions, data.state_emirate ?? data.emirates));
+        setCountry(data.country ?? '');
+        setLatitude(data.latitude != null ? String(data.latitude) : '');
+        setLongitude(data.longitude != null ? String(data.longitude) : '');
+        setContactPerson(data.contact_person ?? '');
 
-    // const fetchVehicleList = (type, index) => {
-    //     const apiEndpoint = type === 'Bike' ? 'vehicle-bike-brand-list' : 'vehicle-brand-list';
-    //     const obj = {
-    //         userId: userDetails?.user_id,
-    //         email: userDetails?.email,
-    //     };
-    //     postRequestWithToken(apiEndpoint, obj, (response) => {
-    //         if (response.code === 200) {
-    //             updateVehicleAt(index, { vehicleMakeOption: sortVehicleBrandList(response?.data || []) });
-    //         } else {
-    //             console.log(`error in ${apiEndpoint}`, response);
-    //         }
-    //     });
-    // };
+        const dialCode = String(data.country_code || '+971').replace(/\D/g, '') || '971';
+        const rawContact = String(data.contact_number || '').replace(/\D/g, '');
+        if (rawContact) {
+            setContactNumber(rawContact.startsWith(dialCode) ? rawContact : `${dialCode}${rawContact}`);
+        } else {
+            setContactNumber('');
+        }
+        setPhoneCountry((prev) => ({ ...prev, dialCode }));
 
-    // const fetchLocationList = () => {
-    //     const obj = {
-    //         userId: userDetails?.user_id,
-    //         email: userDetails?.email,
-    //     };
-    //     postRequestWithToken('location-list', obj, (response) => {
-    //         if (response.code === 200) {
-    //             const options = (response?.data || []).map((item) => ({
-    //                 ...item,
-    //                 value: item.code || item.value,
-    //                 label: item.code || item.label,
-    //             }));
-    //             setPlateEmiratesOptions(options);
-    //         } else {
-    //             console.log('error in location-list API', response);
-    //         }
-    //     });
-    // };
+        setEmail(data.master_email ?? data.contact_email ?? '');
+        setOperatingHour(findSelectOption(operatingHoursOptions, data.operating_hours ?? data.operating_hour));
+        setAdminStatus(
+            findSelectOption(
+                AdministrativeStatusOption,
+                normalizeAdminStatusValue(data.admin_status ?? data.administrative_status)
+            )
+        );
 
-    // useEffect(() => {
-    //     if (!userDetails || !userDetails.access_token) {
-    //         navigate('/login');
-    //         return;
-    //     }
-    //     fetchDetails();
-    //     fetchLocationList();
-    // }, []);
+        const chargerCount = data.number_of_chargers ?? data.chargers ?? data.no_of_chargers;
+        setChargers(chargerCount != null && chargerCount !== '' ? String(chargerCount) : '');
+        setDescription(data.description ?? '');
+    };
+
+    const fetchStationDetails = () => {
+        if (!routeStationId) {
+            toast.error('Invalid station.');
+            navigate('/partners/stations-list');
+            return;
+        }
+        setDetailsLoading(true);
+        const obj = {
+            userId     : userDetails?.user_id,
+            email      : userDetails?.email,
+            station_id : routeStationId,
+        };
+        postRequestWithToken('partner-station-details', obj, (response) => {
+            const isSuccess = response.code === 200 || Number(response.status) === 1;
+            if (isSuccess && response.data) {
+                hydrateFormFromDetails(response.data);
+            } else {
+                toast(getBackendErrorMessage(response, 'Failed to load station.'), { type: 'error' });
+                console.log('error in partner-station-details API', response);
+            }
+            setDetailsLoading(false);
+        });
+    };
+
+    useEffect(() => {
+        if (!userDetails || !userDetails.access_token) {
+            navigate('/login');
+            return;
+        }
+        fetchStationDetails();
+    }, [routeStationId]);
     
+    if (detailsLoading) {
+        return (
+            <div className={styles.addShopContainer}>
+                <Loader />
+            </div>
+        );
+    }
+
     return (
         <div className={styles.addShopContainer}>
             
@@ -646,19 +355,6 @@ const EditPartnerStation = () => {
                     <div className={styles.formSectionBlock}>
                         <div className={styles.formSectionHeading}>Station Information</div>
                         <div className={styles.row}>
-                            <div className={styles.addShopInputContainer}>
-                                <label className={styles.addShopLabel} htmlFor="stationId">Station ID</label>
-                                <input
-                                    type="text"
-                                    autoComplete="off"
-                                    id="stationId"
-                                    placeholder="Station ID"
-                                    className={styles.inputField}
-                                    value={stationId}
-                                    onChange={(e) => setStationId(e.target.value)}
-                                />
-                                {errors.stationId && stationId === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.stationId}</p>}
-                            </div>
                             <div className={styles.addShopInputContainer}>
                                 <label className={styles.addShopLabel} htmlFor="stationName">Station Name</label>
                                 <input
@@ -672,8 +368,6 @@ const EditPartnerStation = () => {
                                 />
                                 {errors.stationName && stationName === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.stationName}</p>}
                             </div>
-                        </div>
-                        <div className={styles.row}>
                             <div className={styles.addShopInputContainer}>
                                 <label className={styles.addShopLabel}>Station Type</label>
                                 <Select
@@ -692,7 +386,9 @@ const EditPartnerStation = () => {
                                 />
                                 {errors.stationType && !stationType && <p className={styles.error} style={{ color: 'red' }}>{errors.stationType}</p>}
                             </div>
-                            <div className={styles.addShopInputContainer}>
+                        </div>
+                        <div className={styles.row}>
+                            <div className={`${styles.addShopInputContainer} ${styles.fieldHalfWidth}`}>
                                 <label className={styles.addShopLabel} htmlFor="operatorName">Operator Name</label>
                                 <input
                                     type="text"
@@ -780,13 +476,7 @@ const EditPartnerStation = () => {
                                     placeholder="Latitude"
                                     className={styles.inputField}
                                     value={latitude}
-                                    // onChange={(e) => setLatitude(e.target.value)}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        if (/^-?\d*\.?\d{0,8}$/.test(value)) {
-                                            setLatitude(value);
-                                        }
-                                    }}
+                                    onChange={(e) => setLatitude(e.target.value.slice(0, 80))}
                                     
                                 />
                                 {errors.latitude && latitude === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.latitude}</p>}
@@ -799,13 +489,7 @@ const EditPartnerStation = () => {
                                     placeholder="Longitude"
                                     className={styles.inputField}
                                     value={longitude}
-                                    // onChange={(e) => setLongitude(e.target.value)}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        if (/^-?\d*\.?\d{0,8}$/.test(value)) {
-                                            setLongitude(value);
-                                        }
-                                    }}
+                                    onChange={(e) => setLongitude(e.target.value.slice(0, 80))}
                                 />
                                 {errors.longitude && longitude === '' &&  <p className={styles.error} style={{ color: 'red' }}>{errors.longitude}</p>}
                             </div>
@@ -829,12 +513,11 @@ const EditPartnerStation = () => {
                                 {errors.contactPerson && contactPerson === '' && <p className={styles.error} style={{ color: 'red' }}>{errors.contactPerson}</p>}
                             </div>
                             <div className={styles.addShopInputContainer}>
-                                <label className={styles.addShopLabel} htmlFor="contactNumber">Contact Number</label>
+                                <label className={styles.addShopLabel} htmlFor="contactNumber">Contact Number (optional)</label>
                                 <PhoneInput
                                     country="ae"
                                     value={contactNumber}
-                                    // onChange={handlePhoneChange}
-                                    // onBlur={handlePhoneBlur}
+                                    onChange={handlePhoneChange}
                                     enableSearch={true}
                                     countryCodeEditable={false}
                                     containerClass={styles.phoneInputContainer}
@@ -869,7 +552,7 @@ const EditPartnerStation = () => {
                                         className={styles.inputField}
                                         type={showPassword ? "text" : "password"}
                                         autoComplete='off'
-                                        placeholder="Password"
+                                        placeholder="Leave blank to keep current password"
                                         value={password}
                                         maxlength="20"
                                         onChange={(e) => setPassword(e.target.value)}
@@ -893,7 +576,7 @@ const EditPartnerStation = () => {
                                         className={styles.inputField}
                                         type={showConfirmPassword ? "text" : "password"}
                                         autoComplete='off'
-                                        placeholder="Confirm Password"
+                                        placeholder="Confirm new password"
                                         value={confirmPassword}
                                         maxlength="20"
                                         onChange={(e) => setConfirmPassword(e.target.value)}
