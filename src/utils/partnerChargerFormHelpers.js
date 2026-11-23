@@ -99,6 +99,80 @@ export const stationSelectOption = (stationId, stationName, options = []) => {
     };
 };
 
+const parseDurationLabelToSeconds = (duration) => {
+    if (duration == null || duration === '') return null;
+    if (typeof duration === 'number' && Number.isFinite(duration)) {
+        return duration;
+    }
+    const s = String(duration).trim().toLowerCase();
+    let total = 0;
+    const hours = s.match(/(\d+)\s*h/);
+    const minutes = s.match(/(\d+)\s*m/);
+    const seconds = s.match(/(\d+)\s*s/);
+    if (hours) total += Number(hours[1]) * 3600;
+    if (minutes) total += Number(minutes[1]) * 60;
+    if (seconds) total += Number(seconds[1]);
+    return total > 0 ? total : null;
+};
+
+const formatSecondsAsDurationLabel = (seconds) => {
+    if (seconds == null || !Number.isFinite(seconds) || seconds <= 0) {
+        return '—';
+    }
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if (h > 0) {
+        return `${h}h ${m}m`;
+    }
+    if (m > 0) {
+        return `${m}m`;
+    }
+    return `${Math.round(seconds)}s`;
+};
+
+/** Summary cards on Live Sessions list (API summary fields preferred). */
+export const buildPartnerSessionSummaryCards = (response = {}, rows = []) => {
+    const summary = response.summary ?? response.session_summary ?? {};
+
+    let activeSessions =
+        summary.active_sessions ??
+        response.active_sessions ??
+        response.active_session_count;
+    let avgDuration =
+        summary.avg_duration ??
+        response.avg_duration ??
+        response.average_duration;
+
+    if (activeSessions == null) {
+        activeSessions = rows.filter((row) => {
+            const status = String(row.status ?? '').toLowerCase();
+            return status === 'charging' || status === 'active';
+        }).length;
+    }
+
+    if (avgDuration == null || avgDuration === '') {
+        const durationSeconds = rows
+            .map((row) => {
+                if (row.duration_seconds != null && row.duration_seconds !== '') {
+                    const n = Number(row.duration_seconds);
+                    return Number.isFinite(n) ? n : null;
+                }
+                return parseDurationLabelToSeconds(row.duration);
+            })
+            .filter((n) => n != null && n > 0);
+        if (durationSeconds.length) {
+            const avg =
+                durationSeconds.reduce((acc, n) => acc + n, 0) / durationSeconds.length;
+            avgDuration = formatSecondsAsDurationLabel(avg);
+        }
+    }
+
+    return [
+        { module: 'Active Sessions', count: activeSessions ?? 0 },
+        { module: 'Avg Duration', count: avgDuration ?? '—' },
+    ];
+};
+
 export const normalizePartnerSessionListRow = (row = {}) => ({
     ...row,
     session_id         : row.session_id ?? '',

@@ -6,8 +6,10 @@ import { postRequestWithToken } from '../../../api/Requests';
 import { useNavigate } from 'react-router-dom';
 import Loader from '../../SharedComponent/Loader/Loader';
 import EmptyList from '../../SharedComponent/EmptyList/EmptyList';
+import SessionsDashboardCards from './DashboardCard/DashboardCard';
 import {
     buildPartnerSessionListRequest,
+    buildPartnerSessionSummaryCards,
     mapStationListToOptions,
     normalizePartnerSessionListRow,
     PARTNER_SESSION_STATUS_OPTIONS,
@@ -19,6 +21,7 @@ const SessionsList = () => {
     const userDetails = JSON.parse(sessionStorage.getItem('userDetails'));
     const navigate = useNavigate();
     const [sessionList, setSessionList] = useState([]);
+    const [summaryCards, setSummaryCards] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
@@ -77,12 +80,15 @@ const SessionsList = () => {
             const isSuccess = response.code === 200 || Number(response.status) === 1;
             if (isSuccess) {
                 const rows = Array.isArray(response?.data) ? response.data : [];
-                setSessionList(rows.map(normalizePartnerSessionListRow));
+                const normalized = rows.map(normalizePartnerSessionListRow);
+                setSessionList(normalized);
+                setSummaryCards(buildPartnerSessionSummaryCards(response, normalized));
                 setTotalPages(response?.total_page || 1);
                 setTotalCount(response?.total ?? rows.length);
             } else {
                 console.log('error in partner-session-list api', response);
                 setSessionList([]);
+                setSummaryCards(buildPartnerSessionSummaryCards({}, []));
             }
             setLoading(false);
         });
@@ -122,10 +128,13 @@ const SessionsList = () => {
             />
             {loading ? (
                 <Loader />
-            ) : sessionList.length === 0 ? (
-                <EmptyList tableHeaders={TABLE_HEADERS} message="No data available" />
             ) : (
                 <>
+                    <SessionsDashboardCards details={summaryCards} />
+                    {sessionList.length === 0 ? (
+                        <EmptyList tableHeaders={TABLE_HEADERS} message="No data available" />
+                    ) : (
+                    <>
                     <List
                         tableHeaders={TABLE_HEADERS}
                         pageHeading="Live Sessions"
@@ -144,6 +153,8 @@ const SessionsList = () => {
                         totalPages={totalPages}
                         onPageChange={handlePageChange}
                     />
+                    </>
+                    )}
                 </>
             )}
         </div>
