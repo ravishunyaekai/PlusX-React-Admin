@@ -75,7 +75,7 @@ const SubHeader = ({ heading, fetchFilteredData, dynamicFilters, filterValues, a
         setIsFilterAccordionOpen(!isFilterAccordionOpen);
         setIsSearchAccordionOpen(false);
     };
-    const shouldShowFilterButtonArr = [  "Offer List", "Time Slot List" , "Register Interest List","Ev Buy & Sell List","Mobile & Portable EV Charging Service List",'Ev Specialized Shop List', "Ev Specialized Shop Service List", "Ev Specialized Shop Brand List","Ev Discussion Board List", "Ev Rider Clubs List" ,  "Notification List", "Electric Cars Leasing List", "Electric Bikes Leasing List", "EV Guide List", 'Bike List', 'Swipe Station List', 'EV Charger Brand List',"Community List", "Vendor List", "Alerts & Notifications", "Charging Sessions"]
+    const shouldShowFilterButtonArr = [  "Offer List", "Time Slot List" , "Register Interest List","Ev Buy & Sell List","Mobile & Portable EV Charging Service List",'Ev Specialized Shop List', "Ev Specialized Shop Service List", "Ev Specialized Shop Brand List","Ev Discussion Board List", "Ev Rider Clubs List" ,  "Notification List", "Electric Cars Leasing List", "Electric Bikes Leasing List", "EV Guide List", 'Bike List', 'Swipe Station List', 'EV Charger Brand List',"Community List", "Vendor List", "Charging Sessions"]
     const shouldShowFilterButton = !shouldShowFilterButtonArr.includes(heading)
 
     const shouldShowSearchButtonArr = [ "Ev Road Assistance Invoice List" , "Pick & Drop Invoice List", "Notification List", "Ev Buy Sell List", "Offer List", "Pick & Drop Time Slot List","Mobile & Portable EV Charging Service Slot List" ,"Time Slot List",'Top Rated Area',"Community List", "Vendor List", "Charging Sessions"]

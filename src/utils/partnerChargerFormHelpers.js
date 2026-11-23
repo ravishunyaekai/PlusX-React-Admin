@@ -98,3 +98,81 @@ export const stationSelectOption = (stationId, stationName, options = []) => {
         label : name || (matched?.label !== id ? matched?.label : '') || id,
     };
 };
+
+export const normalizePartnerSessionListRow = (row = {}) => ({
+    ...row,
+    session_id         : row.session_id ?? '',
+    display_session_id : row.display_session_id ?? (row.session_id ? `S-${row.session_id}` : ''),
+    charger_id         : row.charger_id ?? '',
+    station_name       : row.station_name ?? row.station_id ?? '',
+    start_time         : row.start_time ?? '',
+    duration           : row.duration ?? '',
+    status             : row.status ?? row.latest_status ?? '—',
+});
+
+export const buildPartnerSessionListRequest = (userDetails, page, appliedFilters = {}) => {
+    const payload = {
+        userId  : userDetails?.user_id,
+        email   : userDetails?.email,
+        page_no : page,
+    };
+    const search = String(appliedFilters.search_text ?? '').trim();
+    const stationId = String(appliedFilters.station_id ?? '').trim();
+    if (search) payload.search_text = search;
+    if (stationId) payload.station_id = stationId;
+    if (appliedFilters.start_date && appliedFilters.end_date) {
+        payload.start_date = appliedFilters.start_date;
+        payload.end_date = appliedFilters.end_date;
+    }
+    return payload;
+};
+
+export const readPartnerSessionDetails = (data = {}) => {
+    const samples = Array.isArray(data.meter_samples) ? data.meter_samples : [];
+    const latestSample = samples.length ? samples[samples.length - 1] : {};
+    return {
+        display_session_id : data.display_session_id ?? (data.session_id ? `S-${data.session_id}` : ''),
+        session_id         : data.session_id ?? '',
+        charger_id         : data.charger_id ?? '',
+        station_id         : data.station_id ?? '',
+        station_name       : data.station_name ?? '',
+        user               : data.user ?? '',
+        start_time         : data.start_time ?? '',
+        end_time           : data.end_time ?? '',
+        duration           : data.duration ?? '',
+        status             : data.latest_status ?? '',
+        error_code         : data.latest_error_code ?? '',
+        energy_kwh         : data.energy_kwh,
+        voltage            : latestSample.voltage,
+        current            : latestSample.current,
+        power              : latestSample.power,
+        events             : data.events ?? [],
+        meter_samples      : samples,
+    };
+};
+
+export const normalizePartnerAlertListRow = (row = {}) => ({
+    ...row,
+    alert_id     : row.alert_id ?? row.id ?? '',
+    time         : row.created_at ?? row.updated_at ?? '',
+    message      : row.title ?? row.alert_type ?? row.error_code ?? '—',
+    station_name : row.station_name ?? row.station_id ?? '',
+    charger_id   : row.charger_id ?? '',
+    severity     : row.severity ?? '',
+    admin_status : row.admin_status ?? '',
+});
+
+export const buildPartnerAlertListRequest = (userDetails, page, appliedFilters = {}) => {
+    const payload = {
+        userId  : userDetails?.user_id,
+        email   : userDetails?.email,
+        page_no : page,
+    };
+    const search = String(appliedFilters.search_text ?? '').trim();
+    const adminStatus = String(appliedFilters.admin_status ?? '').trim();
+    const severity = String(appliedFilters.severity ?? '').trim();
+    if (search) payload.search_text = search;
+    if (adminStatus) payload.admin_status = adminStatus;
+    if (severity) payload.severity = severity;
+    return payload;
+};

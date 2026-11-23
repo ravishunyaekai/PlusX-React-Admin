@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { APIProvider, Map, AdvancedMarker } from "@vis.gl/react-google-maps";
-import PublicChargerIcon from "../../../../assets/images/DashboardCardIcons/Total Public Chargers.svg";
+import PodRedIcon from "../../../../assets/images/pod and truck icon filled/Pod Red Filled Icon – 2.png";
+import PodGreenIcon from "../../../../assets/images/pod and truck icon filled/Pod Green Filled Icon – 3.png";
+import PodYellowIcon from "../../../../assets/images/pod and truck icon filled/Pod Yellow Filled Icon – 1.png";
 import Cancel from "../../../../assets/images/Cancel.svg";
 import style from "./Map.module.css";
 
@@ -39,6 +41,18 @@ const withOverlapOffset = (stations) => {
         };
         return { station, position };
     });
+};
+
+/** Same POD icon palette as `src/components/Dashboard/Map/NewMap.jsx`. */
+const stationMarkerIcon = (adminStatus) => {
+    const status = String(adminStatus ?? "").trim().toLowerCase();
+    if (status === "faulty" || status === "inactive" || status.includes("maintenance")) {
+        return PodRedIcon;
+    }
+    if (status === "charging") {
+        return PodGreenIcon;
+    }
+    return PodYellowIcon;
 };
 
 const averageCenter = (positions) => {
@@ -106,10 +120,10 @@ function MapComponent({ stations = [] }) {
                                 className={style.makerSection}
                             >
                                 <img
-                                    src={PublicChargerIcon}
-                                    alt=""
+                                    src={stationMarkerIcon(station.admin_status)}
+                                    alt="Partner charging station"
                                     className={style.customIcon}
-                                    style={{ width: "48px", height: "48px" }}
+                                    style={{ width: "40px", height: "40px" }}
                                 />
                             </AdvancedMarker>
                         ))}

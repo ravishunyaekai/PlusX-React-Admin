@@ -740,7 +740,7 @@ const router = createBrowserRouter([
                         element: <SessionsList />,
                     }, 
                     {
-                        path: "sessions-details/:sessionId",
+                        path: "sessions-details/:chargerId/:sessionId",
                         element: <SessionDetails />,
                     }, 
                     {

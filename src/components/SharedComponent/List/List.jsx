@@ -142,7 +142,9 @@ const List = ({ list, tableHeaders, listData, keyMapping, pageHeading, onDeleteS
             edit_url : '/ev-road-assistance/edit-van', detail_url : '/ev-road-assistance/van-details', detail_id : 'pod_id'
         },
         'Live Sessions' : {
-            detail_url : '/partners/sessions-details', detail_id : 'session_id'
+            detail_url : '/partners/sessions-details',
+            detail_id : 'session_id',
+            detail_secondary_id : 'charger_id',
         },
         'Stations' : {
             edit_url : '/partners/edit-station', detail_url : '/partners/stations-details', detail_id : 'station_id'
@@ -152,6 +154,20 @@ const List = ({ list, tableHeaders, listData, keyMapping, pageHeading, onDeleteS
         },
     }
     const pageConfig = detailsObject[pageHeading] || { edit_url : '', detail_url : '', detail_id : '' };
+
+    const handleDetailNavigation = (data) => {
+        if (!pageConfig.detail_url) return;
+        if (pageConfig.detail_secondary_id) {
+            const chargerId = data[pageConfig.detail_secondary_id];
+            const sessionId = data[pageConfig.detail_id];
+            if (chargerId != null && sessionId != null && chargerId !== '' && sessionId !== '') {
+                navigate(`${pageConfig.detail_url}/${chargerId}/${sessionId}`);
+            }
+            return;
+        }
+        handleClickEvent(pageConfig.detail_url, data[pageConfig.detail_id]);
+    };
+
     return (
         <div className={styles.containerCharger}>
             <table className={styles.table}>
@@ -201,7 +217,7 @@ const List = ({ list, tableHeaders, listData, keyMapping, pageHeading, onDeleteS
                                     { pageHeading !== 'Charging Packages List' && (
                                         <>
                                             { pageConfig.detail_url && (
-                                                <img src={View} alt="view" onClick={() => handleClickEvent(pageConfig.detail_url, data[pageConfig.detail_id]) } />
+                                                <img src={View} alt="view" onClick={() => handleDetailNavigation(data)} />
                                             )}
                                             { departmentId == 1 && pageConfig.edit_url && (
                                                 <img src={Edit} alt='edit' onClick={() => handleClickEvent(pageConfig.edit_url, data[pageConfig.detail_id])} />
