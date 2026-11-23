@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import List from '../../SharedComponent/List/List';
 import SubHeader from '../../SharedComponent/SubHeader/SubHeader';
 import Pagination from '../../SharedComponent/Pagination/Pagination';
@@ -11,21 +11,7 @@ import {
     normalizePartnerAlertListRow,
 } from '../../../utils/partnerChargerFormHelpers';
 
-const severityOptions = [
-    { value: 'low',      label: 'Low' },
-    { value: 'medium',   label: 'Medium' },
-    { value: 'high',     label: 'High' },
-    { value: 'critical', label: 'Critical' },
-];
-
-const alertStatusOptions = [
-    { value: 'Open',      label: 'Open' },
-    { value: 'Active',    label: 'Active' },
-    { value: 'Resolved',  label: 'Resolved' },
-    { value: 'Closed',    label: 'Closed' },
-];
-
-const TABLE_HEADERS = ['Time', 'Message', 'Station Name', 'Charger ID', 'Severity', 'Status'];
+const TABLE_HEADERS = ['Time', 'Message', 'Station Name', 'Charger ID'];
 
 const AlertList = () => {
     const userDetails = JSON.parse(sessionStorage.getItem('userDetails'));
@@ -35,9 +21,7 @@ const AlertList = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
     const [filters, setFilters] = useState({
-        search_text  : '',
-        admin_status : '',
-        severity     : '',
+        search_text : '',
     });
     const [loading, setLoading] = useState(true);
 
@@ -46,21 +30,6 @@ const AlertList = () => {
         name  : 'search_text',
         type  : 'text',
     }];
-
-    const dynamicFilters = useMemo(() => ([
-        {
-            label   : 'Status',
-            name    : 'admin_status',
-            type    : 'select',
-            options : [{ value: '', label: 'All Status' }, ...alertStatusOptions],
-        },
-        {
-            label   : 'Severity',
-            name    : 'severity',
-            type    : 'select',
-            options : [{ value: '', label: 'All Severity' }, ...severityOptions],
-        },
-    ]), []);
 
     const fetchList = (page, appliedFilters = {}) => {
         setLoading(true);
@@ -108,7 +77,6 @@ const AlertList = () => {
                 filterValues={filters}
                 fetchFilteredData={fetchFilteredData}
                 searchTerm={searchTerm}
-                dynamicFilters={dynamicFilters}
                 count={totalCount}
             />
             {loading ? (
@@ -126,8 +94,6 @@ const AlertList = () => {
                             { key: 'message',      label: 'Message' },
                             { key: 'station_name', label: 'Station Name' },
                             { key: 'charger_id',   label: 'Charger ID' },
-                            { key: 'severity',     label: 'Severity' },
-                            { key: 'admin_status', label: 'Status' },
                         ]}
                     />
                     <Pagination

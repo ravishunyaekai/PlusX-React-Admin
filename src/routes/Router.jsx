@@ -748,7 +748,7 @@ const router = createBrowserRouter([
                         element: <PartnerStationList />,
                     }, 
                     {
-                        path: "stations-details/:stationID",
+                        path: "stations-details/:stationId",
                         element: <ParnterStationDetails />,
                     }, 
                     {

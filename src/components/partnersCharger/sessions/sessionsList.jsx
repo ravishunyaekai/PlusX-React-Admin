@@ -10,6 +10,7 @@ import {
     buildPartnerSessionListRequest,
     mapStationListToOptions,
     normalizePartnerSessionListRow,
+    PARTNER_SESSION_STATUS_OPTIONS,
 } from '../../../utils/partnerChargerFormHelpers';
 
 const TABLE_HEADERS = ['Session ID', 'Charger ID', 'Station Name', 'Start Time', 'Duration', 'Status', 'Action'];
@@ -26,6 +27,7 @@ const SessionsList = () => {
         end_date    : null,
         station_id  : '',
         search_text : '',
+        status      : '',
     });
     const [loading, setLoading] = useState(true);
     const [stationFilterOptions, setStationFilterOptions] = useState([
@@ -44,6 +46,12 @@ const SessionsList = () => {
             name    : 'station_id',
             type    : 'select',
             options : stationFilterOptions,
+        },
+        {
+            label   : 'Status',
+            name    : 'status',
+            type    : 'select',
+            options : [{ value: '', label: 'All Status' }, ...PARTNER_SESSION_STATUS_OPTIONS],
         },
     ]), [stationFilterOptions]);
 

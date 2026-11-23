@@ -110,6 +110,66 @@ export const normalizePartnerSessionListRow = (row = {}) => ({
     status             : row.status ?? row.latest_status ?? '—',
 });
 
+export const PARTNER_STATION_ADMIN_STATUS_OPTIONS = [
+    { value: 'Active',            label: 'Active' },
+    { value: 'Inactive',          label: 'Inactive' },
+    { value: 'Pending approval',  label: 'Pending approval' },
+    { value: 'Under maintenance', label: 'Under maintenance' },
+];
+
+export const PARTNER_CHARGER_ADMIN_STATUS_OPTIONS = [
+    { value: 'Active',              label: 'Active' },
+    { value: 'Pending Connection',  label: 'Pending Connection' },
+    { value: 'Available',           label: 'Available' },
+    { value: 'Charging',            label: 'Charging' },
+    { value: 'Faulty',              label: 'Faulty' },
+    { value: 'Inactive',            label: 'Inactive' },
+];
+
+export const PARTNER_SESSION_STATUS_OPTIONS = [
+    { value: 'Available',  label: 'Available' },
+    { value: 'Charging',   label: 'Charging' },
+    { value: 'Completed',  label: 'Completed' },
+    { value: 'Faulted',    label: 'Faulted' },
+    { value: 'Faulty',     label: 'Faulty' },
+];
+
+export const buildPartnerStationListRequest = (userDetails, page, appliedFilters = {}) => {
+    const payload = {
+        userId  : userDetails?.user_id,
+        email   : userDetails?.email,
+        page_no : page,
+    };
+    const search = String(appliedFilters.search_text ?? '').trim();
+    const adminStatus = String(appliedFilters.admin_status ?? '').trim();
+    if (search) payload.search_text = search;
+    if (adminStatus) payload.admin_status = adminStatus;
+    if (appliedFilters.start_date && appliedFilters.end_date) {
+        payload.start_date = appliedFilters.start_date;
+        payload.end_date = appliedFilters.end_date;
+    }
+    return payload;
+};
+
+export const buildPartnerChargerListRequest = (userDetails, page, appliedFilters = {}) => {
+    const payload = {
+        userId  : userDetails?.user_id,
+        email   : userDetails?.email,
+        page_no : page,
+    };
+    const search = String(appliedFilters.search_text ?? '').trim();
+    const stationId = String(appliedFilters.station_id ?? '').trim();
+    const adminStatus = String(appliedFilters.admin_status ?? '').trim();
+    if (search) payload.search_text = search;
+    if (stationId) payload.station_id = stationId;
+    if (adminStatus) payload.admin_status = adminStatus;
+    if (appliedFilters.start_date && appliedFilters.end_date) {
+        payload.start_date = appliedFilters.start_date;
+        payload.end_date = appliedFilters.end_date;
+    }
+    return payload;
+};
+
 export const buildPartnerSessionListRequest = (userDetails, page, appliedFilters = {}) => {
     const payload = {
         userId  : userDetails?.user_id,
@@ -118,8 +178,10 @@ export const buildPartnerSessionListRequest = (userDetails, page, appliedFilters
     };
     const search = String(appliedFilters.search_text ?? '').trim();
     const stationId = String(appliedFilters.station_id ?? '').trim();
+    const status = String(appliedFilters.status ?? '').trim();
     if (search) payload.search_text = search;
     if (stationId) payload.station_id = stationId;
+    if (status) payload.status = status;
     if (appliedFilters.start_date && appliedFilters.end_date) {
         payload.start_date = appliedFilters.start_date;
         payload.end_date = appliedFilters.end_date;
@@ -151,15 +213,56 @@ export const readPartnerSessionDetails = (data = {}) => {
     };
 };
 
-export const normalizePartnerAlertListRow = (row = {}) => ({
+/** Alert list: show clock time only (no calendar date). */
+export const formatAlertListTimeOnly = (value) => {
+    const s = String(value ?? '').trim();
+    if (!s) return '—';
+    const timePart = s.includes(' ') ? s.split(' ').pop() : s;
+    const [hour, minute, second] = timePart.split(':').map((p) => Number(p));
+    if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
+        return timePart;
+    }
+    const date = new Date();
+    date.setHours(hour, minute, Number.isFinite(second) ? second : 0, 0);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+};
+
+export const normalizePartnerAlertListRow = (row = {}) => {
+    const rawTime = row.time ?? row.created_at ?? row.updated_at ?? '';
+    return {
     ...row,
     alert_id     : row.alert_id ?? row.id ?? '',
-    time         : row.created_at ?? row.updated_at ?? '',
-    message      : row.title ?? row.alert_type ?? row.error_code ?? '—',
+    time         : formatAlertListTimeOnly(rawTime),
+    message      : row.message ?? row.title ?? row.alert_type ?? row.error_code ?? '—',
     station_name : row.station_name ?? row.station_id ?? '',
     charger_id   : row.charger_id ?? '',
     severity     : row.severity ?? '',
     admin_status : row.admin_status ?? '',
+    };
+};
+
+/** Normalize partner-station-details API `data` for display */
+export const readPartnerStationDetails = (data = {}) => ({
+    station_id       : data.station_id ?? '',
+    station_name     : data.station_name ?? '',
+    station_type     : data.station_type ?? '',
+    operator_name    : data.operator_name ?? '',
+    admin_status     : data.admin_status ?? '',
+    no_of_chargers   : data.number_of_chargers ?? data.charger_count ?? data.no_of_chargers ?? '',
+    address          : data.address ?? '',
+    city             : data.city ?? '',
+    emirate          : data.state_emirate ?? data.emirates ?? data.emirate ?? '',
+    country          : data.country ?? '',
+    postal_code      : data.postal_code ?? '',
+    lat              : data.latitude ?? data.lat ?? '',
+    long             : data.longitude ?? data.long ?? '',
+    contact_person   : data.contact_person ?? '',
+    contact_number   : data.contact_number ?? '',
+    operation_hour   : data.operating_hours ?? data.operating_hour ?? '',
+    master_email     : data.master_email ?? '',
+    description      : data.description ?? '',
+    created_at       : data.created_at ?? '',
+    updated_at       : data.updated_at ?? '',
 });
 
 export const buildPartnerAlertListRequest = (userDetails, page, appliedFilters = {}) => {

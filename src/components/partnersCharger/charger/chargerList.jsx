@@ -6,6 +6,10 @@ import { postRequestWithToken } from '../../../api/Requests';
 import { useNavigate } from 'react-router-dom';
 import Loader from "../../SharedComponent/Loader/Loader";
 import EmptyList from '../../SharedComponent/EmptyList/EmptyList';
+import {
+    buildPartnerChargerListRequest,
+    PARTNER_CHARGER_ADMIN_STATUS_OPTIONS,
+} from '../../../utils/partnerChargerFormHelpers';
 
 // export const chargingStatusOptions = [
 //     { value: 'charging',    label: 'Charging' },
@@ -21,10 +25,11 @@ const ChargerList = () => {
     const [totalPages, setTotalPages]     = useState(1);
     const [totalCount, setTotalCount]     = useState(0);
     const [filters, setFilters]           = useState({
-        start_date   : null,
-        end_date     : null,
-        station_id : '',
-        search_text  : '',
+        start_date    : null,
+        end_date      : null,
+        station_id    : '',
+        search_text   : '',
+        admin_status  : '',
     });
     const [loading, setLoading]           = useState(false);
     // const [stationFilterOptions, setStationFilterOptions] = useState([
@@ -38,21 +43,14 @@ const ChargerList = () => {
         type  : 'text'
     }];
 
-    // Chargers FILTER (new): community dropdown filter — sent as community_id to charger-list API
-    // const dynamicFilters = useMemo(() => ([
-    //     {
-    //         label   : 'Station',
-    //         name    : 'station_id',
-    //         type    : 'select',
-    //         options : stationFilterOptions,
-    //     },
-    //     {
-    //         label   : 'Session Status',
-    //         name    : 'status',
-    //         type    : 'select',
-    //         options : [{ value: '', label: 'All Status' }, ...chargingStatusOptions],
-    //     },
-    // ]), [stationFilterOptions]);
+    const dynamicFilters = useMemo(() => ([
+        {
+            label   : 'Status',
+            name    : 'admin_status',
+            type    : 'select',
+            options : [{ value: '', label: 'All Status' }, ...PARTNER_CHARGER_ADMIN_STATUS_OPTIONS],
+        },
+    ]), []);
 
     const addButtonProps = {
         heading : "Add Charger",
@@ -86,12 +84,7 @@ const ChargerList = () => {
         } else {
             setLoading(true);
         } 
-        const obj = {
-            userId  : userDetails?.user_id,
-            email   : userDetails?.email,
-            page_no : page,
-            ...appliedFilters,
-        }
+        const obj = buildPartnerChargerListRequest(userDetails, page, appliedFilters);
         postRequestWithToken('partner-charger-list', obj, async (response) => {
             const isSuccess = response.code === 200 || Number(response.status) === 1;
             if (isSuccess) {
@@ -145,7 +138,7 @@ const ChargerList = () => {
                 filterValues          = {filters}
                 fetchFilteredData     = {fetchFilteredData} 
                 searchTerm            = {searchTerm}
-                // dynamicFilters        = {dynamicFilters}
+                dynamicFilters        = {dynamicFilters}
                 count                 = {totalCount}    
             />
             {loading ? <Loader /> :

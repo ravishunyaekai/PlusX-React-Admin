@@ -6,6 +6,10 @@ import { postRequestWithToken } from '../../../api/Requests';
 import { useNavigate } from 'react-router-dom';
 import Loader from "../../SharedComponent/Loader/Loader";
 import EmptyList from '../../SharedComponent/EmptyList/EmptyList';
+import {
+    buildPartnerStationListRequest,
+    PARTNER_STATION_ADMIN_STATUS_OPTIONS,
+} from '../../../utils/partnerChargerFormHelpers';
 
 // export const chargingStatusOptions = [
 //     { value: 'charging',    label: 'Charging' },
@@ -25,7 +29,7 @@ const normalizePartnerStationRow = (row = {}) => ({
     station_name : row.station_name ?? '',
     city         : row.city ?? '',
     contact_no   : row.contact_no ?? row.contact_number ?? '',
-    chargers     : row.chargers ?? row.number_of_chargers ?? '',
+    charger_count : row.charger_count ?? row.chargers ?? row.number_of_chargers ?? '',
     status       : row.admin_status ?? formatStationStatus(row.status),
 });
 
@@ -37,10 +41,10 @@ const StationList = () => {
     const [totalPages, setTotalPages]     = useState(1);
     const [totalCount, setTotalCount]     = useState(0);
     const [filters, setFilters]           = useState({
-        start_date   : null,
-        end_date     : null,
-        station_id : '',
-        search_text  : '',
+        start_date    : null,
+        end_date      : null,
+        search_text   : '',
+        admin_status  : '',
     });
     const [loading, setLoading]           = useState(false);
     // const [stationFilterOptions, setStationFilterOptions] = useState([
@@ -54,15 +58,14 @@ const StationList = () => {
         type  : 'text'
     }];
 
-    // Stations FILTER (new): community dropdown filter — sent as community_id to Stations-list API
-    // const dynamicFilters = useMemo(() => ([
-    //     {
-    //         label   : 'Session Status',
-    //         name    : 'status',
-    //         type    : 'select',
-    //         options : [{ value: '', label: 'All Status' }, ...chargingStatusOptions],
-    //     },
-    // ]), [stationFilterOptions]);
+    const dynamicFilters = useMemo(() => ([
+        {
+            label   : 'Status',
+            name    : 'admin_status',
+            type    : 'select',
+            options : [{ value: '', label: 'All Status' }, ...PARTNER_STATION_ADMIN_STATUS_OPTIONS],
+        },
+    ]), []);
 
     const addButtonProps = {
         heading : "Add Station",
@@ -96,12 +99,7 @@ const StationList = () => {
         } else {
             setLoading(true);
         } 
-        const obj = {
-            userId  : userDetails?.user_id,
-            email   : userDetails?.email,
-            page_no : page,
-            ...appliedFilters,
-        }
+        const obj = buildPartnerStationListRequest(userDetails, page, appliedFilters);
         postRequestWithToken('partner-station-list', obj, async (response) => {
             const isSuccess = response.code === 200 || Number(response.status) === 1;
             if (isSuccess) {
@@ -146,7 +144,7 @@ const StationList = () => {
                 filterValues          = {filters}
                 fetchFilteredData     = {fetchFilteredData} 
                 searchTerm            = {searchTerm}
-                // dynamicFilters        = {dynamicFilters}
+                dynamicFilters        = {dynamicFilters}
                 count                 = {totalCount}    
             />
             {loading ? <Loader /> :
@@ -166,7 +164,7 @@ const StationList = () => {
                             { key: 'station_name',      label: 'Station Name' },
                             { key: 'city',              label: 'City' },
                             { key: 'contact_no',        label: 'Contact Number' },
-                            { key: 'chargers',          label: 'Chargers' },
+                            { key: 'charger_count',     label: 'Chargers' },
                             { key: 'status',            label: 'Status' },                  
                         ]}
                     />
