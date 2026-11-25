@@ -88,6 +88,47 @@ export const readPartnerChargerDetails = (data = {}) => ({
     note               : data.installation_notes ?? data.installation_note ?? '',
 });
 
+export const buildPartnerChargerSessionHistoryRequest = (userDetails, chargerId, page = 1) => ({
+    userId       : userDetails?.user_id,
+    email        : userDetails?.email,
+    page_no      : page,
+    search_text  : String(chargerId ?? '').trim(),
+});
+
+export const mapPartnerChargerDetailsHeaderContent = (fields, display) => ({
+    charger_id         : display(fields.chargerId),
+    charger_name       : display(fields.chargerName),
+    station            : display(fields.stationName || fields.stationId),
+    admin_status       : display(fields.adminStatus),
+    input_supply       : display(fields.inputSupply),
+    max_output_voltage : fields.outputVoltage !== '' && fields.outputVoltage != null
+        ? `${fields.outputVoltage} V`
+        : '—',
+    sim_iccid          : display(fields.sim),
+    imei               : display(fields.imei),
+});
+
+/** Session history rows on charger details */
+export const mapPartnerChargerSessionHistoryRows = (rows = [], chargerId) =>
+    rows
+        .filter((row) => String(row.charger_id ?? '') === String(chargerId ?? ''))
+        .map((row) => ({
+            session_id      : row.display_session_id ?? (row.session_id ? `S-${row.session_id}` : ''),
+            session_row_id  : row.session_id ?? '',
+            charger_id      : row.charger_id ?? chargerId,
+            start_date      : row.start_time ?? '—',
+            end_date        : row.end_time ?? '—',
+            duration        : row.duration ?? '—',
+            energy          : row.energy_kwh != null ? `${row.energy_kwh} kWh` : '—',
+            status          : row.status ?? '—',
+        }));
+
+export const pickPartnerChargerLiveSession = (rows = []) => {
+    if (!rows.length) return null;
+    const charging = rows.find((row) => /^charging$/i.test(String(row.status ?? '').trim()));
+    return charging ?? rows[0];
+};
+
 export const stationSelectOption = (stationId, stationName, options = []) => {
     const id = String(stationId ?? '').trim();
     if (!id) return null;
