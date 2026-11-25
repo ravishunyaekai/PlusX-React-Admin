@@ -15,7 +15,6 @@ import {
     mapPartnerChargerSessionHistoryRows,
     pickPartnerChargerLiveSession,
     readPartnerChargerDetails,
-    readPartnerSessionDetails,
 } from '../../../utils/partnerChargerFormHelpers';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -67,27 +66,10 @@ const ChargerDetails = () => {
                 setTotalSessions(Number(response.total) || forCharger.length);
 
                 const liveSession = pickPartnerChargerLiveSession(rows);
-                if (!liveSession?.session_id) {
-                    setLiveMetrics(null);
-                    return;
-                }
-
-                postRequestWithToken(
-                    'partner-session-details',
-                    {
-                        userId,
-                        email,
-                        charger_id : liveSession.charger_id ?? chargerId,
-                        session_id : liveSession.session_id,
-                    },
-                    (detailResponse) => {
-                        if (cancelled) return;
-                        if (detailResponse.code === 200) {
-                            setLiveMetrics(readPartnerSessionDetails(detailResponse.data || {}));
-                        } else {
-                            setLiveMetrics(null);
-                        }
-                    }
+                setLiveMetrics(
+                    liveSession
+                        ? { duration: liveSession.duration ?? '' }
+                        : null
                 );
             });
         };
