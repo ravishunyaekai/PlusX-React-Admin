@@ -41,8 +41,9 @@ export const fetchDashboardDetails = createAsyncThunk(
                 postRequestWithToken("partner-chargers-dashboard", requestData, resolve);
             });
 
-            if (response.code === 200) {
-                return normalizePartnerChargersDashboard(response.data);
+            const ok = response.code === 200 || Number(response.status) === 1;
+            if (ok) {
+                return normalizePartnerChargersDashboard(response.data ?? {});
             }
             return rejectWithValue(getBackendErrorMessage(response));
         } catch {

@@ -27,15 +27,12 @@ function Index() {
     // const [filters, setFilters]         = useState({start_date: null,end_date: null});
 
     useEffect(() => {
-
-        if (!userDetails || !userDetails.access_token) {
+        if (!userDetails?.access_token) {
             navigate("/login");
             return;
         }
-        if (status === "idle") {
-            dispatch(fetchDashboardDetails());
-        }
-    }, [dispatch, status, userDetails, navigate]);
+        dispatch(fetchDashboardDetails());
+    }, [dispatch, navigate]);
 
     useEffect(() => {
         if (error) {
@@ -47,19 +44,15 @@ function Index() {
 
     // API call every 5 minute
     useEffect(() => {
-        if (!userDetails || !userDetails.access_token) {
-            navigate("/login"); 
-            return; 
+        if (!userDetails?.access_token) {
+            return;
         }
-        // Set interval to fetch details every 5 minute
         const intervalCall = setInterval(() => {
             dispatch(fetchDashboardDetails());
-        }, 300000); // 300,000 ms = 5 minutes
+        }, 300000);
 
-        return () => {
-            clearInterval(intervalCall);
-        };
-    }, [dispatch, navigate, userDetails]);
+        return () => clearInterval(intervalCall);
+    }, [dispatch]);
 
     // const fetchFilteredData = (newFilters = {}) => {
          
