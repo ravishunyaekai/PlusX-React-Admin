@@ -245,8 +245,8 @@ export const PARTNER_SESSION_STATUS_OPTIONS = [
     { value: 'Available',  label: 'Available' },
     { value: 'Charging',   label: 'Charging' },
     { value: 'Completed',  label: 'Completed' },
-    { value: 'Faulted',    label: 'Faulted' },
-    { value: 'Faulty',     label: 'Faulty' },
+    { value: 'Failed',     label: 'Failed' },
+    { value: 'Fault',      label: 'Fault' },
 ];
 
 export const buildPartnerStationListRequest = (userDetails, page, appliedFilters = {}) => {

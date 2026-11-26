@@ -131,14 +131,16 @@ const AccordionFilter = ({ type, isOpen, fetchFilteredData, dynamicFilters, filt
                                                     <Calendar handleDateChange={handleScheduleDateChange}/>
                                                 </div>  
                                             )}
-                                            { (type != 'Roadside Assistance Slot List' && type !== 'Live Sessions') && (
+                                            { type != 'Roadside Assistance Slot List' && (
                                                 <div className={`col-xl-4 col-lg-6 col-12 ${styles.filterItem}`}>
                                                     <label className={styles.filterLabel} htmlFor="date_filter">
                                                         {type === 'RSA Offline Leads'
                                                             ? 'Select Booking Date'
                                                             : type === 'Coupon List'
                                                                 ? 'End Date'
-                                                                : (type.includes('Booking') || type == 'Driver Details' ? 'Booking Date' : 'Select  Date')}
+                                                                : type === 'Live Sessions'
+                                                                    ? 'Session Date'
+                                                                    : (type.includes('Booking') || type == 'Driver Details' ? 'Booking Date' : 'Select  Date')}
                                                     </label>
                                                     <Calendar handleDateChange={handleDateChange}/>
                                                 </div>
